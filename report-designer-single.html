@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MCloud — Report Template Designer</title>
+  <style>
+/* ═══════════════════════════════════════════════════════════
+   MCloud Report Template Designer — Stylesheet
+   Professional, clean, utility-first aesthetic
+   Color palette: dark navy + electric blue + clean whites
+═══════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ── RESET & BASE ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-app      : #0f1117;
+  --bg-panel    : #161b27;
+  --bg-panel2   : #1c2336;
+  --bg-card     : #202840;
+  --bg-cell     : #242d45;
+  --bg-cell-empty:#1a2235;
+  --border      : #2d3a54;
+  --border-light: #38476a;
+
+  --accent      : #3b82f6;
+  --accent-glow : rgba(59,130,246,0.25);
+  --accent-hover: #2563eb;
+  --green       : #22c55e;
+  --red         : #ef4444;
+  --amber       : #f59e0b;
+
+  --text-primary  : #e8edf8;
+  --text-secondary: #8b9bbf;
+  --text-muted    : #4e5f85;
+
+  --font-ui    : 'DM Sans', sans-serif;
+  --font-mono  : 'JetBrains Mono', monospace;
+
+  --radius-sm  : 6px;
+  --radius-md  : 10px;
+  --radius-lg  : 16px;
+  --shadow-card: 0 4px 20px rgba(0,0,0,0.4);
+  --shadow-pop : 0 16px 48px rgba(0,0,0,0.6);
+
+  --topbar-h   : 56px;
+  --panel-w    : 260px;
+  --preview-w  : 280px;
+  --transition : 0.18s ease;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font-ui);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+/* ── SCROLLBAR ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 99px; }
+
+/* ═══════════════════════════════════════════════════════════
+   TOP BAR
+═══════════════════════════════════════════════════════════ */
+.topbar {
+  height: var(--topbar-h);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  box-shadow: 0 1px 0 var(--border);
+}
+
+.topbar-left  { display: flex; align-items: center; min-width: var(--panel-w); }
+.topbar-center{ flex: 1; display: flex; justify-content: center; }
+.topbar-right { display: flex; align-items: center; gap: 8px; min-width: var(--preview-w); justify-content: flex-end; }
+
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo-icon {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: white; font-weight: 700;
+}
+.logo-text {
+  font-size: 14px; font-weight: 600; color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+.logo-text em { font-style: normal; color: var(--text-secondary); font-weight: 400; margin-left: 4px; }
+
+.template-name-input {
+  width: 320px; max-width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  padding: 7px 14px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--transition);
+  text-align: center;
+}
+.template-name-input:focus { border-color: var(--accent); }
+.template-name-input::placeholder { color: var(--text-muted); }
+
+/* ── BUTTONS ──────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; border: none; outline: none;
+  transition: all var(--transition);
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+.btn-primary   { background: var(--accent);  color: white; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary { background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-secondary:hover { color: var(--text-primary); border-color: var(--border-light); }
+.btn-ghost     { background: transparent; color: var(--text-secondary); border: 1px solid transparent; }
+.btn-ghost:hover { color: var(--red); background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.2); }
+.btn-outline   { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.btn-outline:hover { background: var(--accent-glow); }
+.btn-danger-ghost { background: transparent; color: var(--red); border: 1px solid transparent; font-size: 12px; }
+.btn-danger-ghost:hover { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); }
+.btn-sm { padding: 5px 10px; font-size: 11px; }
+
+/* ═══════════════════════════════════════════════════════════
+   WORKSPACE LAYOUT
+═══════════════════════════════════════════════════════════ */
+.workspace {
+  display: flex;
+  height: calc(100vh - var(--topbar-h));
+  margin-top: var(--topbar-h);
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LEFT PANEL — FIELDS
+═══════════════════════════════════════════════════════════ */
+.panel {
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-fields { width: var(--panel-w); min-width: var(--panel-w); }
+.panel-preview { width: var(--preview-w); min-width: var(--preview-w); border-right: none; border-left: 1px solid var(--border); }
+
+.panel-header {
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.panel-title { font-size: 12px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.4px; text-transform: uppercase; }
+.panel-hint  { display: block; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.field-search-wrap { padding: 10px 10px 6px; flex-shrink: 0; }
+.field-search {
+  width: 100%;
+  background: var(--bg-cell);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 6px 10px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  outline: none;
+}
+.field-search:focus { border-color: var(--accent); }
+
+.field-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 8px;
+}
+
+.field-category {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 10px 4px 4px;
+}
+
+.field-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: var(--bg-cell);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+  cursor: grab;
+  transition: all var(--transition);
+  user-select: none;
+}
+.field-chip:hover { border-color: var(--accent); background: var(--bg-card); }
+.field-chip.dragging { opacity: 0.4; }
+.chip-label { font-size: 12px; color: var(--text-primary); font-weight: 500; }
+.chip-add {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; line-height: 1;
+  transition: all var(--transition);
+  cursor: pointer;
+}
+.field-chip:hover .chip-add { background: var(--accent); color: white; }
+
+/* ── CARD SETTINGS ───────────────────────────────────────── */
+.panel-section-title {
+  font-size: 10px; font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 10px 14px 6px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.card-settings {
+  padding: 4px 12px 12px;
+  flex-shrink: 0;
+}
+
+.form-row {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 0;
+}
+.form-row label { font-size: 11px; color: var(--text-secondary); white-space: nowrap; min-width: 80px; }
+
+.form-select {
+  background: var(--bg-cell);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  outline: none;
+  flex: 1;
+}
+.form-select:focus { border-color: var(--accent); }
+
+.inline-check { display: flex; align-items: center; gap: 6px; }
+.inline-check input[type="checkbox"] { accent-color: var(--accent); }
+.inline-check span { font-size: 11px; color: var(--text-secondary); }
+
+/* ═══════════════════════════════════════════════════════════
+   CENTER — CANVAS
+═══════════════════════════════════════════════════════════ */
+.canvas-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-app);
+}
+
+.canvas-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.canvas-toolbar-hint { flex: 1; font-size: 12px; color: var(--text-muted); }
+#rowCount { color: var(--accent); font-weight: 700; }
+
+.toggle-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--text-secondary);
+  cursor: pointer;
+}
+.toggle-label input { accent-color: var(--accent); }
+
+.canvas {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── EMPTY STATE ─────────────────────────────────────────── */
+.canvas-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 8px;
+  opacity: 0.4;
+}
+.empty-icon { font-size: 48px; }
+.empty-title { font-size: 16px; font-weight: 600; }
+.empty-sub { font-size: 12px; color: var(--text-secondary); text-align: center; }
+
+/* ── CANVAS ROW ──────────────────────────────────────────── */
+.canvas-row-wrap {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--transition);
+}
+.canvas-row-wrap:hover { border-color: var(--border-light); }
+.canvas-row-wrap.is-expanded { border-color: var(--amber); border-style: dashed; }
+
+.row-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-panel2);
+  border-bottom: 1px solid var(--border);
+}
+.row-badge {
+  font-size: 10px; font-weight: 700; color: var(--text-muted);
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+.row-badge-exp {
+  font-size: 10px; font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--bg-cell);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.row-badge-exp.active { background: rgba(245,158,11,0.15); color: var(--amber); border-color: var(--amber); }
+.row-badge-exp:hover  { border-color: var(--accent); color: var(--accent); }
+
+.row-actions { display: flex; gap: 4px; margin-left: auto; }
+.row-btn {
+  width: 24px; height: 24px;
+  border-radius: var(--radius-sm);
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-muted); cursor: pointer;
+  font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+}
+.row-btn:hover { background: var(--bg-card); color: var(--text-primary); border-color: var(--border-light); }
+.row-btn-del:hover { background: rgba(239,68,68,0.1); color: var(--red); border-color: var(--red); }
+.row-btn-toggle:hover { color: var(--amber); border-color: var(--amber); }
+
+/* ── CELL GRID ───────────────────────────────────────────── */
+.cell-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+}
+
+.cell {
+  background: var(--bg-cell-empty);
+  min-height: 72px;
+  position: relative;
+  transition: all var(--transition);
+}
+
+.cell-empty {
+  display: flex; align-items: center; justify-content: center;
+}
+.cell-drop-hint {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; opacity: 0.35; pointer-events: none;
+  font-size: 11px; color: var(--text-muted);
+  text-align: center; padding: 8px;
+}
+.col-label { font-size: 10px; font-weight: 600; }
+
+.cell-empty.drag-over {
+  background: var(--accent-glow);
+  border: 2px dashed var(--accent);
+  opacity: 1;
+}
+.cell-empty.drag-over .cell-drop-hint { opacity: 0.8; color: var(--accent); }
+
+.cell-filled {
+  background: var(--bg-cell);
+  cursor: pointer;
+  padding: 8px 10px;
+}
+.cell-filled:hover { background: var(--bg-card); }
+.cell-filled.drag-over { border: 2px dashed var(--accent); }
+
+.cell-content { padding-right: 28px; }
+.cell-field-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.cell-caption { font-size: 11px; color: var(--text-secondary); margin-top: 2px; font-family: var(--font-mono); }
+.cell-meta { display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap; }
+.tag {
+  font-size: 10px; padding: 1px 5px;
+  background: var(--bg-panel2); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--text-muted);
+}
+
+.cell-edit-btn, .cell-del-btn {
+  position: absolute; top: 5px;
+  width: 20px; height: 20px;
+  border-radius: 4px;
+  background: var(--bg-panel2); border: 1px solid var(--border);
+  color: var(--text-muted); font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; opacity: 0;
+  transition: all var(--transition);
+}
+.cell-filled:hover .cell-edit-btn,
+.cell-filled:hover .cell-del-btn { opacity: 1; }
+.cell-edit-btn { right: 26px; }
+.cell-del-btn  { right: 4px; }
+.cell-edit-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+.cell-del-btn:hover  { background: var(--red);    color: white; border-color: var(--red); }
+
+.cell.flash { animation: cellFlash 0.5s ease; }
+@keyframes cellFlash {
+  0%   { background: var(--accent-glow); }
+  100% { background: var(--bg-cell); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PROPERTY PANEL (slide-in from right)
+═══════════════════════════════════════════════════════════ */
+.prop-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--transition);
+}
+.prop-overlay.show { opacity: 1; pointer-events: all; }
+
+.prop-panel {
+  position: fixed;
+  top: var(--topbar-h); right: 0; bottom: 0;
+  width: 300px;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  z-index: 201;
+  display: flex; flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: var(--shadow-pop);
+}
+.prop-panel.open { transform: translateX(0); }
+
+.prop-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.prop-panel-title { font-size: 14px; font-weight: 700; }
+.prop-close {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--bg-cell); border: 1px solid var(--border);
+  color: var(--text-secondary); cursor: pointer; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+}
+.prop-close:hover { background: var(--red); color: white; border-color: var(--red); }
+
+.prop-panel-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
+
+.prop-section {
+  font-size: 10px; font-weight: 700;
+  color: var(--text-muted); letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 12px 0 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.prop-row {
+  display: flex; flex-direction: column; gap: 5px;
+  margin-bottom: 12px;
+}
+.prop-row label { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+
+.prop-input {
+  background: var(--bg-cell);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 6px 10px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  outline: none;
+  width: 100%;
+  transition: border-color var(--transition);
+}
+.prop-input:focus { border-color: var(--accent); }
+.prop-input-sm { width: 80px; }
+
+.align-btns { display: flex; gap: 4px; }
+.align-btn {
+  flex: 1; padding: 5px 4px;
+  background: var(--bg-cell);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 11px; font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--transition);
+  font-family: var(--font-ui);
+}
+.align-btn:hover { border-color: var(--accent); color: var(--accent); }
+.align-btn.active { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); }
+
+.color-row { display: flex; align-items: center; gap: 10px; }
+.prop-color {
+  width: 40px; height: 32px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  cursor: pointer; padding: 2px;
+  background: var(--bg-cell);
+}
+.color-hex { font-size: 12px; font-family: var(--font-mono); color: var(--text-secondary); }
+
+.toggle-wrap { display: flex; align-items: center; gap: 10px; }
+.prop-toggle { display: none; }
+.toggle-switch {
+  width: 36px; height: 20px;
+  background: var(--border-light);
+  border-radius: 99px;
+  position: relative; cursor: pointer;
+  transition: background var(--transition);
+  flex-shrink: 0;
+}
+.toggle-switch::after {
+  content: "";
+  position: absolute;
+  width: 14px; height: 14px;
+  background: white;
+  border-radius: 50%;
+  top: 3px; left: 3px;
+  transition: transform var(--transition);
+}
+.prop-toggle:checked + .toggle-switch { background: var(--accent); }
+.prop-toggle:checked + .toggle-switch::after { transform: translateX(16px); }
+.toggle-desc { font-size: 11px; color: var(--text-muted); }
+
+.prop-panel-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RIGHT PANEL — MOBILE PREVIEW
+═══════════════════════════════════════════════════════════ */
+.panel-preview .panel-header {
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
+}
+.preview-tabs { display: flex; gap: 4px; margin-top: 4px; }
+.preview-tab {
+  padding: 3px 10px; font-size: 11px; font-weight: 600;
+  border-radius: var(--radius-sm);
+  background: var(--bg-cell);
+  border: 1px solid var(--border);
+  color: var(--text-muted); cursor: pointer;
+  transition: all var(--transition);
+  font-family: var(--font-ui);
+}
+.preview-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+.preview-tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+.phone-shell {
+  flex: 1; display: flex; align-items: flex-start; justify-content: center;
+  padding: 16px 12px;
+  overflow-y: auto;
+}
+
+.phone-screen {
+  width: 220px;
+  background: #ffffff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 0 0 8px #1a2235, 0 0 0 10px var(--border), var(--shadow-pop);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.phone-statusbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 12px 4px;
+  background: #1565C0;
+  color: white; font-size: 9px; font-weight: 600;
+}
+.phone-appbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px;
+  background: #1976D2;
+  color: white; font-size: 11px; font-weight: 600;
+}
+.phone-back  { font-size: 14px; cursor: pointer; }
+.phone-icons { display: flex; gap: 6px; font-size: 12px; }
+.phone-title { flex: 1; text-align: center; font-size: 12px; }
+
+.phone-list {
+  background: #f5f7fa;
+  min-height: 200px;
+  padding: 8px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.phone-empty { text-align: center; padding: 24px 0; color: #aaa; font-size: 11px; }
+
+/* ── PHONE CARD ───────────────────────────────────────────── */
+.phone-card {
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  position: relative;
+}
+.phone-card.has-indicator { padding-left: 5px; }
+
+.phone-card-indicator {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 4px 0 0 4px;
+}
+.ind-green { background: #22c55e; }
+.ind-red   { background: #ef4444; }
+
+.preview-row {
+  display: flex;
+  padding: 4px 8px;
+  gap: 4px;
+}
+.preview-row:first-child { padding-top: 8px; }
+.preview-row:last-child  { padding-bottom: 8px; }
+.preview-row-expanded {
+  background: #f0f4ff;
+  border-top: 1px solid #e0e8ff;
+}
+
+.preview-cell {
+  flex: 1; display: flex; align-items: center; gap: 3px;
+  min-width: 0;
+}
+.preview-icon { font-size: 10px; flex-shrink: 0; }
+.preview-val  { font-size: 11px; color: #1a1a2e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.preview-note {
+  font-size: 10px; color: var(--text-muted);
+  text-align: center; padding: 8px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   JSON MODAL
+═══════════════════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 300;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+
+.modal {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-pop);
+  display: flex; flex-direction: column;
+  max-height: 80vh;
+  overflow: hidden;
+}
+.json-modal { width: 640px; max-width: 100%; }
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px; font-weight: 700;
+  flex-shrink: 0;
+}
+.modal-close {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--bg-cell); border: 1px solid var(--border);
+  color: var(--text-secondary); cursor: pointer; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+}
+.modal-close:hover { background: var(--red); color: white; }
+
+.modal-body { flex: 1; overflow-y: auto; padding: 14px 18px; }
+
+.json-actions { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.copy-confirm { font-size: 12px; color: var(--green); font-weight: 600; }
+
+.json-output {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.7;
+  color: #7dd3fc;
+  background: var(--bg-app);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════════ */
+.toast {
+  position: fixed; bottom: -60px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 20px;
+  font-size: 13px; font-weight: 500;
+  z-index: 999;
+  box-shadow: var(--shadow-pop);
+  transition: bottom 0.3s cubic-bezier(0.4,0,0.2,1);
+  white-space: nowrap;
+}
+.toast.show { bottom: 24px; }
+.toast-success { border-color: var(--green); color: var(--green); }
+.toast-warn    { border-color: var(--amber); color: var(--amber); }
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE (tablet fallback)
+═══════════════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .panel-fields  { width: 220px; min-width: 220px; }
+  .panel-preview { width: 240px; min-width: 240px; }
+  .phone-screen  { width: 190px; }
+}
+
+@media (max-width: 860px) {
+  .panel-preview { display: none; }
+}
+
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TOP BAR
+═══════════════════════════════════════════════════════════ -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="logo">
+      <span class="logo-icon">▦</span>
+      <span class="logo-text">MCloud <em>Template Designer</em></span>
+    </div>
+  </div>
+  <div class="topbar-center">
+    <input type="text" id="templateName" class="template-name-input" placeholder="Template Name (e.g. Ledger Format 1)" />
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-ghost" id="btnClearAll" title="Clear canvas">✕ Clear</button>
+    <button class="btn btn-secondary" id="btnPreviewJSON">{ } JSON</button>
+    <button class="btn btn-primary" id="btnSave">⬆ Save Template</button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAIN LAYOUT  :  FIELDS | CANVAS | PREVIEW
+═══════════════════════════════════════════════════════════ -->
+<div class="workspace">
+
+  <!-- ── LEFT PANEL : AVAILABLE FIELDS ── -->
+  <aside class="panel panel-fields" id="fieldPanel">
+    <div class="panel-header">
+      <span class="panel-title">📋 Available Fields</span>
+      <span class="panel-hint">Drag or click + to add</span>
+    </div>
+    <div class="field-search-wrap">
+      <input type="text" id="fieldSearch" class="field-search" placeholder="🔍 Search fields…" />
+    </div>
+    <div class="field-list" id="fieldList">
+      <!-- injected by JS -->
+    </div>
+    <div class="panel-section-title">⚙ Card Settings</div>
+    <div class="card-settings">
+      <div class="form-row">
+        <label>On Tap</label>
+        <select id="mOnTap" class="form-select">
+          <option value="">— none —</option>
+          <option value="expand" selected>expand</option>
+          <option value="navigate">navigate</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>On Double Tap</label>
+        <select id="mOnDoubleTap" class="form-select">
+          <option value="" selected>— none —</option>
+          <option value="navigate">navigate</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Indicator</label>
+        <div class="inline-check">
+          <input type="checkbox" id="indicatorShow" />
+          <span>Show</span>
+        </div>
+      </div>
+      <div class="form-row" id="indicatorFieldRow" style="display:none">
+        <label>Indicator Field</label>
+        <select id="indicatorField" class="form-select">
+          <!-- injected by JS -->
+        </select>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── CENTER : CANVAS ── -->
+  <main class="canvas-area">
+    <div class="canvas-toolbar">
+      <button class="btn btn-sm btn-outline" id="btnAddRow">+ Add Row</button>
+      <div class="canvas-toolbar-hint">
+        <span id="rowCount">0</span> rows &nbsp;·&nbsp; Drop fields into cells
+      </div>
+      <label class="toggle-label">
+        <input type="checkbox" id="toggleExpandedView" />
+        <span>Show Expanded Rows</span>
+      </label>
+    </div>
+
+    <div class="canvas" id="canvas">
+      <div class="canvas-empty" id="canvasEmpty">
+        <div class="empty-icon">⊞</div>
+        <div class="empty-title">Canvas is empty</div>
+        <div class="empty-sub">Click <strong>+ Add Row</strong> to start building your card layout</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── RIGHT PANEL : MOBILE PREVIEW ── -->
+  <aside class="panel panel-preview">
+    <div class="panel-header">
+      <span class="panel-title">📱 Live Preview</span>
+      <div class="preview-tabs">
+        <button class="preview-tab active" data-tab="normal">Normal</button>
+        <button class="preview-tab" data-tab="expanded">Expanded</button>
+      </div>
+    </div>
+    <div class="phone-shell">
+      <div class="phone-screen">
+        <div class="phone-statusbar">
+          <span>9:41</span>
+          <span>▲ ◆ ■</span>
+        </div>
+        <div class="phone-appbar">
+          <span class="phone-back">←</span>
+          <span class="phone-title">Account Ledger</span>
+          <span class="phone-icons">⚲ ⋮</span>
+        </div>
+        <div class="phone-list" id="phoneList">
+          <!-- cards injected by JS -->
+        </div>
+      </div>
+    </div>
+    <div class="preview-note">Preview uses sample data</div>
+  </aside>
+
+</div><!-- /workspace -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     FIELD PROPERTY EDITOR (slide-in panel)
+═══════════════════════════════════════════════════════════ -->
+<div class="prop-overlay" id="propOverlay"></div>
+<div class="prop-panel" id="propPanel">
+  <div class="prop-panel-header">
+    <span class="prop-panel-title" id="propPanelTitle">Field Properties</span>
+    <button class="prop-close" id="propClose">✕</button>
+  </div>
+  <div class="prop-panel-body">
+
+    <div class="prop-section">DISPLAY</div>
+
+    <div class="prop-row">
+      <label>Caption</label>
+      <input type="text" id="propCaption" class="prop-input" placeholder="e.g. Party Name" />
+    </div>
+
+    <div class="prop-row">
+      <label>Icon Caption</label>
+      <select id="propIconCaption" class="prop-input">
+        <option value="">— none —</option>
+        <option value="location">📍 location</option>
+        <option value="amount">₹ amount</option>
+        <option value="date">📅 date</option>
+        <option value="phone">📞 phone</option>
+        <option value="email">✉ email</option>
+        <option value="person">👤 person</option>
+        <option value="invoice">🧾 invoice</option>
+        <option value="stock">📦 stock</option>
+      </select>
+    </div>
+
+    <div class="prop-row">
+      <label>Text Align</label>
+      <div class="align-btns" id="propTextAlign">
+        <button class="align-btn active" data-align="left">⬛◻◻ Left</button>
+        <button class="align-btn" data-align="center">◻⬛◻ Center</button>
+        <button class="align-btn" data-align="right">◻◻⬛ Right</button>
+      </div>
+    </div>
+
+    <div class="prop-row">
+      <label>Max Lines</label>
+      <input type="number" id="propMaxLine" class="prop-input prop-input-sm" min="1" max="5" value="1" />
+    </div>
+
+    <div class="prop-section">STYLE</div>
+
+    <div class="prop-row">
+      <label>Font Size</label>
+      <input type="number" id="propFontSize" class="prop-input prop-input-sm" placeholder="14" min="8" max="32" />
+    </div>
+
+    <div class="prop-row">
+      <label>Font Weight</label>
+      <div class="align-btns" id="propFontWeight">
+        <button class="align-btn active" data-fw="normal">Normal</button>
+        <button class="align-btn" data-fw="bold">Bold</button>
+      </div>
+    </div>
+
+    <div class="prop-row">
+      <label>Font Family</label>
+      <select id="propFontFamily" class="prop-input">
+        <option value="">— default —</option>
+        <option value="Quicksand">Quicksand</option>
+        <option value="Quicksand-Bold">Quicksand-Bold</option>
+      </select>
+    </div>
+
+    <div class="prop-row">
+      <label>Text Color</label>
+      <div class="color-row">
+        <input type="color" id="propColor" class="prop-color" value="#000000" />
+        <span class="color-hex" id="propColorHex">#000000</span>
+      </div>
+    </div>
+
+    <div class="prop-section">BEHAVIOR</div>
+
+    <div class="prop-row">
+      <label>Expanded Row?</label>
+      <div class="toggle-wrap">
+        <input type="checkbox" id="propIsExpandedRow" class="prop-toggle" />
+        <label for="propIsExpandedRow" class="toggle-switch"></label>
+        <span class="toggle-desc">Only shows when card is expanded</span>
+      </div>
+    </div>
+
+  </div>
+  <div class="prop-panel-footer">
+    <button class="btn btn-danger-ghost" id="propDelete">🗑 Remove Field</button>
+    <button class="btn btn-primary" id="propApply">✓ Apply</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     JSON MODAL
+═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="jsonOverlay" style="display:none">
+  <div class="modal json-modal">
+    <div class="modal-header">
+      <span>Generated JSON — Card Layout</span>
+      <button class="modal-close" id="jsonClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="json-actions">
+        <button class="btn btn-sm btn-outline" id="btnCopyJSON">⎘ Copy</button>
+        <span class="copy-confirm" id="copyConfirm" style="display:none">✓ Copied!</span>
+      </div>
+      <pre class="json-output" id="jsonOutput"></pre>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE CONFIRM TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/**
+ * AVAILABLE FIELDS REGISTRY
+ * ─────────────────────────
+ * Each field has:
+ *   id        : unique ID used internally in the designer
+ *   label     : friendly name shown to user
+ *   dataField : backend key (R####F####) — hidden from non-technical users
+ *   defaultCaption : suggested caption when dropped
+ *   category  : grouping for the field palette
+ *
+ * In production: this list will come from an API call
+ * based on the selected Report ID.
+ */
+
+const FIELD_REGISTRY = [
+  // ── ACCOUNT / PARTY ──────────────────────────────
+  { id: "f001", label: "Party Name",     dataField: "R0001F0001", defaultCaption: "Party Name",  category: "Account" },
+  { id: "f002", label: "City",           dataField: "R0001F0002", defaultCaption: "City",         category: "Account" },
+  { id: "f003", label: "Bill No",        dataField: "R0001F0003", defaultCaption: "Bill No",      category: "Account" },
+  { id: "f004", label: "Account Group",  dataField: "R0001F0004", defaultCaption: "Group",        category: "Account" },
+  { id: "f005", label: "Amount",         dataField: "R0001F0005", defaultCaption: "Amount",       category: "Account" },
+  { id: "f006", label: "Balance",        dataField: "R0001F0006", defaultCaption: "Balance",      category: "Account" },
+  // ── TRANSACTION ──────────────────────────────────
+  { id: "f007", label: "Voucher No",     dataField: "R0001F0007", defaultCaption: "Vou No.",      category: "Transaction" },
+  { id: "f008", label: "Voucher Type",   dataField: "R0001F0008", defaultCaption: "Type",         category: "Transaction" },
+  { id: "f009", label: "Date",           dataField: "R0001F0009", defaultCaption: "Date",         category: "Transaction" },
+  { id: "f010", label: "Narration",      dataField: "R0001F0010", defaultCaption: "Narration",    category: "Transaction" },
+  { id: "f011", label: "Debit Amount",   dataField: "R0001F0011", defaultCaption: "Debit",        category: "Transaction" },
+  { id: "f012", label: "Credit Amount",  dataField: "R0001F0012", defaultCaption: "Credit",       category: "Transaction" },
+  // ── GST ──────────────────────────────────────────
+  { id: "f013", label: "GST Ass. Amount",dataField: "R0001F0013", defaultCaption: "GST Ass. Amt", category: "GST" },
+  { id: "f014", label: "SGST",           dataField: "R0001F0014", defaultCaption: "SGST",         category: "GST" },
+  { id: "f015", label: "CGST",           dataField: "R0001F0015", defaultCaption: "CGST",         category: "GST" },
+  { id: "f016", label: "IGST",           dataField: "R0001F0016", defaultCaption: "IGST",         category: "GST" },
+  { id: "f017", label: "CESS",           dataField: "R0001F0017", defaultCaption: "CESS",         category: "GST" },
+  { id: "f018", label: "Total Expense",  dataField: "R0001F0018", defaultCaption: "Total Exp.",   category: "GST" },
+  // ── STOCK ─────────────────────────────────────────
+  { id: "f019", label: "Product Name",   dataField: "R0001F0019", defaultCaption: "Product",      category: "Stock" },
+  { id: "f020", label: "Product Group",  dataField: "R0001F0020", defaultCaption: "Group",        category: "Stock" },
+  { id: "f021", label: "Quantity",       dataField: "R0001F0021", defaultCaption: "Qty",          category: "Stock" },
+  { id: "f022", label: "Rate",           dataField: "R0001F0022", defaultCaption: "Rate",         category: "Stock" },
+  { id: "f023", label: "Prod. Amount",   dataField: "R0001F0023", defaultCaption: "Prod. Amount", category: "Stock" },
+  { id: "f024", label: "UOM",            dataField: "R0001F0024", defaultCaption: "UOM",          category: "Stock" },
+  // ── ORDER ─────────────────────────────────────────
+  { id: "f025", label: "Order No",       dataField: "R0001F0025", defaultCaption: "Order No",     category: "Order" },
+  { id: "f026", label: "Order Date",     dataField: "R0001F0026", defaultCaption: "Order Date",   category: "Order" },
+  { id: "f027", label: "Order Qty",      dataField: "R0001F0027", defaultCaption: "Order Qty",    category: "Order" },
+  { id: "f028", label: "Delivered Qty",  dataField: "R0001F0028", defaultCaption: "Delivered Qty",category: "Order" },
+  { id: "f029", label: "Pending Qty",    dataField: "R0001F0029", defaultCaption: "Pending Qty",  category: "Order" },
+  // ── OUTSTANDING ───────────────────────────────────
+  { id: "f030", label: "Due Days",       dataField: "R0001F0030", defaultCaption: "D. Days",      category: "Outstanding" },
+  { id: "f031", label: "Bill Amount",    dataField: "R0001F0031", defaultCaption: "Bill Amount",  category: "Outstanding" },
+  { id: "f032", label: "Pending Amount", dataField: "R0001F0032", defaultCaption: "Pen. Amount",  category: "Outstanding" },
+];
+
+/**
+ * SAMPLE DATA for live preview
+ * These are dummy values shown in the mobile preview panel
+ */
+const SAMPLE_DATA = {
+  "R0001F0001": "ABC Private Ltd.",
+  "R0001F0002": "Ahmedabad",
+  "R0001F0003": "A/1",
+  "R0001F0004": "Sundry Debtors",
+  "R0001F0005": 2848.36,
+  "R0001F0006": 88374.49,
+  "R0001F0007": "GT/10",
+  "R0001F0008": "Sale",
+  "R0001F0009": "01/04/2026",
+  "R0001F0010": "Being goods sold",
+  "R0001F0011": 5000.00,
+  "R0001F0012": 0.00,
+  "R0001F0013": 137037.18,
+  "R0001F0014": "34.43",
+  "R0001F0015": "34.43",
+  "R0001F0016": "0.00",
+  "R0001F0017": "0.00",
+  "R0001F0018": "-84.00",
+  "R0001F0019": "EQ Prd 5%",
+  "R0001F0020": "G1",
+  "R0001F0021": "100.00",
+  "R0001F0022": "50.00",
+  "R0001F0023": "5000.00",
+  "R0001F0024": "KG",
+  "R0001F0025": "SO/1005",
+  "R0001F0026": "05/05/2024",
+  "R0001F0027": "100.00",
+  "R0001F0028": "10.00",
+  "R0001F0029": "90.00",
+  "R0001F0030": "1",
+  "R0001F0031": "4725.00",
+  "R0001F0032": "1575.30",
+};
+
+/**
+ * ICON MAP — iconCaption → emoji/symbol for preview rendering
+ */
+const ICON_MAP = {
+  location : "📍",
+  amount   : "₹",
+  date     : "📅",
+  phone    : "📞",
+  email    : "✉",
+  person   : "👤",
+  invoice  : "🧾",
+  stock    : "📦",
+};
+
+</script>
+<script>
+/**
+ * MCloud Report Template Designer — Core Logic
+ * ─────────────────────────────────────────────
+ * Architecture:
+ *   STATE  → single source of truth (rows array)
+ *   RENDER → pure function: state → DOM + preview
+ *   EVENTS → mutate state, then re-render
+ */
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+const MAX_COLS = 3;
+
+let state = {
+  templateName : "",
+  mOnTap       : "expand",
+  mOnDoubleTap : "",
+  indicator    : { isShow: false, dataField: "" },
+  rows         : [],
+  // rows[i] = { id, isExpandedRow, cols: [ null | FieldCell ] }
+  // FieldCell = { uid, fieldId, dataField, caption, iconCaption,
+  //               textAlign, maxLine, style:{color,fontSize,fontWeight,fontFamily} }
+};
+
+let _editTarget = null;   // { rowIdx, colIdx } currently open in prop panel
+let _dragFieldId = null;  // field being dragged from palette
+let _previewTab  = "normal";
+let _showExpandedInCanvas = false;
+let _cellCounter = 0;
+
+function uid() { return "c" + (++_cellCounter); }
+
+// ═══════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", () => {
+  buildFieldPalette();
+  buildIndicatorFieldSelect();
+  bindTopBar();
+  bindCanvasToolbar();
+  bindCardSettings();
+  bindPropPanel();
+  bindJSONModal();
+  bindPreviewTabs();
+  renderAll();
+});
+
+// ═══════════════════════════════════════════════════════════
+// FIELD PALETTE
+// ═══════════════════════════════════════════════════════════
+function buildFieldPalette() {
+  const list = document.getElementById("fieldList");
+  list.innerHTML = "";
+
+  const categories = [...new Set(FIELD_REGISTRY.map(f => f.category))];
+  const searchVal  = (document.getElementById("fieldSearch").value || "").toLowerCase();
+
+  categories.forEach(cat => {
+    const fields = FIELD_REGISTRY.filter(f =>
+      f.category === cat &&
+      (f.label.toLowerCase().includes(searchVal) || f.defaultCaption.toLowerCase().includes(searchVal))
+    );
+    if (!fields.length) return;
+
+    const catEl = document.createElement("div");
+    catEl.className = "field-category";
+    catEl.textContent = cat;
+    list.appendChild(catEl);
+
+    fields.forEach(f => {
+      const el = document.createElement("div");
+      el.className = "field-chip";
+      el.draggable = true;
+      el.dataset.fieldId = f.id;
+      el.innerHTML = `<span class="chip-label">${f.label}</span><span class="chip-add">+</span>`;
+
+      el.addEventListener("dragstart", e => {
+        _dragFieldId = f.id;
+        el.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "copy";
+      });
+      el.addEventListener("dragend", () => {
+        _dragFieldId = null;
+        el.classList.remove("dragging");
+      });
+      el.querySelector(".chip-add").addEventListener("click", () => {
+        addFieldToFirstEmpty(f.id);
+      });
+      list.appendChild(el);
+    });
+  });
+}
+
+document.getElementById("fieldSearch").addEventListener("input", buildFieldPalette);
+
+function buildIndicatorFieldSelect() {
+  const sel = document.getElementById("indicatorField");
+  sel.innerHTML = '<option value="">— pick field —</option>';
+  FIELD_REGISTRY.filter(f => f.category === "Account" || f.label.toLowerCase().includes("amount") || f.label.toLowerCase().includes("balance"))
+    .forEach(f => {
+      sel.innerHTML += `<option value="${f.dataField}">${f.label}</option>`;
+    });
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOP BAR
+// ═══════════════════════════════════════════════════════════
+function bindTopBar() {
+  document.getElementById("templateName").addEventListener("input", e => {
+    state.templateName = e.target.value;
+  });
+
+  document.getElementById("btnClearAll").addEventListener("click", () => {
+    if (state.rows.length === 0) return;
+    if (!confirm("Clear all rows and fields?")) return;
+    state.rows = [];
+    renderAll();
+  });
+
+  document.getElementById("btnSave").addEventListener("click", saveTemplate);
+  document.getElementById("btnPreviewJSON").addEventListener("click", openJSONModal);
+}
+
+// ═══════════════════════════════════════════════════════════
+// CANVAS TOOLBAR
+// ═══════════════════════════════════════════════════════════
+function bindCanvasToolbar() {
+  document.getElementById("btnAddRow").addEventListener("click", addRow);
+  document.getElementById("toggleExpandedView").addEventListener("change", e => {
+    _showExpandedInCanvas = e.target.checked;
+    renderCanvas();
+  });
+}
+
+function bindCardSettings() {
+  document.getElementById("mOnTap").addEventListener("change", e => { state.mOnTap = e.target.value; });
+  document.getElementById("mOnDoubleTap").addEventListener("change", e => { state.mOnDoubleTap = e.target.value; });
+  document.getElementById("indicatorShow").addEventListener("change", e => {
+    state.indicator.isShow = e.target.checked;
+    document.getElementById("indicatorFieldRow").style.display = e.target.checked ? "flex" : "none";
+    renderPreview();
+  });
+  document.getElementById("indicatorField").addEventListener("change", e => {
+    state.indicator.dataField = e.target.value;
+    renderPreview();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// ROW MANAGEMENT
+// ═══════════════════════════════════════════════════════════
+function addRow() {
+  state.rows.push({
+    id           : "row_" + Date.now(),
+    isExpandedRow: false,
+    cols         : [null, null, null],  // always 3 col slots, can be null
+  });
+  renderAll();
+}
+
+function deleteRow(rowIdx) {
+  state.rows.splice(rowIdx, 1);
+  renderAll();
+}
+
+function toggleExpandedRow(rowIdx) {
+  state.rows[rowIdx].isExpandedRow = !state.rows[rowIdx].isExpandedRow;
+  renderAll();
+}
+
+function moveRow(rowIdx, dir) {
+  const target = rowIdx + dir;
+  if (target < 0 || target >= state.rows.length) return;
+  [state.rows[rowIdx], state.rows[target]] = [state.rows[target], state.rows[rowIdx]];
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════
+// FIELD CELL MANAGEMENT
+// ═══════════════════════════════════════════════════════════
+function addFieldToCell(fieldId, rowIdx, colIdx) {
+  const field = FIELD_REGISTRY.find(f => f.id === fieldId);
+  if (!field) return;
+  state.rows[rowIdx].cols[colIdx] = {
+    uid        : uid(),
+    fieldId    : field.id,
+    dataField  : field.dataField,
+    caption    : field.defaultCaption,
+    iconCaption: "",
+    textAlign  : "left",
+    maxLine    : 1,
+    style      : { color: "", fontSize: "", fontWeight: "normal", fontFamily: "" },
+  };
+  renderAll();
+}
+
+function addFieldToFirstEmpty(fieldId) {
+  for (let r = 0; r < state.rows.length; r++) {
+    for (let c = 0; c < MAX_COLS; c++) {
+      if (!state.rows[r].cols[c]) {
+        addFieldToCell(fieldId, r, c);
+        flashCell(r, c);
+        return;
+      }
+    }
+  }
+  // No empty cell — add a new row
+  addRow();
+  addFieldToCell(fieldId, state.rows.length - 1, 0);
+}
+
+function removeFieldFromCell(rowIdx, colIdx) {
+  state.rows[rowIdx].cols[colIdx] = null;
+  renderAll();
+}
+
+function flashCell(r, c) {
+  setTimeout(() => {
+    const el = document.querySelector(`[data-row="${r}"][data-col="${c}"]`);
+    if (el) { el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 600); }
+  }, 50);
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — CANVAS
+// ═══════════════════════════════════════════════════════════
+function renderCanvas() {
+  const canvas    = document.getElementById("canvas");
+  const emptyMsg  = document.getElementById("canvasEmpty");
+  const rowCount  = document.getElementById("rowCount");
+
+  // Remove old rows (keep emptyMsg)
+  canvas.querySelectorAll(".canvas-row-wrap").forEach(el => el.remove());
+
+  rowCount.textContent = state.rows.length;
+
+  if (state.rows.length === 0) {
+    emptyMsg.style.display = "flex";
+    return;
+  }
+  emptyMsg.style.display = "none";
+
+  state.rows.forEach((row, rIdx) => {
+    if (row.isExpandedRow && !_showExpandedInCanvas) return;
+
+    const wrap = document.createElement("div");
+    wrap.className = "canvas-row-wrap" + (row.isExpandedRow ? " is-expanded" : "");
+    wrap.dataset.rowIdx = rIdx;
+
+    // Row header
+    const header = document.createElement("div");
+    header.className = "row-header";
+    header.innerHTML = `
+      <div class="row-badge">Row ${rIdx + 1}</div>
+      <div class="row-badge-exp ${row.isExpandedRow ? "active" : ""}" title="Toggle expanded row">
+        ${row.isExpandedRow ? "⤵ Expanded" : "⊞ Normal"}
+      </div>
+      <div class="row-actions">
+        <button class="row-btn" title="Move up"   data-action="up"  data-row="${rIdx}">↑</button>
+        <button class="row-btn" title="Move down" data-action="down" data-row="${rIdx}">↓</button>
+        <button class="row-btn row-btn-toggle" title="Toggle expanded" data-action="toggle" data-row="${rIdx}">⤵</button>
+        <button class="row-btn row-btn-del" title="Delete row" data-action="del" data-row="${rIdx}">✕</button>
+      </div>
+    `;
+    header.querySelector(".row-badge-exp").addEventListener("click", () => toggleExpandedRow(rIdx));
+    header.querySelectorAll("[data-action]").forEach(btn => {
+      btn.addEventListener("click", e => {
+        const a = e.currentTarget.dataset.action;
+        const r = parseInt(e.currentTarget.dataset.row);
+        if (a === "up")     moveRow(r, -1);
+        if (a === "down")   moveRow(r, 1);
+        if (a === "toggle") toggleExpandedRow(r);
+        if (a === "del")    deleteRow(r);
+      });
+    });
+
+    // Cell grid
+    const cellGrid = document.createElement("div");
+    cellGrid.className = "cell-grid";
+
+    for (let cIdx = 0; cIdx < MAX_COLS; cIdx++) {
+      const cell = row.cols[cIdx];
+      const cellEl = document.createElement("div");
+      cellEl.className = "cell" + (cell ? " cell-filled" : " cell-empty");
+      cellEl.dataset.row = rIdx;
+      cellEl.dataset.col = cIdx;
+
+      if (cell) {
+        const field = FIELD_REGISTRY.find(f => f.id === cell.fieldId);
+        const icon  = cell.iconCaption ? (ICON_MAP[cell.iconCaption] || "") : "";
+        cellEl.innerHTML = `
+          <div class="cell-content">
+            <div class="cell-field-name">${icon} ${field ? field.label : "?"}</div>
+            <div class="cell-caption">"${cell.caption}"</div>
+            <div class="cell-meta">
+              ${cell.textAlign !== "left" ? `<span class="tag">${cell.textAlign}</span>` : ""}
+              ${cell.style.fontWeight === "bold" ? '<span class="tag">bold</span>' : ""}
+              ${cell.style.fontSize ? `<span class="tag">${cell.style.fontSize}px</span>` : ""}
+            </div>
+          </div>
+          <button class="cell-edit-btn" data-row="${rIdx}" data-col="${cIdx}" title="Edit">✎</button>
+          <button class="cell-del-btn"  data-row="${rIdx}" data-col="${cIdx}" title="Remove">✕</button>
+        `;
+        cellEl.querySelector(".cell-edit-btn").addEventListener("click", e => {
+          e.stopPropagation();
+          openPropPanel(parseInt(e.currentTarget.dataset.row), parseInt(e.currentTarget.dataset.col));
+        });
+        cellEl.querySelector(".cell-del-btn").addEventListener("click", e => {
+          e.stopPropagation();
+          removeFieldFromCell(parseInt(e.currentTarget.dataset.row), parseInt(e.currentTarget.dataset.col));
+        });
+      } else {
+        cellEl.innerHTML = `
+          <div class="cell-drop-hint">
+            <span>Drop field here</span>
+            <span class="col-label">Col ${cIdx + 1}</span>
+          </div>
+        `;
+      }
+
+      // ── Drag-over / Drop on cell ──
+      cellEl.addEventListener("dragover", e => {
+        e.preventDefault();
+        cellEl.classList.add("drag-over");
+      });
+      cellEl.addEventListener("dragleave", () => cellEl.classList.remove("drag-over"));
+      cellEl.addEventListener("drop", e => {
+        e.preventDefault();
+        cellEl.classList.remove("drag-over");
+        if (_dragFieldId) {
+          addFieldToCell(_dragFieldId, rIdx, cIdx);
+          _dragFieldId = null;
+        }
+      });
+
+      cellGrid.appendChild(cellEl);
+    }
+
+    wrap.appendChild(header);
+    wrap.appendChild(cellGrid);
+    canvas.appendChild(wrap);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — MOBILE PREVIEW
+// ═══════════════════════════════════════════════════════════
+function renderPreview() {
+  const phoneList = document.getElementById("phoneList");
+  phoneList.innerHTML = "";
+
+  if (state.rows.length === 0) {
+    phoneList.innerHTML = '<div class="phone-empty">Add rows to preview</div>';
+    return;
+  }
+
+  // Render 3 sample cards to simulate a list
+  for (let sample = 0; sample < 3; sample++) {
+    const card = buildPreviewCard(sample);
+    phoneList.appendChild(card);
+  }
+}
+
+function buildPreviewCard(sampleIdx) {
+  const card = document.createElement("div");
+  card.className = "phone-card";
+
+  // Indicator
+  if (state.indicator.isShow) {
+    const val = SAMPLE_DATA[state.indicator.dataField];
+    const isPos = typeof val === "number" ? val >= 0 : true;
+    const ind = document.createElement("div");
+    ind.className = "phone-card-indicator " + (isPos ? "ind-green" : "ind-red");
+    card.appendChild(ind);
+    card.classList.add("has-indicator");
+  }
+
+  const showExpanded = _previewTab === "expanded";
+
+  state.rows.forEach(row => {
+    if (row.isExpandedRow && !showExpanded) return;
+
+    const rowEl = document.createElement("div");
+    rowEl.className = "preview-row" + (row.isExpandedRow ? " preview-row-expanded" : "");
+
+    const activeCols = row.cols.filter(c => c !== null);
+    if (activeCols.length === 0) return;
+
+    activeCols.forEach(cell => {
+      if (!cell) return;
+      const cellEl = document.createElement("div");
+      cellEl.className = "preview-cell";
+      cellEl.style.textAlign = cell.textAlign || "left";
+      if (activeCols.length === 1) cellEl.style.flex = "1";
+
+      const icon  = cell.iconCaption ? (ICON_MAP[cell.iconCaption] || "") : "";
+      let rawVal  = SAMPLE_DATA[cell.dataField];
+
+      // Format numbers
+      if (typeof rawVal === "number") {
+        rawVal = "₹ " + Math.abs(rawVal).toLocaleString("en-IN", { minimumFractionDigits: 2 });
+      }
+
+      const val = rawVal !== undefined ? rawVal : cell.caption;
+
+      // Style
+      let style = "";
+      if (cell.style.fontWeight === "bold") style += "font-weight:700;";
+      if (cell.style.fontSize)  style += `font-size:${cell.style.fontSize}px;`;
+      if (cell.style.color && cell.style.color !== "#000000") {
+        style += `color:${cell.style.color};`;
+      }
+      if (cell.maxLine > 1) style += `-webkit-line-clamp:${cell.maxLine};display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;`;
+
+      cellEl.innerHTML = `
+        ${icon ? `<span class="preview-icon">${icon}</span>` : ""}
+        <span class="preview-val" style="${style}">${val}</span>
+      `;
+      rowEl.appendChild(cellEl);
+    });
+
+    card.appendChild(rowEl);
+  });
+
+  return card;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PROPERTY PANEL
+// ═══════════════════════════════════════════════════════════
+function openPropPanel(rowIdx, colIdx) {
+  const cell = state.rows[rowIdx].cols[colIdx];
+  if (!cell) return;
+
+  _editTarget = { rowIdx, colIdx };
+
+  const field = FIELD_REGISTRY.find(f => f.id === cell.fieldId);
+  document.getElementById("propPanelTitle").textContent = field ? field.label : "Field";
+
+  document.getElementById("propCaption").value    = cell.caption || "";
+  document.getElementById("propIconCaption").value = cell.iconCaption || "";
+  document.getElementById("propMaxLine").value    = cell.maxLine || 1;
+  document.getElementById("propFontSize").value   = cell.style.fontSize || "";
+  document.getElementById("propFontFamily").value = cell.style.fontFamily || "";
+  document.getElementById("propIsExpandedRow").checked = !!cell.isExpandedRow;
+
+  // Text align buttons
+  document.querySelectorAll(".align-btn[data-align]").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.align === (cell.textAlign || "left"));
+  });
+  // Font weight buttons
+  document.querySelectorAll(".align-btn[data-fw]").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.fw === (cell.style.fontWeight || "normal"));
+  });
+  // Color
+  const hex = cell.style.color ? argbToHex(cell.style.color) : "#000000";
+  document.getElementById("propColor").value    = hex;
+  document.getElementById("propColorHex").textContent = hex;
+
+  document.getElementById("propPanel").classList.add("open");
+  document.getElementById("propOverlay").classList.add("show");
+}
+
+function closePropPanel() {
+  document.getElementById("propPanel").classList.remove("open");
+  document.getElementById("propOverlay").classList.remove("show");
+  _editTarget = null;
+}
+
+function bindPropPanel() {
+  document.getElementById("propClose").addEventListener("click", closePropPanel);
+  document.getElementById("propOverlay").addEventListener("click", closePropPanel);
+
+  document.querySelectorAll(".align-btn[data-align]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".align-btn[data-align]").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+
+  document.querySelectorAll(".align-btn[data-fw]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".align-btn[data-fw]").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+
+  document.getElementById("propColor").addEventListener("input", e => {
+    document.getElementById("propColorHex").textContent = e.target.value;
+  });
+
+  document.getElementById("propApply").addEventListener("click", applyPropPanel);
+
+  document.getElementById("propDelete").addEventListener("click", () => {
+    if (!_editTarget) return;
+    removeFieldFromCell(_editTarget.rowIdx, _editTarget.colIdx);
+    closePropPanel();
+  });
+}
+
+function applyPropPanel() {
+  if (!_editTarget) return;
+  const { rowIdx, colIdx } = _editTarget;
+  const cell = state.rows[rowIdx].cols[colIdx];
+  if (!cell) return;
+
+  cell.caption     = document.getElementById("propCaption").value.trim();
+  cell.iconCaption = document.getElementById("propIconCaption").value;
+  cell.maxLine     = parseInt(document.getElementById("propMaxLine").value) || 1;
+  cell.textAlign   = document.querySelector(".align-btn[data-align].active")?.dataset.align || "left";
+  cell.isExpandedRow = document.getElementById("propIsExpandedRow").checked;
+
+  const fw = document.querySelector(".align-btn[data-fw].active")?.dataset.fw || "normal";
+  const fs = document.getElementById("propFontSize").value;
+  const ff = document.getElementById("propFontFamily").value;
+  const colorHex = document.getElementById("propColor").value;
+
+  cell.style.fontWeight  = fw;
+  cell.style.fontSize    = fs ? parseFloat(fs) : "";
+  cell.style.fontFamily  = ff;
+  cell.style.color       = colorHex !== "#000000" ? hexToArgb(colorHex) : "0xFF000000";
+
+  closePropPanel();
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════
+// PREVIEW TABS
+// ═══════════════════════════════════════════════════════════
+function bindPreviewTabs() {
+  document.querySelectorAll(".preview-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".preview-tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      _previewTab = tab.dataset.tab;
+      renderPreview();
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// JSON GENERATION
+// ═══════════════════════════════════════════════════════════
+function generateJSON() {
+  const fieldConfigs = [];
+
+  state.rows.forEach((row, rIdx) => {
+    const columnConfig = [];
+
+    row.cols.forEach((cell, cIdx) => {
+      if (!cell) return;
+      const cfg = {
+        dataField : cell.dataField,
+        col       : cIdx + 1,
+        caption   : cell.caption,
+      };
+      if (cell.iconCaption)              cfg.iconCaption = cell.iconCaption;
+      if (cell.maxLine && cell.maxLine !== 1) cfg.maxLine = cell.maxLine;
+      if (cell.textAlign && cell.textAlign !== "left") cfg.textAlign = cell.textAlign;
+
+      // Style — only include if non-default
+      const styleObj = {};
+      if (cell.style.color && cell.style.color !== "0xFF000000") styleObj.color = cell.style.color;
+      if (cell.style.fontSize)  styleObj.fontSize   = cell.style.fontSize;
+      if (cell.style.fontWeight && cell.style.fontWeight !== "normal") styleObj.fontWeight = cell.style.fontWeight;
+      if (cell.style.fontFamily) styleObj.fontFamily = cell.style.fontFamily;
+      if (Object.keys(styleObj).length) cfg.style = styleObj;
+
+      columnConfig.push(cfg);
+    });
+
+    if (columnConfig.length === 0) return;
+
+    fieldConfigs.push({
+      isExpandedRow: row.isExpandedRow,
+      columnConfig,
+    });
+  });
+
+  const layout = {
+    layoutType : "grid",
+    gridSize   : { rows: state.rows.filter(r => !r.isExpandedRow).length },
+    indicator  : {
+      isShow    : state.indicator.isShow,
+      dataField : state.indicator.dataField || "",
+    },
+    mOnTap       : state.mOnTap || "",
+    mOnDoubleTap : state.mOnDoubleTap || "",
+    fieldConfigs,
+  };
+
+  return layout;
+}
+
+function openJSONModal() {
+  const json = generateJSON();
+  document.getElementById("jsonOutput").textContent = JSON.stringify(json, null, 2);
+  document.getElementById("jsonOverlay").style.display = "flex";
+}
+
+function bindJSONModal() {
+  document.getElementById("jsonClose").addEventListener("click", () => {
+    document.getElementById("jsonOverlay").style.display = "none";
+  });
+  document.getElementById("jsonOverlay").addEventListener("click", e => {
+    if (e.target === document.getElementById("jsonOverlay"))
+      document.getElementById("jsonOverlay").style.display = "none";
+  });
+  document.getElementById("btnCopyJSON").addEventListener("click", () => {
+    const text = document.getElementById("jsonOutput").textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const conf = document.getElementById("copyConfirm");
+      conf.style.display = "inline";
+      setTimeout(() => conf.style.display = "none", 2000);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// SAVE
+// ═══════════════════════════════════════════════════════════
+function saveTemplate() {
+  const name = document.getElementById("templateName").value.trim();
+  if (!name) { showToast("⚠ Please enter a template name first.", "warn"); return; }
+  if (state.rows.length === 0) { showToast("⚠ Canvas is empty. Add some rows.", "warn"); return; }
+
+  const payload = {
+    templateName : name,
+    cardLayout   : generateJSON(),
+    savedAt      : new Date().toISOString(),
+  };
+
+  // Simulate API call — in production: fetch('/api/save-template', { method:'POST', body: JSON.stringify(payload) })
+  console.log("SAVE PAYLOAD:", JSON.stringify(payload, null, 2));
+
+  // Store locally for demo
+  localStorage.setItem("mcloud_template_" + Date.now(), JSON.stringify(payload));
+
+  showToast(`✓ Template "${name}" saved successfully!`, "success");
+}
+
+// ═══════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════
+function renderAll() {
+  renderCanvas();
+  renderPreview();
+}
+
+function showToast(msg, type = "success") {
+  const toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.className = "toast show toast-" + type;
+  setTimeout(() => toast.className = "toast", 3000);
+}
+
+function hexToArgb(hex) {
+  const r = hex.slice(1);
+  return "0xFF" + r.toUpperCase();
+}
+
+function argbToHex(argb) {
+  if (!argb || !argb.startsWith("0xFF")) return "#000000";
+  return "#" + argb.slice(4).toLowerCase();
+}
+
+</script>
+</body>
+</html>
