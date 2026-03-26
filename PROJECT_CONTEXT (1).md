@@ -41,7 +41,7 @@ render report cards with real data.
 | Libraries   | None currently. DevExtreme CDN allowed if needed. jQuery allowed if needed. No React, No Angular, No Vue. |
 | Backend     | ASP.NET Web API / .NET Core (separate project, not in scope here) |
 | Storage     | LocalStorage (Phase 1 demo). Real: REST API POST endpoint (future) |
-| Build tool  | None. Single HTML file, open directly in browser. |
+| Build tool  | None. Open `report-designer/index.html` via local server or Live Server. |
 
 ---
 
@@ -50,22 +50,51 @@ render report cards with real data.
 ```
 project-root/
 │
-├── report-designer-single.html   ← MAIN FILE. Single self-contained file.
-│                                    CSS, JS all inlined. No external file deps
-│                                    except Google Fonts CDN.
+├── report-designer/              ← MAIN APPLICATION (modular, separated by concern)
+│   ├── index.html                   Entry point — links all CSS & JS files
+│   ├── css/
+│   │   ├── variables.css            CSS custom properties, reset, buttons
+│   │   ├── topbar.css               Top bar & logo styles
+│   │   ├── panels.css               Left panel (field palette), card settings
+│   │   ├── canvas.css               Center canvas, rows, cells, grid
+│   │   ├── property-panel.css       Slide-in property editor overlay
+│   │   ├── preview.css              Right panel, phone shell, preview cards
+│   │   ├── modal.css                JSON modal & toast notifications
+│   │   └── responsive.css           Media query breakpoints
+│   └── js/
+│       ├── data/
+│       │   └── field-registry.js    FIELD_REGISTRY, SAMPLE_DATA, ICON_MAP
+│       ├── state.js                 Application state object & constants
+│       ├── utils.js                 Shared: renderAll, showToast, color converters
+│       ├── modules/
+│       │   ├── palette.js           Field palette build, search, drag support
+│       │   ├── canvas.js            Row/cell CRUD, canvas DOM rendering
+│       │   ├── preview.js           Mobile preview rendering, tab switching
+│       │   ├── property-panel.js    Prop panel open/close/apply logic
+│       │   ├── json-modal.js        JSON generation & modal management
+│       │   └── topbar.js            Topbar bindings, card settings, save, keyboard
+│       └── app.js                   Boot orchestrator (DOMContentLoaded)
 │
-├── report-designer/              ← SEPARATED version (same code, 4 files)
-│   ├── index.html
-│   ├── css/style.css
-│   ├── js/fields.js
-│   └── js/designer.js
-│
-└── PROJECT_CONTEXT.md            ← THIS FILE. Always update after changes.
+├── PROJECT_CONTEXT (1).md        ← THIS FILE. Always update after changes.
+├── Dynamic Template Initial JSON Required Properties.pdf
+└── MCloud App Card Designs.pdf
 ```
 
-**Primary deliverable:** `report-designer-single.html` — this is what gets deployed/used.
-The `report-designer/` folder is the development copy (easier to read/edit per file).
-**Keep both in sync whenever a change is made.**
+**Primary deliverable:** `report-designer/index.html` — modular version, open via Live Server or local server.
+**`report-designer-single.html` has been removed.** The modular version is now the sole version.
+
+### JS Load Order (in index.html)
+Scripts must load in this order due to global function dependencies:
+1. `js/data/field-registry.js` — data constants
+2. `js/state.js` — state object & globals
+3. `js/utils.js` — shared utilities (used by all modules)
+4. `js/modules/palette.js` — field palette
+5. `js/modules/canvas.js` — canvas (depends on property-panel.js for openPropPanel)
+6. `js/modules/preview.js` — preview (depends on utils.js for argbToHex)
+7. `js/modules/property-panel.js` — property panel (depends on canvas.js for removeFieldFromCell)
+8. `js/modules/json-modal.js` — JSON generation
+9. `js/modules/topbar.js` — topbar, save, keyboard (depends on json-modal.js for generateJSON)
+10. `js/app.js` — boot (calls all bind/build functions)
 
 ---
 
@@ -301,14 +330,27 @@ state = {
 
 ---
 
-## 8. KEY FUNCTIONS (designer.js)
+## 8. KEY FUNCTIONS (by module)
 
+### utils.js
 | Function | Purpose |
 |---|---|
 | `renderAll()` | Re-renders canvas + preview from state |
+| `showToast(msg, type)` | Shows bottom toast notification |
+| `hexToArgb(hex)` | "#1565C0" → "0xFF1565C0" |
+| `argbToHex(argb)` | "0xFF1565C0" → "#1565c0" |
+
+### modules/palette.js
+| Function | Purpose |
+|---|---|
+| `buildFieldPalette()` | Renders field chips in left panel |
+| `buildIndicatorFieldSelect()` | Populates indicator field dropdown |
+| `bindFieldSearch()` | Binds search input to palette rebuild |
+
+### modules/canvas.js
+| Function | Purpose |
+|---|---|
 | `renderCanvas()` | Builds all row/cell DOM from state.rows |
-| `renderPreview()` | Builds phone card DOM from state.rows |
-| `buildPreviewCard(sampleIdx)` | Creates one phone card element |
 | `addRow()` | Pushes new row to state.rows |
 | `deleteRow(rowIdx)` | Splices row from state.rows |
 | `toggleExpandedRow(rowIdx)` | Flips isExpandedRow flag |
@@ -316,17 +358,38 @@ state = {
 | `addFieldToCell(fieldId, rowIdx, colIdx)` | Places field into specific cell |
 | `addFieldToFirstEmpty(fieldId)` | Auto-places field, adds row if needed |
 | `removeFieldFromCell(rowIdx, colIdx)` | Nulls a cell |
+| `flashCell(r, c)` | CSS flash animation on newly added cell |
+| `bindCanvasToolbar()` | Binds add-row button & expanded toggle |
+
+### modules/preview.js
+| Function | Purpose |
+|---|---|
+| `renderPreview()` | Builds phone card DOM from state.rows |
+| `buildPreviewCard(sampleIdx)` | Creates one phone card element |
+| `bindPreviewTabs()` | Binds Normal/Expanded tab switching |
+
+### modules/property-panel.js
+| Function | Purpose |
+|---|---|
 | `openPropPanel(rowIdx, colIdx)` | Opens property slide panel for a cell |
 | `closePropPanel()` | Closes property panel |
-| `applyPropPanel()` | Reads prop panel form → mutates cell state → renderAll |
+| `applyPropPanel()` | Reads prop panel form → mutates cell/row state → renderAll |
+| `bindPropPanel()` | Binds panel buttons & controls |
+
+### modules/json-modal.js
+| Function | Purpose |
+|---|---|
 | `generateJSON()` | Converts state → final JSON object |
 | `openJSONModal()` | Stringifies JSON → shows in modal |
+| `bindJSONModal()` | Binds modal close & copy buttons |
+
+### modules/topbar.js
+| Function | Purpose |
+|---|---|
+| `bindTopBar()` | Binds template name, clear, save, JSON buttons |
+| `bindCardSettings()` | Binds onTap, onDoubleTap, indicator controls |
 | `saveTemplate()` | Validates → saves to localStorage (demo) |
-| `buildFieldPalette()` | Renders field chips in left panel |
-| `hexToArgb(hex)` | "#1565C0" → "0xFF1565C0" |
-| `argbToHex(argb)` | "0xFF1565C0" → "#1565c0" |
-| `showToast(msg, type)` | Shows bottom toast notification |
-| `flashCell(r, c)` | CSS flash animation on newly added cell |
+| `bindKeyboard()` | Binds Escape key to close panels/modals |
 
 ---
 
@@ -407,8 +470,8 @@ Phone preview uses light theme (white cards, #1976D2 app bar — Material Design
 4. Color must be stored as ARGB string `"0xFF######"` for Flutter compatibility
 5. JSON output keys must exactly match the structure in Section 4
 6. No major JS framework (React/Angular/Vue) — jQuery + vanilla JS only
-7. Single HTML file is the primary deliverable for deployment
-8. Separated 4-file version kept in sync for development convenience
+7. `report-designer/index.html` is the primary deliverable (modular, 8 CSS + 10 JS + 1 HTML)
+8. Open via Live Server or any local HTTP server (file:// won't load separate JS/CSS)
 
 ---
 
@@ -450,5 +513,59 @@ environment without needing the separate css/ and js/ folders.
 **Files changed:** `report-designer-single.html` only.
 
 **State:** All features identical to Phase 1. Single file is self-contained.
+
+---
+
+### [2026-03-26] — Fix: 8 UI/UX Bugs
+
+**Bugs found and fixed in `report-designer-single.html`:**
+
+1. **`isExpandedRow` property mismatch** — Property panel was reading/writing `cell.isExpandedRow` instead of `row.isExpandedRow`. Toggle had no effect on JSON output or preview. Fixed to use row-level property.
+2. **Preview text color rendering broken** — `cell.style.color` stored as ARGB (`"0xFF1565C0"`) but preview compared against hex `"#000000"` and injected raw ARGB into CSS. Fixed comparison to use `"0xFF000000"` and convert via `argbToHex()` before CSS injection.
+3. **Clicking filled cell didn't open property panel** — Only the tiny pencil icon had a click handler. Added click handler on the entire `cell-filled` element.
+4. **Dropping field on filled cell silently overwrites** — No confirmation dialog. Added `confirm()` before replacing an existing field.
+5. **Escape key didn't close panels/modals** — Added global `keydown` listener for Escape key to close property panel and JSON modal.
+6. **Empty canvas state shown incorrectly** — When all rows are expanded-only and toggle is off, canvas appeared blank with no guidance. Now shows contextual message: "All rows are expanded-only."
+7. **MaxLine accepted invalid values** — `min="1" max="5"` HTML attributes only constrain stepper, not keyboard input. Added `Math.max(1, Math.min(5, ...))` clamping in `applyPropPanel`.
+8. **Expanded Row toggle description** — Updated from "Only shows when card is expanded" to "Marks this field's row as expanded-only" for clarity.
+
+**Files changed:** `report-designer-single.html`
+
+---
+
+### [2026-03-26] — Modular File Separation
+
+**What changed:**
+Separated the single-file `report-designer-single.html` into a proper modular structure under `report-designer/` for development convenience.
+
+**New file structure (16 files):**
+
+CSS modules (8 files):
+- `css/variables.css` — CSS custom properties, reset, base styles, button classes
+- `css/topbar.css` — Top bar, logo, template name input
+- `css/panels.css` — Left panel (field palette, card settings), workspace layout
+- `css/canvas.css` — Canvas area, rows, cells, cell grid, empty state
+- `css/property-panel.css` — Slide-in property editor overlay
+- `css/preview.css` — Right panel, phone shell, preview cards
+- `css/modal.css` — JSON modal dialog & toast notifications
+- `css/responsive.css` — Media query breakpoints (1100px, 860px)
+
+JS modules (7 files):
+- `js/data/field-registry.js` — FIELD_REGISTRY (32 fields), SAMPLE_DATA, ICON_MAP
+- `js/state.js` — Application state object, constants (MAX_COLS), globals (_editTarget, etc.)
+- `js/utils.js` — Shared: renderAll(), showToast(), hexToArgb(), argbToHex()
+- `js/modules/palette.js` — Field palette build, search, indicator select
+- `js/modules/canvas.js` — Row CRUD, cell CRUD, canvas rendering, drag-drop
+- `js/modules/preview.js` — Mobile preview rendering, preview tab switching
+- `js/modules/property-panel.js` — Property panel open/close/apply logic
+- `js/modules/json-modal.js` — JSON generation & modal management
+- `js/modules/topbar.js` — Topbar bindings, card settings, save, keyboard shortcuts
+- `js/app.js` — Boot orchestrator (DOMContentLoaded entry point)
+
+Entry point: `report-designer/index.html` — links all CSS and JS files in correct load order.
+
+**All bug fixes from earlier this session are included in both versions.**
+
+**State:** Both `report-designer-single.html` and `report-designer/index.html` are in sync and working.
 
 ---

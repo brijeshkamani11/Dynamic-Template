@@ -1,0 +1,12 @@
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE (tablet fallback)
+═══════════════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .panel-fields  { width: 220px; min-width: 220px; }
+  .panel-preview { width: 240px; min-width: 240px; }
+  .phone-screen  { width: 190px; }
+}
+
+@media (max-width: 860px) {
+  .panel-preview { display: none; }
+}

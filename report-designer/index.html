@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MCloud — Report Template Designer</title>
+
+  <!-- ── CSS Modules ─────────────────────────────────────── -->
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/topbar.css" />
+  <link rel="stylesheet" href="css/panels.css" />
+  <link rel="stylesheet" href="css/canvas.css" />
+  <link rel="stylesheet" href="css/property-panel.css" />
+  <link rel="stylesheet" href="css/preview.css" />
+  <link rel="stylesheet" href="css/modal.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TOP BAR
+═══════════════════════════════════════════════════════════ -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="logo">
+      <span class="logo-icon">▦</span>
+      <span class="logo-text">MCloud <em>Template Designer</em></span>
+    </div>
+  </div>
+  <div class="topbar-center">
+    <input type="text" id="templateName" class="template-name-input" placeholder="Template Name (e.g. Ledger Format 1)" />
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-ghost" id="btnClearAll" title="Clear canvas">✕ Clear</button>
+    <button class="btn btn-secondary" id="btnPreviewJSON">{ } JSON</button>
+    <button class="btn btn-primary" id="btnSave">⬆ Save Template</button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAIN LAYOUT  :  FIELDS | CANVAS | PREVIEW
+═══════════════════════════════════════════════════════════ -->
+<div class="workspace">
+
+  <!-- ── LEFT PANEL : AVAILABLE FIELDS ── -->
+  <aside class="panel panel-fields" id="fieldPanel">
+    <div class="panel-header">
+      <span class="panel-title">📋 Available Fields</span>
+      <span class="panel-hint">Drag or click + to add</span>
+    </div>
+    <div class="field-search-wrap">
+      <input type="text" id="fieldSearch" class="field-search" placeholder="🔍 Search fields…" />
+    </div>
+    <div class="field-list" id="fieldList">
+      <!-- injected by JS -->
+    </div>
+    <div class="panel-section-title">⚙ Card Settings</div>
+    <div class="card-settings">
+      <div class="form-row">
+        <label>On Tap</label>
+        <select id="mOnTap" class="form-select">
+          <option value="">— none —</option>
+          <option value="expand" selected>expand</option>
+          <option value="navigate">navigate</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>On Double Tap</label>
+        <select id="mOnDoubleTap" class="form-select">
+          <option value="" selected>— none —</option>
+          <option value="navigate">navigate</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Indicator</label>
+        <div class="inline-check">
+          <input type="checkbox" id="indicatorShow" />
+          <span>Show</span>
+        </div>
+      </div>
+      <div class="form-row" id="indicatorFieldRow" style="display:none">
+        <label>Indicator Field</label>
+        <select id="indicatorField" class="form-select">
+          <!-- injected by JS -->
+        </select>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── CENTER : CANVAS ── -->
+  <main class="canvas-area">
+    <div class="canvas-toolbar">
+      <button class="btn btn-sm btn-outline" id="btnAddRow">+ Add Row</button>
+      <div class="canvas-toolbar-hint">
+        <span id="rowCount">0</span> rows &nbsp;·&nbsp; Drop fields into cells
+      </div>
+      <label class="toggle-label">
+        <input type="checkbox" id="toggleExpandedView" />
+        <span>Show Expanded Rows</span>
+      </label>
+    </div>
+
+    <div class="canvas" id="canvas">
+      <div class="canvas-empty" id="canvasEmpty">
+        <div class="empty-icon">⊞</div>
+        <div class="empty-title">Canvas is empty</div>
+        <div class="empty-sub">Click <strong>+ Add Row</strong> to start building your card layout</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── RIGHT PANEL : MOBILE PREVIEW ── -->
+  <aside class="panel panel-preview">
+    <div class="panel-header">
+      <span class="panel-title">📱 Live Preview</span>
+      <div class="preview-tabs">
+        <button class="preview-tab active" data-tab="normal">Normal</button>
+        <button class="preview-tab" data-tab="expanded">Expanded</button>
+      </div>
+    </div>
+    <div class="phone-shell">
+      <div class="phone-screen">
+        <div class="phone-statusbar">
+          <span>9:41</span>
+          <span>▲ ◆ ■</span>
+        </div>
+        <div class="phone-appbar">
+          <span class="phone-back">←</span>
+          <span class="phone-title">Account Ledger</span>
+          <span class="phone-icons">⚲ ⋮</span>
+        </div>
+        <div class="phone-list" id="phoneList">
+          <!-- cards injected by JS -->
+        </div>
+      </div>
+    </div>
+    <div class="preview-note">Preview uses sample data</div>
+  </aside>
+
+</div><!-- /workspace -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     FIELD PROPERTY EDITOR (slide-in panel)
+═══════════════════════════════════════════════════════════ -->
+<div class="prop-overlay" id="propOverlay"></div>
+<div class="prop-panel" id="propPanel">
+  <div class="prop-panel-header">
+    <span class="prop-panel-title" id="propPanelTitle">Field Properties</span>
+    <button class="prop-close" id="propClose">✕</button>
+  </div>
+  <div class="prop-panel-body">
+
+    <div class="prop-section">DISPLAY</div>
+
+    <div class="prop-row">
+      <label>Caption</label>
+      <input type="text" id="propCaption" class="prop-input" placeholder="e.g. Party Name" />
+    </div>
+
+    <div class="prop-row">
+      <label>Icon Caption</label>
+      <select id="propIconCaption" class="prop-input">
+        <option value="">— none —</option>
+        <option value="location">📍 location</option>
+        <option value="amount">₹ amount</option>
+        <option value="date">📅 date</option>
+        <option value="phone">📞 phone</option>
+        <option value="email">✉ email</option>
+        <option value="person">👤 person</option>
+        <option value="invoice">🧾 invoice</option>
+        <option value="stock">📦 stock</option>
+      </select>
+    </div>
+
+    <div class="prop-row">
+      <label>Text Align</label>
+      <div class="align-btns" id="propTextAlign">
+        <button class="align-btn active" data-align="left">⬛◻◻ Left</button>
+        <button class="align-btn" data-align="center">◻⬛◻ Center</button>
+        <button class="align-btn" data-align="right">◻◻⬛ Right</button>
+      </div>
+    </div>
+
+    <div class="prop-row">
+      <label>Max Lines</label>
+      <input type="number" id="propMaxLine" class="prop-input prop-input-sm" min="1" max="5" value="1" />
+    </div>
+
+    <div class="prop-section">STYLE</div>
+
+    <div class="prop-row">
+      <label>Font Size</label>
+      <input type="number" id="propFontSize" class="prop-input prop-input-sm" placeholder="14" min="8" max="32" />
+    </div>
+
+    <div class="prop-row">
+      <label>Font Weight</label>
+      <div class="align-btns" id="propFontWeight">
+        <button class="align-btn active" data-fw="normal">Normal</button>
+        <button class="align-btn" data-fw="bold">Bold</button>
+      </div>
+    </div>
+
+    <div class="prop-row">
+      <label>Font Family</label>
+      <select id="propFontFamily" class="prop-input">
+        <option value="">— default —</option>
+        <option value="Quicksand">Quicksand</option>
+        <option value="Quicksand-Bold">Quicksand-Bold</option>
+      </select>
+    </div>
+
+    <div class="prop-row">
+      <label>Text Color</label>
+      <div class="color-row">
+        <input type="color" id="propColor" class="prop-color" value="#000000" />
+        <span class="color-hex" id="propColorHex">#000000</span>
+      </div>
+    </div>
+
+    <div class="prop-section">BEHAVIOR</div>
+
+    <div class="prop-row">
+      <label>Expanded Row?</label>
+      <div class="toggle-wrap">
+        <input type="checkbox" id="propIsExpandedRow" class="prop-toggle" />
+        <label for="propIsExpandedRow" class="toggle-switch"></label>
+        <span class="toggle-desc">Marks this field's row as expanded-only</span>
+      </div>
+    </div>
+
+  </div>
+  <div class="prop-panel-footer">
+    <button class="btn btn-danger-ghost" id="propDelete">🗑 Remove Field</button>
+    <button class="btn btn-primary" id="propApply">✓ Apply</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     JSON MODAL
+═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="jsonOverlay" style="display:none">
+  <div class="modal json-modal">
+    <div class="modal-header">
+      <span>Generated JSON — Card Layout</span>
+      <button class="modal-close" id="jsonClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="json-actions">
+        <button class="btn btn-sm btn-outline" id="btnCopyJSON">⎘ Copy</button>
+        <span class="copy-confirm" id="copyConfirm" style="display:none">✓ Copied!</span>
+      </div>
+      <pre class="json-output" id="jsonOutput"></pre>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE CONFIRM TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ── JS Modules ──────────────────────────────────────── -->
+<!-- Load order matters: data → state → utils → modules → app -->
+<script src="js/data/field-registry.js"></script>
+<script src="js/state.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/modules/palette.js"></script>
+<script src="js/modules/canvas.js"></script>
+<script src="js/modules/preview.js"></script>
+<script src="js/modules/property-panel.js"></script>
+<script src="js/modules/json-modal.js"></script>
+<script src="js/modules/topbar.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
