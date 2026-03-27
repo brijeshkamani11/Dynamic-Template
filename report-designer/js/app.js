@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ── 3. Check for recovery draft ──
   checkAndPromptRecovery(function(restored) {
     if (restored) {
-      // Draft was restored — we're done
+      markBootComplete();
       return;
     }
 
@@ -46,6 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
         syncUIFromState();
         renderPalette();
         renderAll();
+        markBootComplete();
         return;
       }
     }
@@ -53,5 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // ── 5. Default: fresh start ──
     syncUIFromState();
     renderAll();
+    markBootComplete();
   });
 });

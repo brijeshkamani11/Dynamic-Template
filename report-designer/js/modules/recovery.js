@@ -12,6 +12,7 @@ let _autosaveTimer = null;
 let _isDirty = false;
 let _saveStatus = "clean"; // "clean" | "dirty" | "autosaved" | "saved"
 let _lastSavedJSON = "";   // snapshot of last official save for dirty comparison
+let _bootComplete = false; // guard: no autosave during startup
 
 // ═══════════════════════════════════════════════════════════
 // DRAFT KEY HELPERS
@@ -63,11 +64,16 @@ function saveDraftNow() {
 }
 
 function scheduleDraftSave() {
+  if (!_bootComplete) return; // don't autosave during startup
   _isDirty = true;
   _saveStatus = "dirty";
   updateStatusChip();
   if (_autosaveTimer) clearTimeout(_autosaveTimer);
   _autosaveTimer = setTimeout(saveDraftNow, AUTOSAVE_DEBOUNCE_MS);
+}
+
+function markBootComplete() {
+  _bootComplete = true;
 }
 
 function saveDraftImmediate() {
@@ -87,6 +93,9 @@ function readDraft(key) {
     if (!draft || draft.schemaVersion !== DRAFT_SCHEMA_VERSION) return null;
     if (!draft.state || typeof draft.state !== "object") return null;
     if (!Array.isArray(draft.state.rows)) return null;
+    // Skip empty drafts — nothing to recover
+    const hasContent = draft.state.rows.length > 0 || (Array.isArray(draft.state.groupFields) && draft.state.groupFields.length > 0);
+    if (!hasContent) return null;
     return draft;
   } catch (e) {
     console.warn("Draft read failed:", e);
@@ -107,15 +116,29 @@ function hydrateFromDraft(draft) {
   if (!draft || !draft.state) return false;
   const s = draft.state;
 
+  // Validate rows have actual content
+  if (!Array.isArray(s.rows)) return false;
+
   state.templateName      = s.templateName || "";
   state.mOnTap            = s.mOnTap || "expand";
   state.mOnDoubleTap      = s.mOnDoubleTap || "";
-  state.indicator         = s.indicator || { isShow: false, dataField: "" };
+  state.indicator         = s.indicator ? { isShow: !!s.indicator.isShow, dataField: s.indicator.dataField || "" } : { isShow: false, dataField: "" };
   state.templateId        = s.templateId || DUMMY_TEMPLATE_ID;
   state.formatId          = s.formatId || DUMMY_FORMAT_ID;
   state.reportDisplayName = s.reportDisplayName || DUMMY_TEMPLATE_NAME;
   state.groupFields       = Array.isArray(s.groupFields) ? s.groupFields : [];
-  state.rows              = Array.isArray(s.rows) ? s.rows : [];
+  state.rows              = s.rows;
+
+  // Advance _cellCounter past any existing uids to avoid collisions
+  state.rows.forEach(row => {
+    if (!row.cols) row.cols = [];
+    row.cols.forEach(cell => {
+      if (cell && cell.uid) {
+        const num = parseInt(cell.uid.replace("c", ""), 10);
+        if (!isNaN(num) && num > _cellCounter) _cellCounter = num;
+      }
+    });
+  });
 
   // Reset transient
   _drillPath = [];
