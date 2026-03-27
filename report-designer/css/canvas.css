@@ -85,6 +85,30 @@
 .row-badge-exp.active { background: rgba(245,158,11,0.15); color: var(--amber); border-color: var(--amber); }
 .row-badge-exp:hover  { border-color: var(--accent); color: var(--accent); }
 
+/* ── ROW COLUMN CONTROLS ─────────────────────────────────── */
+.row-col-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
+}
+.row-col-count {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+  min-width: 32px;
+  text-align: center;
+}
+.row-btn-col {
+  width: 22px; height: 22px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.row-btn-col:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .row-actions { display: flex; gap: 4px; margin-left: auto; }
 .row-btn {
   width: 24px; height: 24px;
@@ -99,10 +123,9 @@
 .row-btn-del:hover { background: rgba(239,68,68,0.1); color: var(--red); border-color: var(--red); }
 .row-btn-toggle:hover { color: var(--amber); border-color: var(--amber); }
 
-/* ── CELL GRID ───────────────────────────────────────────── */
+/* ── CELL GRID (dynamic columns) ────────────────────────── */
 .cell-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
   gap: 1px;
   background: var(--border);
 }
@@ -148,6 +171,11 @@
   font-size: 10px; padding: 1px 5px;
   background: var(--bg-panel2); border: 1px solid var(--border);
   border-radius: 4px; color: var(--text-muted);
+}
+.tag-level {
+  background: rgba(99,102,241,0.1);
+  border-color: rgba(99,102,241,0.3);
+  color: var(--accent);
 }
 
 .cell-edit-btn, .cell-del-btn {

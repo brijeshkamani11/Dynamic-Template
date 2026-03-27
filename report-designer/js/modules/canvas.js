@@ -2,6 +2,7 @@
  * MCloud Report Template Designer — Canvas Module
  * ────────────────────────────────────────────────
  * Row management + canvas DOM rendering.
+ * Now supports dynamic column count per row (1 to MAX_COLS).
  * Depends on: state.js, field-registry.js, utils.js, property-panel.js (openPropPanel)
  */
 
@@ -12,7 +13,7 @@ function addRow() {
   state.rows.push({
     id           : "row_" + Date.now(),
     isExpandedRow: false,
-    cols         : [null, null, null],  // always 3 col slots, can be null
+    cols         : [null],  // start with 1 column; user adds more
   });
   renderAll();
 }
@@ -34,6 +35,29 @@ function moveRow(rowIdx, dir) {
   renderAll();
 }
 
+function addColToRow(rowIdx) {
+  const row = state.rows[rowIdx];
+  if (row.cols.length >= MAX_COLS) {
+    showToast(`Max ${MAX_COLS} columns per row.`, "warn");
+    return;
+  }
+  row.cols.push(null);
+  renderAll();
+}
+
+function removeColFromRow(rowIdx) {
+  const row = state.rows[rowIdx];
+  if (row.cols.length <= 1) {
+    showToast("Row must have at least 1 column.", "warn");
+    return;
+  }
+  // Remove the last column (warn if it has content)
+  const lastCol = row.cols[row.cols.length - 1];
+  if (lastCol && !confirm("Remove last column? Its field will be lost.")) return;
+  row.cols.pop();
+  renderAll();
+}
+
 // ═══════════════════════════════════════════════════════════
 // FIELD CELL MANAGEMENT
 // ═══════════════════════════════════════════════════════════
@@ -41,21 +65,22 @@ function addFieldToCell(fieldId, rowIdx, colIdx) {
   const field = FIELD_REGISTRY.find(f => f.id === fieldId);
   if (!field) return;
   state.rows[rowIdx].cols[colIdx] = {
-    uid        : uid(),
-    fieldId    : field.id,
-    dataField  : field.dataField,
-    caption    : field.defaultCaption,
-    iconCaption: "",
-    textAlign  : "left",
-    maxLine    : 1,
-    style      : { color: "", fontSize: "", fontWeight: "normal", fontFamily: "" },
+    uid            : uid(),
+    fieldId        : field.id,
+    dataField      : field.dataField,
+    caption        : field.defaultCaption,
+    iconCaption    : "",
+    textAlign      : "left",
+    maxLine        : 1,
+    levelVisibility: "all",   // "all" or array of level numbers e.g. [1,3]
+    style          : { color: "", fontSize: "", fontWeight: "normal", fontFamily: "" },
   };
   renderAll();
 }
 
 function addFieldToFirstEmpty(fieldId) {
   for (let r = 0; r < state.rows.length; r++) {
-    for (let c = 0; c < MAX_COLS; c++) {
+    for (let c = 0; c < state.rows[r].cols.length; c++) {
       if (!state.rows[r].cols[c]) {
         addFieldToCell(fieldId, r, c);
         flashCell(r, c);
@@ -104,28 +129,27 @@ function renderCanvas() {
 
   rowCount.textContent = state.rows.length;
 
-  // Count visible rows (expanded rows hidden when toggle is off)
+  // Count visible rows
   const visibleRows = state.rows.filter(r => !r.isExpandedRow || _showExpandedInCanvas);
 
   if (state.rows.length === 0) {
     emptyMsg.style.display = "flex";
+    emptyMsg.querySelector(".empty-title").textContent = "Canvas is empty";
+    emptyMsg.querySelector(".empty-sub").innerHTML = 'Click <strong>+ Add Row</strong> to start building your card layout';
     return;
   }
-  // Show hint when all rows are expanded-only and hidden
   if (visibleRows.length === 0) {
     emptyMsg.style.display = "flex";
     emptyMsg.querySelector(".empty-title").textContent = "All rows are expanded-only";
     emptyMsg.querySelector(".empty-sub").innerHTML = 'Enable <strong>Show Expanded Rows</strong> above to see them';
   } else {
     emptyMsg.style.display = "none";
-    // Reset to default text
-    emptyMsg.querySelector(".empty-title").textContent = "Canvas is empty";
-    emptyMsg.querySelector(".empty-sub").innerHTML = 'Click <strong>+ Add Row</strong> to start building your card layout';
   }
 
   state.rows.forEach((row, rIdx) => {
     if (row.isExpandedRow && !_showExpandedInCanvas) return;
 
+    const colCount = row.cols.length;
     const wrap = document.createElement("div");
     wrap.className = "canvas-row-wrap" + (row.isExpandedRow ? " is-expanded" : "");
     wrap.dataset.rowIdx = rIdx;
@@ -137,6 +161,11 @@ function renderCanvas() {
       <div class="row-badge">Row ${rIdx + 1}</div>
       <div class="row-badge-exp ${row.isExpandedRow ? "active" : ""}" title="Toggle expanded row">
         ${row.isExpandedRow ? "⤵ Expanded" : "⊞ Normal"}
+      </div>
+      <div class="row-col-controls">
+        <button class="row-btn row-btn-col" title="Remove column" data-action="remcol" data-row="${rIdx}"${colCount <= 1 ? " disabled" : ""}>−</button>
+        <span class="row-col-count">${colCount} col${colCount > 1 ? "s" : ""}</span>
+        <button class="row-btn row-btn-col" title="Add column" data-action="addcol" data-row="${rIdx}"${colCount >= MAX_COLS ? " disabled" : ""}>+</button>
       </div>
       <div class="row-actions">
         <button class="row-btn" title="Move up"   data-action="up"  data-row="${rIdx}">↑</button>
@@ -150,18 +179,21 @@ function renderCanvas() {
       btn.addEventListener("click", e => {
         const a = e.currentTarget.dataset.action;
         const r = parseInt(e.currentTarget.dataset.row);
-        if (a === "up")     moveRow(r, -1);
-        if (a === "down")   moveRow(r, 1);
-        if (a === "toggle") toggleExpandedRow(r);
-        if (a === "del")    deleteRow(r);
+        if (a === "up")      moveRow(r, -1);
+        if (a === "down")    moveRow(r, 1);
+        if (a === "toggle")  toggleExpandedRow(r);
+        if (a === "del")     deleteRow(r);
+        if (a === "addcol")  addColToRow(r);
+        if (a === "remcol")  removeColFromRow(r);
       });
     });
 
-    // Cell grid
+    // Cell grid — dynamic column count
     const cellGrid = document.createElement("div");
     cellGrid.className = "cell-grid";
+    cellGrid.style.gridTemplateColumns = `repeat(${colCount}, 1fr)`;
 
-    for (let cIdx = 0; cIdx < MAX_COLS; cIdx++) {
+    for (let cIdx = 0; cIdx < colCount; cIdx++) {
       const cell = row.cols[cIdx];
       const cellEl = document.createElement("div");
       cellEl.className = "cell" + (cell ? " cell-filled" : " cell-empty");
@@ -171,6 +203,9 @@ function renderCanvas() {
       if (cell) {
         const field = FIELD_REGISTRY.find(f => f.id === cell.fieldId);
         const icon  = cell.iconCaption ? (ICON_MAP[cell.iconCaption] || "") : "";
+        const visTag = cell.levelVisibility === "all"
+          ? ""
+          : `<span class="tag tag-level">L${cell.levelVisibility.join(",")}</span>`;
         cellEl.innerHTML = `
           <div class="cell-content">
             <div class="cell-field-name">${icon} ${field ? field.label : "?"}</div>
@@ -179,12 +214,12 @@ function renderCanvas() {
               ${cell.textAlign !== "left" ? `<span class="tag">${cell.textAlign}</span>` : ""}
               ${cell.style.fontWeight === "bold" ? '<span class="tag">bold</span>' : ""}
               ${cell.style.fontSize ? `<span class="tag">${cell.style.fontSize}px</span>` : ""}
+              ${visTag}
             </div>
           </div>
           <button class="cell-edit-btn" data-row="${rIdx}" data-col="${cIdx}" title="Edit">✎</button>
           <button class="cell-del-btn"  data-row="${rIdx}" data-col="${cIdx}" title="Remove">✕</button>
         `;
-        // Click anywhere on the filled cell to open properties
         cellEl.addEventListener("click", () => {
           openPropPanel(rIdx, cIdx);
         });
@@ -205,7 +240,7 @@ function renderCanvas() {
         `;
       }
 
-      // ── Drag-over / Drop on cell ──
+      // Drag-over / Drop
       cellEl.addEventListener("dragover", e => {
         e.preventDefault();
         cellEl.classList.add("drag-over");
@@ -215,7 +250,6 @@ function renderCanvas() {
         e.preventDefault();
         cellEl.classList.remove("drag-over");
         if (_dragFieldId) {
-          // Confirm before overwriting an existing field
           if (row.cols[cIdx] && !confirm("Replace existing field in this cell?")) {
             _dragFieldId = null;
             return;

@@ -48,6 +48,42 @@
 .phone-icons { display: flex; gap: 6px; font-size: 12px; }
 .phone-title { flex: 1; text-align: center; font-size: 12px; }
 
+/* ── BREADCRUMB ──────────────────────────────────────────── */
+.phone-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: #e8f0fe;
+  border-bottom: 1px solid #d0ddf0;
+  font-size: 10px;
+  color: #333;
+  flex-wrap: wrap;
+  min-height: 24px;
+}
+
+.breadcrumb-item {
+  white-space: nowrap;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.breadcrumb-link {
+  color: #1976D2;
+  cursor: pointer;
+  font-weight: 600;
+}
+.breadcrumb-link:hover { text-decoration: underline; }
+.breadcrumb-current {
+  color: #333;
+  font-weight: 700;
+}
+.breadcrumb-sep {
+  color: #999;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
 .phone-list {
   background: #f5f7fa;
   min-height: 200px;
@@ -55,6 +91,16 @@
   display: flex; flex-direction: column; gap: 6px;
 }
 .phone-empty { text-align: center; padding: 24px 0; color: #aaa; font-size: 11px; }
+
+/* ── LEVEL LABEL ─────────────────────────────────────────── */
+.phone-level-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 2px 4px 4px;
+}
 
 /* ── PHONE CARD ───────────────────────────────────────────── */
 .phone-card {
@@ -74,6 +120,44 @@
 }
 .ind-green { background: #22c55e; }
 .ind-red   { background: #ef4444; }
+
+/* ── GROUP CARD ──────────────────────────────────────────── */
+.phone-card-group {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.phone-card-group:hover { background: #f0f4ff; }
+.phone-card-group:active { background: #e4ecff; }
+
+.phone-group-body {
+  display: flex;
+  align-items: center;
+  padding: 10px 10px;
+  gap: 8px;
+}
+
+.phone-group-value {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1a2e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.phone-group-summary {
+  padding: 0 !important;
+  gap: 6px;
+  flex: 1;
+}
+
+.phone-group-chevron {
+  font-size: 16px;
+  color: #bbb;
+  flex-shrink: 0;
+  font-weight: 300;
+}
 
 .preview-row {
   display: flex;

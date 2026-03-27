@@ -11,9 +11,12 @@ function bindTopBar() {
   });
 
   document.getElementById("btnClearAll").addEventListener("click", () => {
-    if (state.rows.length === 0) return;
-    if (!confirm("Clear all rows and fields?")) return;
+    if (state.rows.length === 0 && state.groupFields.length === 0) return;
+    if (!confirm("Clear all rows, fields, and group settings?")) return;
     state.rows = [];
+    state.groupFields = [];
+    _drillPath = [];
+    _paletteStage = "group";
     renderAll();
   });
 
@@ -40,8 +43,8 @@ function bindCardSettings() {
 // ═══════════════════════════════════════════════════════════
 function saveTemplate() {
   const name = document.getElementById("templateName").value.trim();
-  if (!name) { showToast("⚠ Please enter a template name first.", "warn"); return; }
-  if (state.rows.length === 0) { showToast("⚠ Canvas is empty. Add some rows.", "warn"); return; }
+  if (!name) { showToast("Please enter a template name first.", "warn"); return; }
+  if (state.rows.length === 0) { showToast("Canvas is empty. Add some rows.", "warn"); return; }
 
   const payload = {
     templateName : name,
@@ -55,7 +58,7 @@ function saveTemplate() {
   // Store locally for demo
   localStorage.setItem("mcloud_template_" + Date.now(), JSON.stringify(payload));
 
-  showToast(`✓ Template "${name}" saved successfully!`, "success");
+  showToast(`Template "${name}" saved successfully!`, "success");
 }
 
 // ═══════════════════════════════════════════════════════════

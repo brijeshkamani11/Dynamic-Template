@@ -120,6 +120,45 @@
 .prop-toggle:checked + .toggle-switch::after { transform: translateX(16px); }
 .toggle-desc { font-size: 11px; color: var(--text-muted); }
 
+/* ── LEVEL VISIBILITY ────────────────────────────────────── */
+.level-visibility-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.level-vis-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.level-vis-option input[type="radio"] {
+  accent-color: var(--accent);
+}
+
+.level-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 0 2px 20px;
+}
+
+.level-cb-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.level-cb-label input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
 .prop-panel-footer {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 16px;

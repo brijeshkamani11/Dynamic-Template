@@ -42,14 +42,17 @@
 ═══════════════════════════════════════════════════════════ -->
 <div class="workspace">
 
-  <!-- ── LEFT PANEL : AVAILABLE FIELDS ── -->
+  <!-- ── LEFT PANEL : AVAILABLE FIELDS (two-stage) ── -->
   <aside class="panel panel-fields" id="fieldPanel">
     <div class="panel-header">
-      <span class="panel-title">📋 Available Fields</span>
-      <span class="panel-hint">Drag or click + to add</span>
+      <span class="panel-title" id="paletteHeader">① Row Group Fields</span>
+      <span class="panel-hint" id="paletteHint">Select fields to group by (order = level order)</span>
     </div>
     <div class="field-search-wrap">
-      <input type="text" id="fieldSearch" class="field-search" placeholder="🔍 Search fields…" />
+      <input type="text" id="fieldSearch" class="field-search" placeholder="🔍 Search group fields…" />
+    </div>
+    <div class="stage-nav" id="stageNav">
+      <!-- injected by palette.js -->
     </div>
     <div class="field-list" id="fieldList">
       <!-- injected by JS -->
@@ -129,12 +132,16 @@
           <span class="phone-title">Account Ledger</span>
           <span class="phone-icons">⚲ ⋮</span>
         </div>
+        <!-- Breadcrumb for drill-down navigation -->
+        <div class="phone-breadcrumb" id="phoneBreadcrumb" style="display:none">
+          <!-- injected by preview.js -->
+        </div>
         <div class="phone-list" id="phoneList">
           <!-- cards injected by JS -->
         </div>
       </div>
     </div>
-    <div class="preview-note">Preview uses sample data</div>
+    <div class="preview-note">Preview uses sample data · Click group cards to drill down</div>
   </aside>
 
 </div><!-- /workspace -->
@@ -227,6 +234,15 @@
         <input type="checkbox" id="propIsExpandedRow" class="prop-toggle" />
         <label for="propIsExpandedRow" class="toggle-switch"></label>
         <span class="toggle-desc">Marks this field's row as expanded-only</span>
+      </div>
+    </div>
+
+    <div class="prop-section">VISIBILITY</div>
+
+    <div class="prop-row">
+      <label>Level Visibility</label>
+      <div id="propLevelVisibility" class="level-visibility-wrap">
+        <!-- injected by property-panel.js buildLevelVisibilityUI() -->
       </div>
     </div>
 

@@ -28,6 +28,15 @@
 .panel-title { font-size: 12px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.4px; text-transform: uppercase; }
 .panel-hint  { display: block; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
+/* ── STAGE NAV (two-stage palette) ──────────────────────── */
+.stage-nav {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  gap: 6px;
+}
+
 /* ── FIELD SEARCH ────────────────────────────────────────── */
 .field-search-wrap { padding: 10px 10px 6px; flex-shrink: 0; }
 .field-search {
@@ -86,6 +95,57 @@
   cursor: pointer;
 }
 .field-chip:hover .chip-add { background: var(--accent); color: white; }
+
+/* ── GROUP STAGE — selected group chips ─────────────────── */
+.field-chip.group-selected {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  cursor: default;
+}
+
+.chip-level {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 20px;
+  background: var(--accent);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-right: 6px;
+}
+
+.group-actions {
+  display: flex;
+  gap: 3px;
+  margin-left: auto;
+}
+
+.group-btn {
+  width: 22px; height: 22px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+  font-family: var(--font-ui);
+}
+.group-btn:hover { background: var(--bg-card); color: var(--text-primary); border-color: var(--border-light); }
+.group-btn-del:hover { background: rgba(239,68,68,0.1); color: var(--red); border-color: var(--red); }
+
+.group-warn {
+  font-size: 11px;
+  color: var(--amber);
+  padding: 4px 8px;
+  background: rgba(245,158,11,0.08);
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+}
 
 /* ── CARD SETTINGS ───────────────────────────────────────── */
 .panel-section-title {

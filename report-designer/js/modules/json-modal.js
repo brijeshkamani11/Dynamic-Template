@@ -2,6 +2,7 @@
  * MCloud Report Template Designer — JSON Generation & Modal Module
  * ───────────────────────────────────────────────────────────────
  * Generates the Flutter-consumable JSON and manages the preview modal.
+ * Additive-only extensions: groupFields, levelVisibility, drillConfig.
  * Depends on: state.js
  */
 
@@ -33,6 +34,11 @@ function generateJSON() {
       if (cell.style.fontFamily) styleObj.fontFamily = cell.style.fontFamily;
       if (Object.keys(styleObj).length) cfg.style = styleObj;
 
+      // Level visibility — only include if not "all" (additive)
+      if (cell.levelVisibility !== "all" && Array.isArray(cell.levelVisibility)) {
+        cfg.levelVisibility = cell.levelVisibility;
+      }
+
       columnConfig.push(cfg);
     });
 
@@ -40,6 +46,7 @@ function generateJSON() {
 
     fieldConfigs.push({
       isExpandedRow: row.isExpandedRow,
+      columnCount: row.cols.length,
       columnConfig,
     });
   });
@@ -55,6 +62,22 @@ function generateJSON() {
     mOnDoubleTap : state.mOnDoubleTap || "",
     fieldConfigs,
   };
+
+  // ── ADDITIVE: Group fields / drill config ──
+  if (state.groupFields.length > 0) {
+    layout.groupFields = state.groupFields.map((gf, idx) => ({
+      level     : idx + 1,
+      fieldId   : gf.fieldId,
+      dataField : gf.dataField,
+      label     : gf.label,
+    }));
+
+    layout.drillConfig = {
+      enabled    : true,
+      levelCount : getLevelCount(),
+      terminalLevel : getTerminalLevel(),
+    };
+  }
 
   return layout;
 }
