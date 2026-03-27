@@ -702,3 +702,63 @@ Group-level cards in the preview no longer show the group field value as card co
 - `report-designer/js/modules/preview.js` — rewrote `renderGroupLevel()` to use `buildDetailCard()` with level-filtered display columns instead of showing group value + chevron
 
 ---
+
+### [2026-03-27] — Feature: Recovery autosave, Import/Copy format flow, Bootstrap modes
+
+**Feature 1: Recovery state management (autosave/draft restore)**
+- New module `js/modules/recovery.js` with full draft lifecycle
+- Draft auto-saved to localStorage with debounce (1s) after every state render, immediate on import/save
+- Scoped localStorage keys: `mcloud_draft_add_<templateId>` / `mcloud_draft_edit_<templateId>_<formatId>`
+- Draft payload: `{ schemaVersion, mode, templateId, formatId, updatedAt, state: {...} }`
+- On startup: checks for matching draft → shows recovery modal (Restore / Discard)
+- Restore: hydrates full state from draft, renders all, marks dirty
+- Discard: clears draft key, continues fresh
+- Invalid/corrupt draft: ignored with warning toast
+- `beforeunload` warning when unsaved changes exist; final autosave attempt on page close
+- Status chip in topbar: "Unsaved changes" (amber) / "Autosaved" (blue) / "Saved" (green)
+- `markSaved()` clears draft + sets status; `markDirty()` triggers autosave + updates chip
+
+**Feature 2: Import modal with tabs — Paste JSON + Copy Existing Format**
+- Import modal now has two tabs: "Paste JSON" (existing) and "Copy Existing Format" (new)
+- Copy Existing Format tab: Template dropdown → Format dropdown (filtered) → JSON preview → Load / Copy buttons
+- New data file `js/data/format-library.js` with `DUMMY_FORMAT_LIBRARY` containing 3 templates, 2 formats each (6 total)
+- Template IDs: R0001 (Account Ledger), R0002 (Day Book), R0003 (Outstanding Report)
+- Format IDs per template: F0001, F0002 — mix of flat and grouped layouts
+- "Load into Designer" validates + hydrates same as paste import
+- "Copy JSON" copies selected format JSON to clipboard
+- All imports trigger `saveDraftImmediate()` for recovery protection
+
+**Feature 3: Edit/Add context-aware initializer**
+- Supports `window.DESIGNER_BOOTSTRAP` payload: `{ mode, templateId, formatId, templateName, initialJson }`
+- Also supports legacy `window.DESIGNER_INIT` for backward compat
+- Boot sequence: bind modules → read bootstrap → check recovery draft → hydrate edit JSON → fresh start
+- Recovery prompt shown only if matching draft exists; edit-mode JSON loads only if no draft restored
+- `_designerMode` set from bootstrap payload; identity fields populated from payload
+
+**Validation guarantees:**
+- `validateImportJSON()` checks layoutType, fieldConfigs array, per-column dataField
+- `hydrateFromJSON()` validates first, returns false on failure with no state mutation
+- `hydrateFromDraft()` checks schemaVersion, state shape, rows array before applying
+- Invalid draft/import: state unchanged, clear error shown
+
+**Dummy format library overview:**
+
+| Template | Formats |
+|---|---|
+| R0001 — Account Ledger | F0001 (Compact, flat), F0002 (Grouped by City) |
+| R0002 — Day Book | F0001 (Standard, flat), F0002 (Grouped by Voucher Type) |
+| R0003 — Outstanding Report | F0001 (Summary, flat), F0002 (Grouped by City) |
+
+**Files changed:**
+- `report-designer/js/data/format-library.js` — NEW: dummy format library (6 format entries)
+- `report-designer/js/modules/recovery.js` — NEW: autosave, draft read/write/validate, recovery prompt, status chip, beforeunload
+- `report-designer/js/modules/json-modal.js` — rewritten import modal with tabs, copy-format handlers, updated initDesigner
+- `report-designer/js/modules/topbar.js` — markDirty on input/indicator changes, recovery overlay in keyboard handler
+- `report-designer/js/app.js` — new bootstrap flow: DESIGNER_BOOTSTRAP → recovery check → edit hydrate → fresh
+- `report-designer/js/utils.js` — renderAll now calls scheduleDraftSave
+- `report-designer/index.html` — recovery modal, tabbed import modal, status chip, format-library + recovery.js script tags
+- `report-designer/css/topbar.css` — status chip styles (dirty/autosaved/saved)
+- `report-designer/css/modal.css` — import tabs, copy-format controls, recovery modal styles
+- `README.md` — this changelog entry
+
+---

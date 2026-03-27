@@ -1,5 +1,5 @@
 /**
- * MCloud Report Template Designer — Shared Utilities
+ * MCloud Mobile Template Card Designer — Shared Utilities
  * ───────────────────────────────────────────────────
  * Functions used by multiple modules.
  */
@@ -7,6 +7,8 @@
 function renderAll() {
   renderCanvas();
   renderPreview();
+  // Trigger debounced autosave on every state render
+  if (typeof scheduleDraftSave === "function") scheduleDraftSave();
 }
 
 function showToast(msg, type = "success") {

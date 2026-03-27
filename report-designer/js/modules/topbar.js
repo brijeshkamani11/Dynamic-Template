@@ -2,12 +2,13 @@
  * MCloud Mobile Template Card Designer — Topbar Module
  * ────────────────────────────────────────────────────
  * Topbar event bindings, card settings, save, and keyboard shortcuts.
- * Depends on: state.js, utils.js (showToast, renderAll, renderPreview), json-modal.js (generateJSON, openJSONModal)
+ * Depends on: state.js, utils.js, json-modal.js, recovery.js
  */
 
 function bindTopBar() {
   document.getElementById("templateName").addEventListener("input", e => {
     state.templateName = e.target.value;
+    markDirty();
   });
 
   document.getElementById("btnClearAll").addEventListener("click", () => {
@@ -29,16 +30,16 @@ function bindTopBar() {
 }
 
 function bindCardSettings() {
-  // A) OnTap/OnDoubleTap controls removed from UI — auto-managed by computeTapValues()
-  // Only indicator controls remain.
   document.getElementById("indicatorShow").addEventListener("change", e => {
     state.indicator.isShow = e.target.checked;
     document.getElementById("indicatorFieldRow").style.display = e.target.checked ? "flex" : "none";
     renderPreview();
+    markDirty();
   });
   document.getElementById("indicatorField").addEventListener("change", e => {
     state.indicator.dataField = e.target.value;
     renderPreview();
+    markDirty();
   });
 }
 
@@ -58,6 +59,7 @@ function saveTemplate() {
 
   console.log("SAVE PAYLOAD:", JSON.stringify(payload, null, 2));
   localStorage.setItem("mcloud_template_" + Date.now(), JSON.stringify(payload));
+  markSaved();
   showToast(`Template "${name}" saved successfully!`, "success");
 }
 
@@ -67,22 +69,20 @@ function saveTemplate() {
 function bindKeyboard() {
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
-    // Close group config panel
+    if (document.getElementById("recoveryOverlay").style.display !== "none"
+        && document.getElementById("recoveryOverlay").style.display !== "") return; // don't dismiss recovery
     if (document.getElementById("groupConfigPanel").classList.contains("open")) {
       closeGroupConfigPanel();
       return;
     }
-    // Close property panel if open
     if (document.getElementById("propPanel").classList.contains("open")) {
       closePropPanel();
       return;
     }
-    // Close JSON modal if open
     if (document.getElementById("jsonOverlay").style.display !== "none") {
       document.getElementById("jsonOverlay").style.display = "none";
       return;
     }
-    // Close import modal if open
     if (document.getElementById("importOverlay").style.display !== "none") {
       closeImportModal();
     }

@@ -97,3 +97,66 @@
   min-height: 16px;
   margin-top: 6px;
 }
+
+/* ── IMPORT MODAL — tabs ─────────────────────────────────── */
+.import-modal-wide { width: 700px; }
+.import-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.import-tab {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  transition: all var(--transition);
+  text-align: center;
+}
+.import-tab:hover { color: var(--text-primary); }
+.import-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+/* ── COPY FORMAT SECTION ─────────────────────────────────── */
+.copy-format-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.copy-format-row {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.copy-format-row label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.copy-format-preview {
+  max-height: 260px;
+  min-height: 80px;
+}
+
+/* ── RECOVERY MODAL ──────────────────────────────────────── */
+.recovery-modal { width: 420px; max-width: 100%; }
+.recovery-meta {
+  display: flex;
+  gap: 20px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 8px 12px;
+  background: var(--bg-cell);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}

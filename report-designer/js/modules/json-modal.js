@@ -2,16 +2,14 @@
  * MCloud Mobile Template Card Designer — JSON Generation & Modal Module
  * ───────────────────────────────────────────────────────────────
  * Generates the Flutter-consumable JSON and manages the preview modal.
- * Additive-only extensions: groupFields, levelVisibility, drillConfig,
- *   totalConfig, format/template identity.
- * Depends on: state.js
+ * Also manages import flow (paste JSON + copy existing format).
+ * Depends on: state.js, format-library.js, recovery.js
  */
 
 // ═══════════════════════════════════════════════════════════
 // JSON GENERATION
 // ═══════════════════════════════════════════════════════════
 function generateJSON() {
-  // A) Auto-compute tap values based on current format
   computeTapValues();
 
   const fieldConfigs = [];
@@ -30,7 +28,6 @@ function generateJSON() {
       if (cell.maxLine && cell.maxLine !== 1) cfg.maxLine = cell.maxLine;
       if (cell.textAlign && cell.textAlign !== "left") cfg.textAlign = cell.textAlign;
 
-      // Style — only include if non-default
       const styleObj = {};
       if (cell.style.color && cell.style.color !== "0xFF000000") styleObj.color = cell.style.color;
       if (cell.style.fontSize)  styleObj.fontSize   = cell.style.fontSize;
@@ -38,12 +35,10 @@ function generateJSON() {
       if (cell.style.fontFamily) styleObj.fontFamily = cell.style.fontFamily;
       if (Object.keys(styleObj).length) cfg.style = styleObj;
 
-      // Level visibility — only include if not "all" (additive)
       if (cell.levelVisibility !== "all" && Array.isArray(cell.levelVisibility)) {
         cfg.levelVisibility = cell.levelVisibility;
       }
 
-      // E) Amount total config — additive
       if (cell.includeTotal) {
         cfg.totalConfig = {
           includeTotal   : true,
@@ -75,12 +70,10 @@ function generateJSON() {
     fieldConfigs,
   };
 
-  // I) Template/format identity — additive
-  layout.templateId       = state.templateId || "";
-  layout.formatId         = state.formatId || "";
+  layout.templateId        = state.templateId || "";
+  layout.formatId          = state.formatId || "";
   layout.reportDisplayName = state.reportDisplayName || "";
 
-  // Additive: Group fields / drill config
   if (state.groupFields.length > 0) {
     layout.groupFields = state.groupFields.map((gf, idx) => ({
       level     : idx + 1,
@@ -124,13 +117,8 @@ function bindJSONModal() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// J) IMPORT JSON — validate + hydrate state
+// IMPORT JSON — validate + hydrate state
 // ═══════════════════════════════════════════════════════════
-
-/**
- * Validates a parsed JSON object has the required shape for import.
- * Returns { valid: true } or { valid: false, error: "message" }.
- */
 function validateImportJSON(obj) {
   if (!obj || typeof obj !== "object") return { valid: false, error: "Not a valid JSON object." };
   if (obj.layoutType !== "grid")       return { valid: false, error: "Missing or invalid layoutType (expected 'grid')." };
@@ -151,10 +139,6 @@ function validateImportJSON(obj) {
   return { valid: true };
 }
 
-/**
- * Hydrates the designer state from a valid JSON layout object.
- * Does NOT mutate state if validation fails.
- */
 function hydrateFromJSON(json) {
   const result = validateImportJSON(json);
   if (!result.valid) {
@@ -162,7 +146,6 @@ function hydrateFromJSON(json) {
     return false;
   }
 
-  // Build rows from fieldConfigs
   const newRows = [];
   json.fieldConfigs.forEach(fc => {
     const colCount = fc.columnCount || fc.columnConfig.length;
@@ -190,7 +173,6 @@ function hydrateFromJSON(json) {
         },
       };
 
-      // Amount total config
       if (cfg.totalConfig && cfg.totalConfig.includeTotal) {
         cellObj.includeTotal    = true;
         cellObj.totalScopeLevel = cfg.totalConfig.totalScopeLevel || "all";
@@ -206,7 +188,6 @@ function hydrateFromJSON(json) {
     });
   });
 
-  // Apply to state
   state.rows         = newRows;
   state.mOnTap       = json.mOnTap || "expand";
   state.mOnDoubleTap = json.mOnDoubleTap || "";
@@ -215,13 +196,11 @@ function hydrateFromJSON(json) {
   state.formatId     = json.formatId || state.formatId;
   state.reportDisplayName = json.reportDisplayName || state.reportDisplayName;
 
-  // Indicator
   if (json.indicator) {
     state.indicator.isShow    = !!json.indicator.isShow;
     state.indicator.dataField = json.indicator.dataField || "";
   }
 
-  // Group fields
   if (Array.isArray(json.groupFields)) {
     state.groupFields = json.groupFields.map(gf => ({
       fieldId   : gf.fieldId || "",
@@ -232,30 +211,46 @@ function hydrateFromJSON(json) {
     state.groupFields = [];
   }
 
-  // Reset transient state
   _drillPath = [];
   _expandedCardIdx = -1;
   _paletteStage = state.groupFields.length > 0 ? "group" : "column";
-
   computeTapValues();
 
   return true;
 }
 
-/**
- * Opens import modal, lets user paste JSON, validates, hydrates.
- */
+// ═══════════════════════════════════════════════════════════
+// IMPORT MODAL — tabbed: Paste JSON | Copy Existing Format
+// ═══════════════════════════════════════════════════════════
+let _importActiveTab = "paste";
+
 function openImportModal() {
   document.getElementById("importOverlay").style.display = "flex";
-  const textarea = document.getElementById("importInput");
-  textarea.value = "";
-  document.getElementById("importError").textContent = "";
-  // Focus textarea so user can paste immediately
-  setTimeout(() => textarea.focus(), 50);
+  switchImportTab("paste");
 }
 
 function closeImportModal() {
   document.getElementById("importOverlay").style.display = "none";
+}
+
+function switchImportTab(tab) {
+  _importActiveTab = tab;
+  document.querySelectorAll(".import-tab").forEach(t => {
+    t.classList.toggle("active", t.dataset.tab === tab);
+  });
+  document.getElementById("importPasteSection").style.display = tab === "paste" ? "block" : "none";
+  document.getElementById("importCopySection").style.display  = tab === "copy"  ? "block" : "none";
+
+  if (tab === "paste") {
+    const ta = document.getElementById("importInput");
+    ta.value = "";
+    document.getElementById("importError").textContent = "";
+    setTimeout(() => ta.focus(), 50);
+  } else {
+    populateTemplateDropdown();
+    document.getElementById("copyFormatPreview").textContent = "";
+    document.getElementById("copyError").textContent = "";
+  }
 }
 
 function handleImportSubmit() {
@@ -279,18 +274,97 @@ function handleImportSubmit() {
   const success = hydrateFromJSON(parsed);
   if (success) {
     closeImportModal();
-    // Update UI inputs
-    document.getElementById("templateName").value = state.templateName;
-    document.getElementById("indicatorShow").checked = state.indicator.isShow;
-    document.getElementById("indicatorFieldRow").style.display = state.indicator.isShow ? "flex" : "none";
-    if (state.indicator.dataField) {
-      document.getElementById("indicatorField").value = state.indicator.dataField;
-    }
     _designerMode = "edit";
+    syncUIFromState();
     renderPalette();
     renderAll();
+    saveDraftImmediate();
     showToast("JSON imported successfully!", "success");
   }
+}
+
+// ═══════════════════════════════════════════════════════════
+// COPY EXISTING FORMAT — template/format selector
+// ═══════════════════════════════════════════════════════════
+function populateTemplateDropdown() {
+  const sel = document.getElementById("copyTemplateId");
+  sel.innerHTML = '<option value="">— Select Template —</option>';
+  Object.keys(DUMMY_FORMAT_LIBRARY).forEach(tid => {
+    const t = DUMMY_FORMAT_LIBRARY[tid];
+    sel.innerHTML += `<option value="${tid}">${tid} — ${t.templateName}</option>`;
+  });
+  document.getElementById("copyFormatId").innerHTML = '<option value="">— Select Format —</option>';
+  document.getElementById("copyFormatPreview").textContent = "";
+}
+
+function onTemplateSelect() {
+  const tid = document.getElementById("copyTemplateId").value;
+  const fmtSel = document.getElementById("copyFormatId");
+  fmtSel.innerHTML = '<option value="">— Select Format —</option>';
+  document.getElementById("copyFormatPreview").textContent = "";
+  document.getElementById("copyError").textContent = "";
+
+  if (!tid || !DUMMY_FORMAT_LIBRARY[tid]) return;
+
+  const formats = DUMMY_FORMAT_LIBRARY[tid].formats;
+  Object.keys(formats).forEach(fid => {
+    fmtSel.innerHTML += `<option value="${fid}">${fid} — ${formats[fid].formatName}</option>`;
+  });
+}
+
+function onFormatSelect() {
+  const tid = document.getElementById("copyTemplateId").value;
+  const fid = document.getElementById("copyFormatId").value;
+  const preview = document.getElementById("copyFormatPreview");
+  document.getElementById("copyError").textContent = "";
+
+  if (!tid || !fid || !DUMMY_FORMAT_LIBRARY[tid] || !DUMMY_FORMAT_LIBRARY[tid].formats[fid]) {
+    preview.textContent = "";
+    return;
+  }
+
+  const json = DUMMY_FORMAT_LIBRARY[tid].formats[fid].json;
+  preview.textContent = JSON.stringify(json, null, 2);
+}
+
+function handleCopyFormatLoad() {
+  const tid = document.getElementById("copyTemplateId").value;
+  const fid = document.getElementById("copyFormatId").value;
+  const errEl = document.getElementById("copyError");
+  errEl.textContent = "";
+
+  if (!tid || !fid) {
+    errEl.textContent = "Please select both Template and Format.";
+    return;
+  }
+
+  const entry = DUMMY_FORMAT_LIBRARY[tid] && DUMMY_FORMAT_LIBRARY[tid].formats[fid];
+  if (!entry) {
+    errEl.textContent = "Selected format not found.";
+    return;
+  }
+
+  const success = hydrateFromJSON(entry.json);
+  if (success) {
+    closeImportModal();
+    _designerMode = "edit";
+    syncUIFromState();
+    renderPalette();
+    renderAll();
+    saveDraftImmediate();
+    showToast(`Loaded format: ${entry.formatName}`, "success");
+  }
+}
+
+function handleCopyFormatClipboard() {
+  const text = document.getElementById("copyFormatPreview").textContent;
+  if (!text) {
+    showToast("No format selected to copy.", "warn");
+    return;
+  }
+  navigator.clipboard.writeText(text).then(() => {
+    showToast("JSON copied to clipboard!", "success");
+  });
 }
 
 function bindImportModal() {
@@ -299,25 +373,36 @@ function bindImportModal() {
     if (e.target === document.getElementById("importOverlay")) closeImportModal();
   });
   document.getElementById("btnImportSubmit").addEventListener("click", handleImportSubmit);
+
+  // Tab switching
+  document.querySelectorAll(".import-tab").forEach(tab => {
+    tab.addEventListener("click", () => switchImportTab(tab.dataset.tab));
+  });
+
+  // Copy format controls
+  document.getElementById("copyTemplateId").addEventListener("change", onTemplateSelect);
+  document.getElementById("copyFormatId").addEventListener("change", onFormatSelect);
+  document.getElementById("btnCopyFormatLoad").addEventListener("click", handleCopyFormatLoad);
+  document.getElementById("btnCopyFormatClip").addEventListener("click", handleCopyFormatClipboard);
 }
 
-/**
- * J) Caller-provided startup payload for edit mode.
- * Call this from app.js or externally: initDesigner({ mode: "edit", json: {...} })
- */
+// ═══════════════════════════════════════════════════════════
+// DESIGNER INIT — caller-provided startup payload
+// ═══════════════════════════════════════════════════════════
 function initDesigner(payload) {
   if (!payload) return;
-  if (payload.mode === "edit" && payload.json) {
-    _designerMode = "edit";
-    const success = hydrateFromJSON(payload.json);
+
+  _designerMode = payload.mode || "add";
+  state.templateId        = payload.templateId || state.templateId;
+  state.formatId          = payload.formatId || state.formatId;
+  state.reportDisplayName = payload.templateName || state.reportDisplayName;
+
+  if (payload.mode === "edit" && payload.initialJson) {
+    const success = hydrateFromJSON(payload.initialJson);
     if (success) {
-      document.getElementById("templateName").value = state.templateName;
-      document.getElementById("indicatorShow").checked = state.indicator.isShow;
-      document.getElementById("indicatorFieldRow").style.display = state.indicator.isShow ? "flex" : "none";
+      syncUIFromState();
       renderPalette();
       renderAll();
     }
-  } else {
-    _designerMode = "add";
   }
 }
