@@ -1,9 +1,9 @@
 /**
- * MCloud Report Template Designer — Preview Module
- * ─────────────────────────────────────────────────
+ * MCloud Mobile Template Card Designer — Preview Module
+ * ─────────────────────────────────────────────────────
  * Renders the mobile phone preview with drill-down navigation.
  * Supports: group-level cards, terminal detail cards, breadcrumb,
- *           level-filtered columns, expanded content at terminal only.
+ *           level-filtered columns, expanded content on tap only.
  * Depends on: state.js, field-registry.js, utils.js (argbToHex)
  */
 
@@ -21,7 +21,6 @@ function renderPreview() {
   }
 
   const currentLevel = _drillPath.length + 1;
-  const totalLevels  = getLevelCount();
 
   renderBreadcrumb();
 
@@ -29,7 +28,7 @@ function renderPreview() {
   if (state.groupFields.length > 0 && currentLevel <= state.groupFields.length) {
     renderGroupLevel(phoneList, currentLevel);
   } else {
-    // Terminal level — show detail cards
+    // Terminal level (or flat/no groups) — show detail cards
     renderTerminalLevel(phoneList);
   }
 }
@@ -56,6 +55,7 @@ function renderBreadcrumb() {
   homeEl.title = "Back to top level";
   homeEl.addEventListener("click", () => {
     _drillPath = [];
+    _expandedCardIdx = -1;
     renderPreview();
   });
   container.appendChild(homeEl);
@@ -75,6 +75,7 @@ function renderBreadcrumb() {
     if (idx < _drillPath.length - 1) {
       crumb.addEventListener("click", () => {
         _drillPath = _drillPath.slice(0, idx + 1);
+        _expandedCardIdx = -1;
         renderPreview();
       });
     }
@@ -83,7 +84,23 @@ function renderBreadcrumb() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// GROUP LEVEL — shows group value cards for current level
+// BACK ARROW — functional drill-up
+// ═══════════════════════════════════════════════════════════
+function bindPhoneBackArrow() {
+  const backEl = document.querySelector(".phone-back");
+  if (!backEl) return;
+  backEl.addEventListener("click", () => {
+    if (_drillPath.length > 0) {
+      _drillPath.pop();
+      _expandedCardIdx = -1;
+      renderPreview();
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// GROUP LEVEL — renders display-column cards for each group value
+// Group field itself is NOT shown unless user added it as a display column.
 // ═══════════════════════════════════════════════════════════
 function renderGroupLevel(phoneList, level) {
   const groupField = state.groupFields[level - 1];
@@ -100,92 +117,49 @@ function renderGroupLevel(phoneList, level) {
   levelLabel.textContent = `L${level}: ${groupField.label}`;
   phoneList.appendChild(levelLabel);
 
-  distinctValues.forEach(val => {
-    const card = document.createElement("div");
-    card.className = "phone-card phone-card-group";
+  if (state.rows.length === 0) {
+    phoneList.innerHTML += '<div class="phone-empty">Add display columns to see cards</div>';
+    return;
+  }
 
-    // Indicator (optional)
-    if (state.indicator.isShow) {
-      const ind = document.createElement("div");
-      ind.className = "phone-card-indicator ind-green";
-      card.appendChild(ind);
-      card.classList.add("has-indicator");
-    }
+  distinctValues.forEach((val, cardIdx) => {
+    // Build a mock record filtered to this group value
+    const records = getMockRecordsForDrill([
+      ..._drillPath,
+      { dataField: groupField.dataField, groupValue: val }
+    ]);
+    const record = records.length > 0 ? records[0] : SAMPLE_DATA;
 
-    // Group value display
-    const body = document.createElement("div");
-    body.className = "phone-group-body";
+    // Render card using display columns filtered by this level
+    const card = buildDetailCard(record, level, false, -1);
+    card.classList.add("phone-card-group");
 
-    const valEl = document.createElement("div");
-    valEl.className = "phone-group-value";
-    valEl.textContent = val;
-    body.appendChild(valEl);
-
-    // Show summary row with level-visible columns
-    const summaryRow = buildGroupSummaryRow(level);
-    if (summaryRow) body.appendChild(summaryRow);
-
-    const chevron = document.createElement("span");
-    chevron.className = "phone-group-chevron";
-    chevron.textContent = "›";
-    body.appendChild(chevron);
-
-    card.appendChild(body);
-
-    // Tap to drill down
-    card.addEventListener("click", () => {
+    // Override click: drill down instead of expand
+    // Remove the expand click that buildDetailCard added
+    const newCard = card.cloneNode(true);
+    newCard.style.cursor = "pointer";
+    newCard.addEventListener("click", () => {
       _drillPath.push({
         level: level,
         dataField: groupField.dataField,
         groupValue: val,
         groupLabel: groupField.label,
       });
+      _expandedCardIdx = -1;
       renderPreview();
     });
 
-    phoneList.appendChild(card);
+    phoneList.appendChild(newCard);
   });
-}
-
-/**
- * Builds a summary row for group-level cards using columns visible at this level.
- */
-function buildGroupSummaryRow(level) {
-  const visibleCells = getVisibleCellsForLevel(level);
-  if (visibleCells.length === 0) return null;
-
-  const row = document.createElement("div");
-  row.className = "preview-row phone-group-summary";
-
-  // Show up to 3 cells in summary
-  visibleCells.slice(0, 3).forEach(cell => {
-    const cellEl = document.createElement("div");
-    cellEl.className = "preview-cell";
-    cellEl.style.textAlign = cell.textAlign || "left";
-
-    const val = SAMPLE_DATA[cell.dataField];
-    let displayVal = val !== undefined ? val : cell.caption;
-    if (typeof displayVal === "number") {
-      displayVal = "₹ " + Math.abs(displayVal).toLocaleString("en-IN", { minimumFractionDigits: 2 });
-    }
-
-    let style = "font-size:10px;color:#666;";
-    cellEl.innerHTML = `<span class="preview-val" style="${style}">${displayVal}</span>`;
-    row.appendChild(cellEl);
-  });
-
-  return row;
 }
 
 // ═══════════════════════════════════════════════════════════
-// TERMINAL LEVEL — shows detail cards (like original preview)
+// TERMINAL LEVEL — shows detail cards with tap-to-expand
 // ═══════════════════════════════════════════════════════════
 function renderTerminalLevel(phoneList) {
   const terminalLevel = getTerminalLevel();
   const records = getMockRecordsForDrill(_drillPath);
-  const showExpanded = _previewTab === "expanded";
 
-  // If no records from drill, show at least 3 sample cards
   const cardCount = records.length > 0 ? Math.min(records.length, 5) : 3;
 
   if (state.rows.length === 0) {
@@ -195,14 +169,15 @@ function renderTerminalLevel(phoneList) {
 
   for (let i = 0; i < cardCount; i++) {
     const record = records.length > 0 ? records[i] : SAMPLE_DATA;
-    const card = buildDetailCard(record, terminalLevel, showExpanded);
+    const isExpanded = (_expandedCardIdx === i);
+    const card = buildDetailCard(record, terminalLevel, isExpanded, i);
     phoneList.appendChild(card);
   }
 }
 
-function buildDetailCard(record, level, showExpanded) {
+function buildDetailCard(record, level, showExpanded, cardIdx) {
   const card = document.createElement("div");
-  card.className = "phone-card";
+  card.className = "phone-card" + (showExpanded ? " phone-card-expanded" : "");
 
   // Indicator
   if (state.indicator.isShow) {
@@ -215,7 +190,7 @@ function buildDetailCard(record, level, showExpanded) {
   }
 
   state.rows.forEach(row => {
-    // Expanded rows only shown at terminal level when expanded tab is active
+    // C) Expanded rows only shown when this card is tapped/expanded
     if (row.isExpandedRow && !showExpanded) return;
 
     const rowEl = document.createElement("div");
@@ -242,14 +217,12 @@ function buildDetailCard(record, level, showExpanded) {
       const icon = cell.iconCaption ? (ICON_MAP[cell.iconCaption] || "") : "";
       let rawVal = record[cell.dataField];
 
-      // Format numbers
       if (typeof rawVal === "number") {
         rawVal = "₹ " + Math.abs(rawVal).toLocaleString("en-IN", { minimumFractionDigits: 2 });
       }
 
       const val = rawVal !== undefined ? rawVal : cell.caption;
 
-      // Style
       let style = "";
       if (cell.style.fontWeight === "bold") style += "font-weight:700;";
       if (cell.style.fontSize)  style += `font-size:${cell.style.fontSize}px;`;
@@ -268,20 +241,23 @@ function buildDetailCard(record, level, showExpanded) {
     card.appendChild(rowEl);
   });
 
+  // C) Tap on detail card toggles expanded rows
+  card.style.cursor = "pointer";
+  card.addEventListener("click", () => {
+    _expandedCardIdx = (_expandedCardIdx === cardIdx) ? -1 : cardIdx;
+    renderPreview();
+  });
+
   return card;
 }
 
 // ═══════════════════════════════════════════════════════════
 // HELPERS — level-filtered columns
 // ═══════════════════════════════════════════════════════════
-
-/**
- * Returns flat array of non-null cells visible at a given level.
- */
 function getVisibleCellsForLevel(level) {
   const cells = [];
   state.rows.forEach(row => {
-    if (row.isExpandedRow) return; // expanded rows only at terminal
+    if (row.isExpandedRow) return;
     row.cols.forEach(cell => {
       if (!cell) return;
       if (cell.levelVisibility === "all") { cells.push(cell); return; }
@@ -294,15 +270,11 @@ function getVisibleCellsForLevel(level) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// PREVIEW TABS
+// PREVIEW TABS — removed (C). Stub for backward compat boot.
 // ═══════════════════════════════════════════════════════════
 function bindPreviewTabs() {
-  document.querySelectorAll(".preview-tab").forEach(tab => {
-    tab.addEventListener("click", () => {
-      document.querySelectorAll(".preview-tab").forEach(t => t.classList.remove("active"));
-      tab.classList.add("active");
-      _previewTab = tab.dataset.tab;
-      renderPreview();
-    });
-  });
+  // Old Normal/Expanded tabs removed. Expanded content
+  // is now controlled by tap on terminal-level cards.
+  // Bind phone back arrow instead.
+  bindPhoneBackArrow();
 }

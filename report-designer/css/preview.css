@@ -111,6 +111,7 @@
   position: relative;
 }
 .phone-card.has-indicator { padding-left: 5px; }
+.phone-card-expanded { box-shadow: 0 2px 8px rgba(59,130,246,0.18); border: 1px solid #b3d4fc; }
 
 .phone-card-indicator {
   position: absolute;

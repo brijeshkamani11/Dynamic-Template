@@ -1,6 +1,6 @@
 /**
- * MCloud Report Template Designer — Topbar Module
- * ────────────────────────────────────────────────
+ * MCloud Mobile Template Card Designer — Topbar Module
+ * ────────────────────────────────────────────────────
  * Topbar event bindings, card settings, save, and keyboard shortcuts.
  * Depends on: state.js, utils.js (showToast, renderAll, renderPreview), json-modal.js (generateJSON, openJSONModal)
  */
@@ -16,17 +16,21 @@ function bindTopBar() {
     state.rows = [];
     state.groupFields = [];
     _drillPath = [];
+    _expandedCardIdx = -1;
     _paletteStage = "group";
+    computeTapValues();
+    renderPalette();
     renderAll();
   });
 
   document.getElementById("btnSave").addEventListener("click", saveTemplate);
   document.getElementById("btnPreviewJSON").addEventListener("click", openJSONModal);
+  document.getElementById("btnImportJSON").addEventListener("click", openImportModal);
 }
 
 function bindCardSettings() {
-  document.getElementById("mOnTap").addEventListener("change", e => { state.mOnTap = e.target.value; });
-  document.getElementById("mOnDoubleTap").addEventListener("change", e => { state.mOnDoubleTap = e.target.value; });
+  // A) OnTap/OnDoubleTap controls removed from UI — auto-managed by computeTapValues()
+  // Only indicator controls remain.
   document.getElementById("indicatorShow").addEventListener("change", e => {
     state.indicator.isShow = e.target.checked;
     document.getElementById("indicatorFieldRow").style.display = e.target.checked ? "flex" : "none";
@@ -52,12 +56,8 @@ function saveTemplate() {
     savedAt      : new Date().toISOString(),
   };
 
-  // Simulate API call — in production: fetch('/api/save-template', { method:'POST', body: JSON.stringify(payload) })
   console.log("SAVE PAYLOAD:", JSON.stringify(payload, null, 2));
-
-  // Store locally for demo
   localStorage.setItem("mcloud_template_" + Date.now(), JSON.stringify(payload));
-
   showToast(`Template "${name}" saved successfully!`, "success");
 }
 
@@ -67,6 +67,11 @@ function saveTemplate() {
 function bindKeyboard() {
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
+    // Close group config panel
+    if (document.getElementById("groupConfigPanel").classList.contains("open")) {
+      closeGroupConfigPanel();
+      return;
+    }
     // Close property panel if open
     if (document.getElementById("propPanel").classList.contains("open")) {
       closePropPanel();
@@ -75,6 +80,11 @@ function bindKeyboard() {
     // Close JSON modal if open
     if (document.getElementById("jsonOverlay").style.display !== "none") {
       document.getElementById("jsonOverlay").style.display = "none";
+      return;
+    }
+    // Close import modal if open
+    if (document.getElementById("importOverlay").style.display !== "none") {
+      closeImportModal();
     }
   });
 }

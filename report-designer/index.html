@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MCloud — Report Template Designer</title>
+  <title>MCloud — Mobile Template Card Designer</title>
 
   <!-- ── CSS Modules ─────────────────────────────────────── -->
   <link rel="stylesheet" href="css/variables.css" />
@@ -24,13 +24,14 @@
   <div class="topbar-left">
     <div class="logo">
       <span class="logo-icon">▦</span>
-      <span class="logo-text">MCloud <em>Template Designer</em></span>
+      <span class="logo-text">MCloud <em>Mobile Template Card Designer</em></span>
     </div>
   </div>
   <div class="topbar-center">
     <input type="text" id="templateName" class="template-name-input" placeholder="Template Name (e.g. Ledger Format 1)" />
   </div>
   <div class="topbar-right">
+    <button class="btn btn-secondary" id="btnImportJSON" title="Import JSON">⬇ Import</button>
     <button class="btn btn-ghost" id="btnClearAll" title="Clear canvas">✕ Clear</button>
     <button class="btn btn-secondary" id="btnPreviewJSON">{ } JSON</button>
     <button class="btn btn-primary" id="btnSave">⬆ Save Template</button>
@@ -59,21 +60,7 @@
     </div>
     <div class="panel-section-title">⚙ Card Settings</div>
     <div class="card-settings">
-      <div class="form-row">
-        <label>On Tap</label>
-        <select id="mOnTap" class="form-select">
-          <option value="">— none —</option>
-          <option value="expand" selected>expand</option>
-          <option value="navigate">navigate</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label>On Double Tap</label>
-        <select id="mOnDoubleTap" class="form-select">
-          <option value="" selected>— none —</option>
-          <option value="navigate">navigate</option>
-        </select>
-      </div>
+      <!-- A) On Tap / On Double Tap controls REMOVED — auto-managed -->
       <div class="form-row">
         <label>Indicator</label>
         <div class="inline-check">
@@ -88,6 +75,22 @@
         </select>
       </div>
     </div>
+    <!-- I) Template/Format identity display -->
+    <div class="panel-section-title">🆔 Format Identity</div>
+    <div class="card-settings format-identity">
+      <div class="form-row">
+        <label>Template ID</label>
+        <span class="identity-val" id="displayTemplateId">R0001</span>
+      </div>
+      <div class="form-row">
+        <label>Format ID</label>
+        <span class="identity-val" id="displayFormatId">F0001</span>
+      </div>
+      <div class="form-row">
+        <label>Report</label>
+        <span class="identity-val" id="displayReportName">Account Ledger</span>
+      </div>
+    </div>
   </aside>
 
   <!-- ── CENTER : CANVAS ── -->
@@ -97,10 +100,7 @@
       <div class="canvas-toolbar-hint">
         <span id="rowCount">0</span> rows &nbsp;·&nbsp; Drop fields into cells
       </div>
-      <label class="toggle-label">
-        <input type="checkbox" id="toggleExpandedView" />
-        <span>Show Expanded Rows</span>
-      </label>
+      <!-- G) "Show Expanded Rows" toggle REMOVED -->
     </div>
 
     <div class="canvas" id="canvas">
@@ -116,10 +116,7 @@
   <aside class="panel panel-preview">
     <div class="panel-header">
       <span class="panel-title">📱 Live Preview</span>
-      <div class="preview-tabs">
-        <button class="preview-tab active" data-tab="normal">Normal</button>
-        <button class="preview-tab" data-tab="expanded">Expanded</button>
-      </div>
+      <!-- C) Normal/Expanded preview tabs REMOVED — tap-to-expand replaces them -->
     </div>
     <div class="phone-shell">
       <div class="phone-screen">
@@ -128,8 +125,8 @@
           <span>▲ ◆ ■</span>
         </div>
         <div class="phone-appbar">
-          <span class="phone-back">←</span>
-          <span class="phone-title">Account Ledger</span>
+          <span class="phone-back" title="Back (drill up)">←</span>
+          <span class="phone-title" id="phoneAppTitle">Account Ledger</span>
           <span class="phone-icons">⚲ ⋮</span>
         </div>
         <!-- Breadcrumb for drill-down navigation -->
@@ -141,7 +138,7 @@
         </div>
       </div>
     </div>
-    <div class="preview-note">Preview uses sample data · Click group cards to drill down</div>
+    <div class="preview-note">Tap group cards to drill · Tap detail cards to expand</div>
   </aside>
 
 </div><!-- /workspace -->
@@ -242,7 +239,15 @@
     <div class="prop-row">
       <label>Level Visibility</label>
       <div id="propLevelVisibility" class="level-visibility-wrap">
-        <!-- injected by property-panel.js buildLevelVisibilityUI() -->
+        <!-- injected by property-panel.js -->
+      </div>
+    </div>
+
+    <!-- E) Amount total config (shown only for amount fields) -->
+    <div class="prop-row" id="propAmountTotalRow">
+      <div class="prop-section">TOTALS (Amount)</div>
+      <div id="propAmountTotal" class="level-visibility-wrap">
+        <!-- injected by property-panel.js buildAmountTotalUI() -->
       </div>
     </div>
 
@@ -250,6 +255,23 @@
   <div class="prop-panel-footer">
     <button class="btn btn-danger-ghost" id="propDelete">🗑 Remove Field</button>
     <button class="btn btn-primary" id="propApply">✓ Apply</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     GROUP CONFIG PANEL (slide-in placeholder)
+═══════════════════════════════════════════════════════════ -->
+<div class="prop-overlay" id="groupConfigOverlay"></div>
+<div class="prop-panel" id="groupConfigPanel">
+  <div class="prop-panel-header">
+    <span class="prop-panel-title" id="groupConfigTitle">Group Config</span>
+    <button class="prop-close" id="groupConfigClose">✕</button>
+  </div>
+  <div class="prop-panel-body" id="groupConfigBody">
+    <p style="color:var(--text-muted);font-size:12px;padding:16px 0;">
+      Group-level configuration controls will be added here in a future update.
+    </p>
   </div>
 </div>
 
@@ -269,6 +291,28 @@
         <span class="copy-confirm" id="copyConfirm" style="display:none">✓ Copied!</span>
       </div>
       <pre class="json-output" id="jsonOutput"></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     IMPORT JSON MODAL
+═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="importOverlay" style="display:none">
+  <div class="modal json-modal">
+    <div class="modal-header">
+      <span>Import JSON — Load Card Layout</span>
+      <button class="modal-close" id="importClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;">
+        Paste a previously exported JSON layout below. Current state will be replaced if valid.
+      </p>
+      <textarea id="importInput" class="import-textarea" rows="12" placeholder='{ "layoutType": "grid", ... }'></textarea>
+      <div class="import-error" id="importError"></div>
+      <div class="json-actions" style="margin-top:10px;">
+        <button class="btn btn-primary" id="btnImportSubmit">Import & Load</button>
+      </div>
     </div>
   </div>
 </div>

@@ -31,7 +31,7 @@
   font-size: 14px; font-weight: 600; color: var(--text-primary);
   letter-spacing: -0.3px;
 }
-.logo-text em { font-style: normal; color: var(--text-secondary); font-weight: 400; margin-left: 4px; }
+.logo-text em { font-style: normal; color: var(--text-secondary); font-weight: 400; margin-left: 4px; font-size: 12px; }
 
 .template-name-input {
   width: 320px; max-width: 100%;

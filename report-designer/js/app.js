@@ -1,19 +1,7 @@
 /**
- * MCloud Report Template Designer — Application Entry Point
+ * MCloud Mobile Template Card Designer — Application Entry Point
  * ─────────────────────────────────────────────────────────
  * Boots all modules on DOMContentLoaded.
- *
- * Script load order (all via <script> tags in index.html):
- *   1. js/data/field-registry.js  — FIELD_REGISTRY, SAMPLE_DATA, MOCK_GROUPED_DATA, ICON_MAP
- *   2. js/state.js                — state object, constants, globals, getLevelCount()
- *   3. js/utils.js                — renderAll, showToast, hexToArgb, argbToHex
- *   4. js/modules/palette.js      — buildFieldPalette, renderPalette, buildIndicatorFieldSelect, bindFieldSearch
- *   5. js/modules/canvas.js       — row/cell management, renderCanvas, bindCanvasToolbar
- *   6. js/modules/preview.js      — renderPreview, renderBreadcrumb, bindPreviewTabs
- *   7. js/modules/property-panel.js — openPropPanel, closePropPanel, applyPropPanel, bindPropPanel
- *   8. js/modules/json-modal.js   — generateJSON, openJSONModal, bindJSONModal
- *   9. js/modules/topbar.js       — bindTopBar, bindCardSettings, saveTemplate, bindKeyboard
- *  10. js/app.js                  — THIS FILE (boot)
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -25,7 +13,16 @@ document.addEventListener("DOMContentLoaded", () => {
   bindCardSettings();
   bindPropPanel();
   bindJSONModal();
-  bindPreviewTabs();
+  bindImportModal();
+  bindPreviewTabs();       // now binds phone back arrow
+  bindGroupConfigPanel();
   bindKeyboard();
+  computeTapValues();
   renderAll();
+
+  // J) Check for caller-provided startup payload
+  // Usage: set window.DESIGNER_INIT = { mode: "edit", json: {...} } before page load
+  if (window.DESIGNER_INIT) {
+    initDesigner(window.DESIGNER_INIT);
+  }
 });

@@ -64,7 +64,7 @@ function removeColFromRow(rowIdx) {
 function addFieldToCell(fieldId, rowIdx, colIdx) {
   const field = FIELD_REGISTRY.find(f => f.id === fieldId);
   if (!field) return;
-  state.rows[rowIdx].cols[colIdx] = {
+  const cellObj = {
     uid            : uid(),
     fieldId        : field.id,
     dataField      : field.dataField,
@@ -75,6 +75,12 @@ function addFieldToCell(fieldId, rowIdx, colIdx) {
     levelVisibility: "all",   // "all" or array of level numbers e.g. [1,3]
     style          : { color: "", fontSize: "", fontWeight: "normal", fontFamily: "" },
   };
+  // Amount fields get total config defaults
+  if (field.isAmount) {
+    cellObj.includeTotal    = false;
+    cellObj.totalScopeLevel = "all";  // "all" | "first" | number[]
+  }
+  state.rows[rowIdx].cols[colIdx] = cellObj;
   renderAll();
 }
 
@@ -110,10 +116,7 @@ function flashCell(r, c) {
 // ═══════════════════════════════════════════════════════════
 function bindCanvasToolbar() {
   document.getElementById("btnAddRow").addEventListener("click", addRow);
-  document.getElementById("toggleExpandedView").addEventListener("change", e => {
-    _showExpandedInCanvas = e.target.checked;
-    renderCanvas();
-  });
+  // G) "Show Expanded Rows" toggle removed — all rows always visible in canvas
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -129,25 +132,15 @@ function renderCanvas() {
 
   rowCount.textContent = state.rows.length;
 
-  // Count visible rows
-  const visibleRows = state.rows.filter(r => !r.isExpandedRow || _showExpandedInCanvas);
-
   if (state.rows.length === 0) {
     emptyMsg.style.display = "flex";
     emptyMsg.querySelector(".empty-title").textContent = "Canvas is empty";
     emptyMsg.querySelector(".empty-sub").innerHTML = 'Click <strong>+ Add Row</strong> to start building your card layout';
     return;
   }
-  if (visibleRows.length === 0) {
-    emptyMsg.style.display = "flex";
-    emptyMsg.querySelector(".empty-title").textContent = "All rows are expanded-only";
-    emptyMsg.querySelector(".empty-sub").innerHTML = 'Enable <strong>Show Expanded Rows</strong> above to see them';
-  } else {
-    emptyMsg.style.display = "none";
-  }
+  emptyMsg.style.display = "none";
 
   state.rows.forEach((row, rIdx) => {
-    if (row.isExpandedRow && !_showExpandedInCanvas) return;
 
     const colCount = row.cols.length;
     const wrap = document.createElement("div");

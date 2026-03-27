@@ -74,12 +74,15 @@ function renderGroupStage(list) {
     state.groupFields.forEach((gf, idx) => {
       const el = document.createElement("div");
       el.className = "field-chip group-selected";
+      const canUp   = idx > 0;
+      const canDown = idx < state.groupFields.length - 1;
       el.innerHTML = `
         <span class="chip-level">L${idx + 1}</span>
         <span class="chip-label">${gf.label}</span>
         <span class="group-actions">
-          ${idx > 0 ? `<button class="group-btn" data-action="up" data-idx="${idx}" title="Move up">↑</button>` : ""}
-          ${idx < state.groupFields.length - 1 ? `<button class="group-btn" data-action="down" data-idx="${idx}" title="Move down">↓</button>` : ""}
+          <button class="group-btn group-btn-reorder" data-action="up" data-idx="${idx}" title="Move up"${canUp ? "" : " disabled"}>↑</button>
+          <button class="group-btn group-btn-reorder" data-action="down" data-idx="${idx}" title="Move down"${canDown ? "" : " disabled"}>↓</button>
+          <button class="group-btn group-btn-cfg" data-action="config" data-idx="${idx}" title="Group config">⚙</button>
           <button class="group-btn group-btn-del" data-action="remove" data-idx="${idx}" title="Remove">✕</button>
         </span>
       `;
@@ -90,10 +93,17 @@ function renderGroupStage(list) {
           const i = parseInt(btn.dataset.idx);
           if (action === "up" && i > 0) {
             [state.groupFields[i], state.groupFields[i - 1]] = [state.groupFields[i - 1], state.groupFields[i]];
+            _drillPath = []; _expandedCardIdx = -1;
           } else if (action === "down" && i < state.groupFields.length - 1) {
             [state.groupFields[i], state.groupFields[i + 1]] = [state.groupFields[i + 1], state.groupFields[i]];
+            _drillPath = []; _expandedCardIdx = -1;
           } else if (action === "remove") {
             state.groupFields.splice(i, 1);
+            _drillPath = []; _expandedCardIdx = -1;
+            computeTapValues();
+          } else if (action === "config") {
+            openGroupConfigPanel(i);
+            return;
           }
           renderPalette();
           renderPreview();
@@ -134,18 +144,20 @@ function renderGroupStage(list) {
       el.className = "field-chip";
       el.innerHTML = `<span class="chip-label">${f.label}</span><span class="chip-add">+</span>`;
 
-      el.querySelector(".chip-add").addEventListener("click", () => {
+      // Shared handler with idempotency guard
+      function addGroupField(e) {
+        if (e) e.stopPropagation();
+        // Guard: prevent duplicate if already added (race / double-fire)
+        if (state.groupFields.some(g => g.fieldId === f.id)) return;
         state.groupFields.push({ fieldId: f.id, dataField: f.dataField, label: f.label });
-        _drillPath = []; // reset drill when groups change
+        _drillPath = []; _expandedCardIdx = -1;
+        computeTapValues();
         renderPalette();
         renderPreview();
-      });
-      el.addEventListener("click", () => {
-        state.groupFields.push({ fieldId: f.id, dataField: f.dataField, label: f.label });
-        _drillPath = [];
-        renderPalette();
-        renderPreview();
-      });
+      }
+
+      el.querySelector(".chip-add").addEventListener("click", addGroupField);
+      el.addEventListener("click", addGroupField);
       list.appendChild(el);
     });
   });
@@ -220,4 +232,32 @@ function buildIndicatorFieldSelect() {
 
 function bindFieldSearch() {
   document.getElementById("fieldSearch").addEventListener("input", renderPalette);
+}
+
+// ═══════════════════════════════════════════════════════════
+// GROUP CONFIG — placeholder panel per group field
+// ═══════════════════════════════════════════════════════════
+function openGroupConfigPanel(groupIdx) {
+  const gf = state.groupFields[groupIdx];
+  if (!gf) return;
+  const overlay = document.getElementById("groupConfigOverlay");
+  const panel   = document.getElementById("groupConfigPanel");
+  const title   = document.getElementById("groupConfigTitle");
+  const body    = document.getElementById("groupConfigBody");
+
+  title.textContent = `L${groupIdx + 1}: ${gf.label} — Config`;
+  body.innerHTML = `<p style="color:var(--text-muted);font-size:12px;padding:16px 0;">Group-level configuration controls will be added here in a future update.</p>`;
+
+  panel.classList.add("open");
+  overlay.classList.add("show");
+}
+
+function closeGroupConfigPanel() {
+  document.getElementById("groupConfigPanel").classList.remove("open");
+  document.getElementById("groupConfigOverlay").classList.remove("show");
+}
+
+function bindGroupConfigPanel() {
+  document.getElementById("groupConfigClose").addEventListener("click", closeGroupConfigPanel);
+  document.getElementById("groupConfigOverlay").addEventListener("click", closeGroupConfigPanel);
 }

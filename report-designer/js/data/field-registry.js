@@ -19,28 +19,28 @@ const FIELD_REGISTRY = [
   { id: "f002", label: "City",           dataField: "R0001F0002", defaultCaption: "City",         category: "Account",     groupable: true },
   { id: "f003", label: "Bill No",        dataField: "R0001F0003", defaultCaption: "Bill No",      category: "Account",     groupable: false },
   { id: "f004", label: "Account Group",  dataField: "R0001F0004", defaultCaption: "Group",        category: "Account",     groupable: true },
-  { id: "f005", label: "Amount",         dataField: "R0001F0005", defaultCaption: "Amount",       category: "Account",     groupable: false },
-  { id: "f006", label: "Balance",        dataField: "R0001F0006", defaultCaption: "Balance",      category: "Account",     groupable: false },
+  { id: "f005", label: "Amount",         dataField: "R0001F0005", defaultCaption: "Amount",       category: "Account",     groupable: false, isAmount: true },
+  { id: "f006", label: "Balance",        dataField: "R0001F0006", defaultCaption: "Balance",      category: "Account",     groupable: false, isAmount: true },
   // ── TRANSACTION ──────────────────────────────────
   { id: "f007", label: "Voucher No",     dataField: "R0001F0007", defaultCaption: "Vou No.",      category: "Transaction", groupable: false },
   { id: "f008", label: "Voucher Type",   dataField: "R0001F0008", defaultCaption: "Type",         category: "Transaction", groupable: true },
   { id: "f009", label: "Date",           dataField: "R0001F0009", defaultCaption: "Date",         category: "Transaction", groupable: false },
   { id: "f010", label: "Narration",      dataField: "R0001F0010", defaultCaption: "Narration",    category: "Transaction", groupable: false },
-  { id: "f011", label: "Debit Amount",   dataField: "R0001F0011", defaultCaption: "Debit",        category: "Transaction", groupable: false },
-  { id: "f012", label: "Credit Amount",  dataField: "R0001F0012", defaultCaption: "Credit",       category: "Transaction", groupable: false },
+  { id: "f011", label: "Debit Amount",   dataField: "R0001F0011", defaultCaption: "Debit",        category: "Transaction", groupable: false, isAmount: true },
+  { id: "f012", label: "Credit Amount",  dataField: "R0001F0012", defaultCaption: "Credit",       category: "Transaction", groupable: false, isAmount: true },
   // ── GST ──────────────────────────────────────────
-  { id: "f013", label: "GST Ass. Amount",dataField: "R0001F0013", defaultCaption: "GST Ass. Amt", category: "GST",         groupable: false },
+  { id: "f013", label: "GST Ass. Amount",dataField: "R0001F0013", defaultCaption: "GST Ass. Amt", category: "GST",         groupable: false, isAmount: true },
   { id: "f014", label: "SGST",           dataField: "R0001F0014", defaultCaption: "SGST",         category: "GST",         groupable: false },
   { id: "f015", label: "CGST",           dataField: "R0001F0015", defaultCaption: "CGST",         category: "GST",         groupable: false },
   { id: "f016", label: "IGST",           dataField: "R0001F0016", defaultCaption: "IGST",         category: "GST",         groupable: false },
   { id: "f017", label: "CESS",           dataField: "R0001F0017", defaultCaption: "CESS",         category: "GST",         groupable: false },
-  { id: "f018", label: "Total Expense",  dataField: "R0001F0018", defaultCaption: "Total Exp.",   category: "GST",         groupable: false },
+  { id: "f018", label: "Total Expense",  dataField: "R0001F0018", defaultCaption: "Total Exp.",   category: "GST",         groupable: false, isAmount: true },
   // ── STOCK ─────────────────────────────────────────
   { id: "f019", label: "Product Name",   dataField: "R0001F0019", defaultCaption: "Product",      category: "Stock",       groupable: true },
   { id: "f020", label: "Product Group",  dataField: "R0001F0020", defaultCaption: "Group",        category: "Stock",       groupable: true },
   { id: "f021", label: "Quantity",       dataField: "R0001F0021", defaultCaption: "Qty",          category: "Stock",       groupable: false },
   { id: "f022", label: "Rate",           dataField: "R0001F0022", defaultCaption: "Rate",         category: "Stock",       groupable: false },
-  { id: "f023", label: "Prod. Amount",   dataField: "R0001F0023", defaultCaption: "Prod. Amount", category: "Stock",       groupable: false },
+  { id: "f023", label: "Prod. Amount",   dataField: "R0001F0023", defaultCaption: "Prod. Amount", category: "Stock",       groupable: false, isAmount: true },
   { id: "f024", label: "UOM",            dataField: "R0001F0024", defaultCaption: "UOM",          category: "Stock",       groupable: false },
   // ── ORDER ─────────────────────────────────────────
   { id: "f025", label: "Order No",       dataField: "R0001F0025", defaultCaption: "Order No",     category: "Order",       groupable: false },
@@ -50,8 +50,8 @@ const FIELD_REGISTRY = [
   { id: "f029", label: "Pending Qty",    dataField: "R0001F0029", defaultCaption: "Pending Qty",  category: "Order",       groupable: false },
   // ── OUTSTANDING ───────────────────────────────────
   { id: "f030", label: "Due Days",       dataField: "R0001F0030", defaultCaption: "D. Days",      category: "Outstanding", groupable: false },
-  { id: "f031", label: "Bill Amount",    dataField: "R0001F0031", defaultCaption: "Bill Amount",  category: "Outstanding", groupable: false },
-  { id: "f032", label: "Pending Amount", dataField: "R0001F0032", defaultCaption: "Pen. Amount",  category: "Outstanding", groupable: false },
+  { id: "f031", label: "Bill Amount",    dataField: "R0001F0031", defaultCaption: "Bill Amount",  category: "Outstanding", groupable: false, isAmount: true },
+  { id: "f032", label: "Pending Amount", dataField: "R0001F0032", defaultCaption: "Pen. Amount",  category: "Outstanding", groupable: false, isAmount: true },
 ];
 
 /**

@@ -1,5 +1,5 @@
 /**
- * MCloud Report Template Designer — Application State
+ * MCloud Mobile Template Card Designer — Application State
  * ────────────────────────────────────────────────────
  * Single source of truth. All modules read/write this object.
  * After mutation, call renderAll() to sync DOM.
@@ -9,12 +9,22 @@
 const MAX_COLS = 5;               // max columns per row (change here to adjust globally)
 const GROUP_LEVEL_WARN = 4;       // warn when group fields exceed this count
 
+// ── DUMMY IDENTITY (backend provides real IDs later) ─────
+const DUMMY_TEMPLATE_ID   = "R0001";
+const DUMMY_FORMAT_ID     = "F0001";
+const DUMMY_TEMPLATE_NAME = "Account Ledger";
+
 // ── APPLICATION STATE ────────────────────────────────────
 let state = {
   templateName : "",
-  mOnTap       : "expand",        // kept for backward compat in JSON; replaced by drill model
-  mOnDoubleTap : "",
+  mOnTap       : "expand",        // auto-managed — NOT user-editable
+  mOnDoubleTap : "",              // auto-managed — NOT user-editable
   indicator    : { isShow: false, dataField: "" },
+
+  // ── Template / format identity (read-only in UI; set by caller or dummy) ──
+  templateId   : DUMMY_TEMPLATE_ID,
+  formatId     : DUMMY_FORMAT_ID,
+  reportDisplayName : DUMMY_TEMPLATE_NAME,
 
   // ── Group fields (ordered) — defines level hierarchy ──
   // Each entry: { fieldId, dataField, label }
@@ -26,18 +36,21 @@ let state = {
   // rows[i] = { id, isExpandedRow, cols: [ null | FieldCell ] }
   // FieldCell = { uid, fieldId, dataField, caption, iconCaption,
   //               textAlign, maxLine,
-  //               levelVisibility: "all" | number[],   // NEW: which levels show this column
+  //               levelVisibility: "all" | number[],   // which levels show this column
+  //               includeTotal: false,                  // amount fields only
+  //               totalScopeLevel: "all",               // "all" | "first" | number[]
   //               style:{color,fontSize,fontWeight,fontFamily} }
 };
 
 // ── UI/transient state (not persisted in JSON) ───────────
 let _editTarget = null;           // { rowIdx, colIdx } currently open in prop panel
 let _dragFieldId = null;          // field being dragged from palette
-let _previewTab  = "normal";
-let _showExpandedInCanvas = false;
+let _showExpandedInCanvas = true; // always show all rows in canvas now
 let _cellCounter = 0;
 let _paletteStage = "group";      // "group" | "column" — two-stage palette flow
-let _drillPath = [];              // preview drill state: array of { level, groupValue, groupLabel }
+let _drillPath = [];              // preview drill state: array of { level, groupValue, groupLabel, dataField }
+let _expandedCardIdx = -1;        // index of tapped card in terminal preview (-1 = none expanded)
+let _designerMode = "add";        // "add" | "edit" — set by caller or import
 
 function uid() { return "c" + (++_cellCounter); }
 
@@ -61,4 +74,20 @@ function getTerminalLevel() {
 
 function isTerminalLevel(level) {
   return level === getTerminalLevel();
+}
+
+/**
+ * Auto-compute mOnTap / mOnDoubleTap based on current format.
+ * Called before JSON generation and whenever groupFields change.
+ */
+function computeTapValues() {
+  if (state.groupFields.length > 0) {
+    // Has drill levels → tap navigates, double-tap unused
+    state.mOnTap = "navigate";
+    state.mOnDoubleTap = "";
+  } else {
+    // Flat (single level) → tap expands
+    state.mOnTap = "expand";
+    state.mOnDoubleTap = "";
+  }
 }

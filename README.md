@@ -569,3 +569,136 @@ Entry point: `report-designer/index.html` — links all CSS and JS files in corr
 **State:** Both `report-designer-single.html` and `report-designer/index.html` are in sync and working.
 
 ---
+
+### [2026-03-27] — Feature Update: Drill-down, Import, Identity, Naming
+
+**Summary:** 11-feature scoped update across all modules. JSON remains backward-compatible; all new keys are additive only.
+
+**A) On Tap / On Double Tap controls removed from UI**
+- Removed `mOnTap` and `mOnDoubleTap` `<select>` elements from Card Settings in index.html
+- Removed their bindings from `topbar.js` `bindCardSettings()`
+- Added `computeTapValues()` in `state.js` — auto-sets `mOnTap` to `"navigate"` (if groupFields exist) or `"expand"` (flat)
+- Values still present in generated JSON — now auto-decided, not user-selected
+
+**B) Preview back arrow works (level navigation)**
+- Made `.phone-back` arrow clickable in preview — pops `_drillPath` one level
+- Bound in `preview.js` via `bindPhoneBackArrow()` (called from `bindPreviewTabs()`)
+- Breadcrumb still present and functional with home + per-level links
+
+**C) Expanded rows: tap-only behavior**
+- Added `_expandedCardIdx` transient state — tracks which terminal card is tapped/expanded
+- Detail cards are now clickable: tapping toggles expanded rows for that card only
+- Expanded rows never auto-show — only appear after user tap on terminal-level (or only-level) card
+- Normal/Expanded preview tabs removed from HTML and preview.js
+- `_previewTab` variable removed (unused)
+
+**D) Group field config placeholder panel**
+- Added `⚙` config button per selected group field in palette.js
+- Added `openGroupConfigPanel(idx)` / `closeGroupConfigPanel()` / `bindGroupConfigPanel()` in palette.js
+- Added `#groupConfigPanel` + `#groupConfigOverlay` HTML elements (slide-in panel, same style as prop panel)
+- Panel shows placeholder message — empty controls for future implementation
+
+**E) Amount field metadata + totals config**
+- Added `isAmount: true` to 9 amount/balance fields in `field-registry.js` (Amount, Balance, Debit Amount, Credit Amount, GST Ass. Amount, Total Expense, Prod. Amount, Bill Amount, Pending Amount)
+- `addFieldToCell` in `canvas.js` auto-adds `includeTotal: false` and `totalScopeLevel: "all"` for amount fields
+- Added `buildAmountTotalUI()` in `property-panel.js` — shows Include Total checkbox + scope radio (All/First/Specific levels)
+- Added `#propAmountTotal` + `#propAmountTotalRow` in index.html
+- `applyPropPanel()` reads and stores total config on cell
+- JSON output includes `totalConfig: { includeTotal, totalScopeLevel }` per column (additive)
+
+**F) Canvas scroll usability**
+- Added `flex-shrink: 0` to `.canvas-row-wrap` in canvas.css — prevents rows from collapsing when many rows added
+- Canvas `.canvas` div already had `overflow-y: auto` + `flex: 1` — confirmed working for scroll
+
+**G) Show Expanded Rows toggle removed**
+- Removed `<label class="toggle-label">` with `#toggleExpandedView` from canvas toolbar in index.html
+- Removed its `change` event binding from `canvas.js` `bindCanvasToolbar()`
+- `renderCanvas()` no longer filters rows by `_showExpandedInCanvas` — all rows always visible in canvas
+- Expanded rows in preview follow new tap-only rule (Feature C)
+
+**H) Product naming updated**
+- Renamed `<title>` to "MCloud — Mobile Template Card Designer"
+- Updated logo text from `<em>Template Designer</em>` to `<em>Mobile Template Card Designer</em>`
+- Updated all JS file header comments to reference "Mobile Template Card Designer"
+- Topbar em font-size adjusted to 12px for longer name
+
+**I) Template/format identity**
+- Added `DUMMY_TEMPLATE_ID = "R0001"`, `DUMMY_FORMAT_ID = "F0001"`, `DUMMY_TEMPLATE_NAME = "Account Ledger"` in state.js
+- Added `templateId`, `formatId`, `reportDisplayName` to state object
+- Added read-only "Format Identity" section in left panel (below Card Settings) showing Template ID, Format ID, Report Name
+- Phone app bar title now uses `reportDisplayName` via `#phoneAppTitle`
+- JSON output includes `templateId`, `formatId`, `reportDisplayName` (additive keys)
+
+**J) Import JSON + Edit mode**
+- Added "⬇ Import" button in topbar (`#btnImportJSON`)
+- Added import modal HTML (`#importOverlay`) with textarea for pasting JSON
+- Added `validateImportJSON(obj)` — checks for `layoutType: "grid"` + `fieldConfigs` array + per-column `dataField`
+- Added `hydrateFromJSON(json)` — rebuilds full state from valid JSON (rows, cells, groupFields, indicator, identity)
+- If JSON invalid: state unchanged, error shown in modal + toast
+- Added `initDesigner(payload)` — supports `{ mode: "edit", json: {...} }` for caller-provided edit payloads
+- Boot checks `window.DESIGNER_INIT` for external initialization
+- Added `_designerMode` ("add"/"edit") transient state
+- Keyboard Escape closes import modal
+
+**K) JSON compatibility**
+- No existing keys removed or renamed
+- All new keys are additive: `templateId`, `formatId`, `reportDisplayName`, `groupFields[]`, `drillConfig`, `totalConfig`, `columnCount`
+- `mOnTap` / `mOnDoubleTap` still present in output with auto-computed values
+
+**Files changed:**
+- `report-designer/index.html` — major HTML restructure (removed tap selects, preview tabs, expanded toggle; added import modal, group config panel, identity display, amount total section)
+- `report-designer/js/state.js` — identity fields, `computeTapValues()`, `_expandedCardIdx`, `_designerMode`
+- `report-designer/js/data/field-registry.js` — `isAmount: true` on 9 fields
+- `report-designer/js/modules/palette.js` — group config button, `openGroupConfigPanel()`, `bindGroupConfigPanel()`
+- `report-designer/js/modules/canvas.js` — removed expanded toggle binding, amount total defaults in `addFieldToCell`
+- `report-designer/js/modules/preview.js` — complete rewrite: tap-to-expand, back arrow, no tabs, `_expandedCardIdx` support
+- `report-designer/js/modules/property-panel.js` — `buildAmountTotalUI()`, amount total read in `applyPropPanel()`
+- `report-designer/js/modules/json-modal.js` — `computeTapValues()` call, identity in JSON, amount `totalConfig`, full import system (`validateImportJSON`, `hydrateFromJSON`, `initDesigner`, import modal handlers)
+- `report-designer/js/modules/topbar.js` — removed tap bindings, added import button binding, clear resets new state
+- `report-designer/js/app.js` — updated boot: `bindImportModal`, `bindGroupConfigPanel`, `computeTapValues`, `DESIGNER_INIT` check
+- `report-designer/css/modal.css` — import textarea + error styles
+- `report-designer/css/panels.css` — identity display + group config button styles
+- `report-designer/css/preview.css` — expanded card highlight style
+- `report-designer/css/canvas.css` — row flex-shrink fix for scroll usability
+- `report-designer/css/topbar.css` — logo em font-size for longer name
+
+---
+
+### [2026-03-27] — Bugfix: Row-group / display-column collision & duplicate-add (3 issues)
+
+**Issue 1 — Group-level preview cards showed display columns (visual collision)**
+- **Root cause:** `renderGroupLevel()` in `preview.js` called `buildGroupSummaryRow(level)` which rendered `state.rows` display column values (e.g. "Ahmed...", "A/1") inside each group-level card alongside the group value name. This made group cards look cramped/messy with unrelated column data colliding with the group value.
+- **Fix:** Removed `buildGroupSummaryRow()` call from group card rendering. Group-level cards now show only the group value + drill chevron. Display columns (`state.rows`) render only at terminal/detail level. Removed dead `buildGroupSummaryRow()` function.
+- **Clarification:** Group fields and display columns are independent — a field CAN be both a group field AND a display column. An earlier incorrect `isGroupField()` guard that blocked this was also removed.
+
+**Issue 2 — Intermittent duplicate add for row-group fields**
+- **Root cause:** In `palette.js` `renderGroupStage()`, each available group field chip had TWO separate click listeners — one on `.chip-add` (the "+" button) and one on the parent `.field-chip` element. When clicking "+", the click event bubbled from button to parent, firing both handlers and pushing the same field into `state.groupFields` twice.
+- **Fix:** Replaced the two anonymous handlers with a single shared `addGroupField(e)` function that calls `e.stopPropagation()` to prevent bubble. Added idempotency guard: `if (state.groupFields.some(g => g.fieldId === f.id)) return;` — prevents duplicate insertion even under rapid double-click or re-render race.
+
+**Issue 3 — Row-group reorder controls not fully visible**
+- **Root cause:** ↑↓ reorder buttons existed in the HTML but could be pushed offscreen by long group field labels in the 260px panel. `.chip-label` had no overflow constraint, and `.group-actions` had no `flex-shrink: 0`.
+- **Fix:** Added CSS: `.group-actions { flex-shrink: 0; }` and `.field-chip.group-selected .chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }`. Also added `_drillPath`/`_expandedCardIdx` reset on reorder/remove so preview reflects new hierarchy immediately.
+
+**Files changed:**
+- `report-designer/js/state.js` — removed dead `isGroupField()` function (was incorrectly blocking group fields from display columns)
+- `report-designer/js/modules/preview.js` — removed `buildGroupSummaryRow()` call + function; group cards now show only group value + chevron
+- `report-designer/js/modules/canvas.js` — removed incorrect `isGroupField()` guard from `addFieldToCell()`; group fields can be used as display columns
+- `report-designer/js/modules/palette.js` — fixed duplicate-add (shared handler + stopPropagation + idempotency guard), added drill reset on reorder/remove
+- `report-designer/css/panels.css` — `flex-shrink: 0` on `.group-actions`, overflow/ellipsis on `.group-selected .chip-label`
+- `README.md` — this changelog entry
+
+---
+
+### [2026-03-27] — Fix: Group-level cards now render display columns, not group value
+
+**What changed:**
+Group-level cards in the preview no longer show the group field value as card content. Instead, they render the user's selected display columns (`state.rows`) filtered by `levelVisibility` for that level — identical to how terminal cards render but at the group level.
+
+- If a user wants the group value visible in the card, they manually add that field as a display column in Stage B (Column selection) and set its level visibility.
+- Tapping a group-level card still drills into the next level.
+- Each group card uses a mock record filtered to that group value so column data is contextually correct.
+
+**Files changed:**
+- `report-designer/js/modules/preview.js` — rewrote `renderGroupLevel()` to use `buildDetailCard()` with level-filtered display columns instead of showing group value + chevron
+
+---

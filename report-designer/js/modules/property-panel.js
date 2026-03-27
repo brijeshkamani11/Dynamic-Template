@@ -38,6 +38,9 @@ function openPropPanel(rowIdx, colIdx) {
   // Level visibility
   buildLevelVisibilityUI(cell);
 
+  // Amount total config
+  buildAmountTotalUI(cell);
+
   document.getElementById("propPanel").classList.add("open");
   document.getElementById("propOverlay").classList.add("show");
 }
@@ -117,6 +120,96 @@ function buildLevelVisibilityUI(cell) {
   }
 }
 
+/**
+ * Builds the amount total config UI for amount fields.
+ */
+function buildAmountTotalUI(cell) {
+  const container = document.getElementById("propAmountTotal");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const field = FIELD_REGISTRY.find(f => f.id === cell.fieldId);
+  if (!field || !field.isAmount) {
+    container.parentElement.style.display = "none";
+    return;
+  }
+  container.parentElement.style.display = "";
+
+  const includeTotal = cell.includeTotal || false;
+  const totalScope   = cell.totalScopeLevel || "all";
+
+  // Include Total checkbox
+  const chkWrap = document.createElement("label");
+  chkWrap.className = "level-vis-option";
+  const chk = document.createElement("input");
+  chk.type = "checkbox";
+  chk.id = "propIncludeTotal";
+  chk.checked = includeTotal;
+  chkWrap.appendChild(chk);
+  chkWrap.appendChild(document.createTextNode(" Include Total"));
+  container.appendChild(chkWrap);
+
+  // Total Scope options (shown only when includeTotal is checked)
+  const scopeWrap = document.createElement("div");
+  scopeWrap.id = "totalScopeWrap";
+  scopeWrap.className = "level-checkboxes";
+  scopeWrap.style.display = includeTotal ? "flex" : "none";
+  scopeWrap.style.flexDirection = "column";
+
+  ["all", "first"].forEach(v => {
+    const lbl = document.createElement("label");
+    lbl.className = "level-cb-label";
+    const r = document.createElement("input");
+    r.type = "radio"; r.name = "totalScope"; r.value = v;
+    r.checked = (totalScope === v);
+    lbl.appendChild(r);
+    lbl.appendChild(document.createTextNode(" " + (v === "all" ? "All levels" : "First level only")));
+    scopeWrap.appendChild(lbl);
+  });
+
+  // Specific levels option
+  const specLbl = document.createElement("label");
+  specLbl.className = "level-cb-label";
+  const specR = document.createElement("input");
+  specR.type = "radio"; specR.name = "totalScope"; specR.value = "specific";
+  specR.checked = Array.isArray(totalScope);
+  specLbl.appendChild(specR);
+  specLbl.appendChild(document.createTextNode(" Specific levels"));
+  scopeWrap.appendChild(specLbl);
+
+  // Level checkboxes for specific
+  const totalLevels = getLevelCount();
+  const specCbWrap = document.createElement("div");
+  specCbWrap.id = "totalScopeLevels";
+  specCbWrap.className = "level-checkboxes";
+  specCbWrap.style.display = Array.isArray(totalScope) ? "flex" : "none";
+  specCbWrap.style.paddingLeft = "20px";
+
+  const selectedScopes = Array.isArray(totalScope) ? totalScope : [];
+  for (let lv = 1; lv <= totalLevels; lv++) {
+    const lvLbl = document.createElement("label");
+    lvLbl.className = "level-cb-label";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.value = lv; cb.checked = selectedScopes.includes(lv);
+    lvLbl.appendChild(cb);
+    let lvName = lv <= state.groupFields.length ? `L${lv}: ${state.groupFields[lv-1].label}` : `L${lv}: Detail`;
+    lvLbl.appendChild(document.createTextNode(` ${lvName}`));
+    specCbWrap.appendChild(lvLbl);
+  }
+  scopeWrap.appendChild(specCbWrap);
+
+  container.appendChild(scopeWrap);
+
+  chk.addEventListener("change", () => {
+    scopeWrap.style.display = chk.checked ? "flex" : "none";
+  });
+  scopeWrap.querySelectorAll('input[name="totalScope"]').forEach(r => {
+    r.addEventListener("change", () => {
+      specCbWrap.style.display = (r.value === "specific" && r.checked) ? "flex" : "none";
+    });
+  });
+}
+
 function closePropPanel() {
   document.getElementById("propPanel").classList.remove("open");
   document.getElementById("propOverlay").classList.remove("show");
@@ -184,6 +277,27 @@ function applyPropPanel() {
     cell.levelVisibility = levels.length > 0 ? levels : "all";
   } else {
     cell.levelVisibility = "all";
+  }
+
+  // Amount total config
+  const field = FIELD_REGISTRY.find(f => f.id === cell.fieldId);
+  if (field && field.isAmount) {
+    const inclChk = document.getElementById("propIncludeTotal");
+    cell.includeTotal = inclChk ? inclChk.checked : false;
+    if (cell.includeTotal) {
+      const scopeRadio = document.querySelector('input[name="totalScope"]:checked');
+      if (scopeRadio) {
+        if (scopeRadio.value === "specific") {
+          const scopeCbs = document.querySelectorAll("#totalScopeLevels input[type=checkbox]:checked");
+          const scopeLevels = [...scopeCbs].map(cb => parseInt(cb.value));
+          cell.totalScopeLevel = scopeLevels.length > 0 ? scopeLevels : "all";
+        } else {
+          cell.totalScopeLevel = scopeRadio.value; // "all" or "first"
+        }
+      }
+    } else {
+      cell.totalScopeLevel = "all";
+    }
   }
 
   closePropPanel();

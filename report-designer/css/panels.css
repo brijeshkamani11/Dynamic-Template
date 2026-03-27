@@ -121,6 +121,16 @@
   display: flex;
   gap: 3px;
   margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Prevent long group-field labels from pushing reorder buttons offscreen */
+.field-chip.group-selected .chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
 }
 
 .group-btn {
@@ -135,8 +145,11 @@
   transition: all var(--transition);
   font-family: var(--font-ui);
 }
-.group-btn:hover { background: var(--bg-card); color: var(--text-primary); border-color: var(--border-light); }
-.group-btn-del:hover { background: rgba(239,68,68,0.1); color: var(--red); border-color: var(--red); }
+.group-btn:hover:not(:disabled) { background: var(--bg-card); color: var(--text-primary); border-color: var(--border-light); }
+.group-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+.group-btn-reorder { color: var(--accent); border-color: var(--accent); font-weight: 700; }
+.group-btn-reorder:hover:not(:disabled) { background: var(--accent-glow); color: var(--accent); border-color: var(--accent); }
+.group-btn-del:hover:not(:disabled) { background: rgba(239,68,68,0.1); color: var(--red); border-color: var(--red); }
 
 .group-warn {
   font-size: 11px;
@@ -186,3 +199,20 @@
 .inline-check { display: flex; align-items: center; gap: 6px; }
 .inline-check input[type="checkbox"] { accent-color: var(--accent); }
 .inline-check span { font-size: 11px; color: var(--text-secondary); }
+
+/* ── FORMAT IDENTITY (read-only) ─────────────────────────── */
+.format-identity { padding-bottom: 8px; }
+.identity-val {
+  font-size: 11px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  background: var(--bg-cell);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  user-select: all;
+}
+
+/* ── GROUP CONFIG BUTTON ─────────────────────────────────── */
+.group-btn-cfg { color: var(--accent); }
+.group-btn-cfg:hover { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); }
