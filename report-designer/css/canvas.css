@@ -201,3 +201,23 @@
   0%   { background: var(--accent-glow); }
   100% { background: var(--bg-cell); }
 }
+
+/* ── Phase 1: Row style button ───────────────────────────── */
+.row-btn-style { color: var(--text-muted); }
+.row-btn-style:hover {
+  background: var(--accent-glow);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.row-btn-style-active {
+  background: var(--accent-glow) !important;
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+/* ── Phase 1: Column-span tag ────────────────────────────── */
+.tag-span {
+  background: rgba(139,92,246,0.12);
+  border-color: rgba(139,92,246,0.3);
+  color: #a78bfa;
+}

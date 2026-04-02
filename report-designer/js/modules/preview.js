@@ -196,6 +196,24 @@ function buildDetailCard(record, level, showExpanded, cardIdx) {
     const rowEl = document.createElement("div");
     rowEl.className = "preview-row" + (row.isExpandedRow ? " preview-row-expanded" : "");
 
+    // ── Phase 1: apply row-level visual style ────────────────
+    const rs = row.rowStyle || {};
+    if (rs.background)        rowEl.style.background    = rs.background;
+    if (rs.paddingVertical)   { rowEl.style.paddingTop    = rs.paddingVertical + "px";
+                                rowEl.style.paddingBottom = rs.paddingVertical + "px"; }
+    if (rs.paddingHorizontal) { rowEl.style.paddingLeft   = rs.paddingHorizontal + "px";
+                                rowEl.style.paddingRight  = rs.paddingHorizontal + "px"; }
+    if (rs.borderWidth > 0 && rs.borderColor) {
+      rowEl.style.border       = `${rs.borderWidth}px solid ${rs.borderColor}`;
+      if (rs.cornerRadius)     rowEl.style.borderRadius = rs.cornerRadius + "px";
+    }
+    if (rs.showDivider) {
+      const dvColor = rs.dividerColor || "#e0e0e0";
+      const dvStyle = rs.dividerStyle || "solid";
+      rowEl.style.borderBottom = `1px ${dvStyle} ${dvColor}`;
+    }
+    // ─────────────────────────────────────────────────────────
+
     const activeCols = row.cols.filter(c => c !== null);
     if (activeCols.length === 0) return;
 
@@ -212,7 +230,9 @@ function buildDetailCard(record, level, showExpanded, cardIdx) {
       const cellEl = document.createElement("div");
       cellEl.className = "preview-cell";
       cellEl.style.textAlign = cell.textAlign || "left";
-      if (visibleCols.length === 1) cellEl.style.flex = "1";
+      // Phase 1: colSpan → flex-grow proportional to span
+      const span = cell.colSpan || 1;
+      if (span > 1) cellEl.style.flex = span;
 
       const icon = cell.iconCaption ? (ICON_MAP[cell.iconCaption] || "") : "";
       let rawVal = record[cell.dataField];

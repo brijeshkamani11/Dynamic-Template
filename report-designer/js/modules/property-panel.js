@@ -12,14 +12,20 @@ function openPropPanel(rowIdx, colIdx) {
 
   _editTarget = { rowIdx, colIdx };
 
+  // Show cell sections, hide row style section
+  document.getElementById("cellPropSections").style.display = "";
+  document.getElementById("rowStyleSection").style.display  = "none";
+  document.getElementById("propDelete").style.display       = "";
+
   const field = FIELD_REGISTRY.find(f => f.id === cell.fieldId);
   document.getElementById("propPanelTitle").textContent = field ? field.label : "Field";
 
-  document.getElementById("propCaption").value    = cell.caption || "";
+  document.getElementById("propCaption").value     = cell.caption || "";
   document.getElementById("propIconCaption").value = cell.iconCaption || "";
-  document.getElementById("propMaxLine").value    = cell.maxLine || 1;
-  document.getElementById("propFontSize").value   = cell.style.fontSize || "";
-  document.getElementById("propFontFamily").value = cell.style.fontFamily || "";
+  document.getElementById("propMaxLine").value     = cell.maxLine || 1;
+  document.getElementById("propColSpan").value     = cell.colSpan || 1;   // Phase 1
+  document.getElementById("propFontSize").value    = cell.style.fontSize || "";
+  document.getElementById("propFontFamily").value  = cell.style.fontFamily || "";
   document.getElementById("propIsExpandedRow").checked = !!state.rows[rowIdx].isExpandedRow;
 
   // Text align buttons
@@ -32,7 +38,7 @@ function openPropPanel(rowIdx, colIdx) {
   });
   // Color
   const hex = cell.style.color ? argbToHex(cell.style.color) : "#000000";
-  document.getElementById("propColor").value    = hex;
+  document.getElementById("propColor").value       = hex;
   document.getElementById("propColorHex").textContent = hex;
 
   // Level visibility
@@ -40,6 +46,41 @@ function openPropPanel(rowIdx, colIdx) {
 
   // Amount total config
   buildAmountTotalUI(cell);
+
+  document.getElementById("propPanel").classList.add("open");
+  document.getElementById("propOverlay").classList.add("show");
+}
+
+// ── Phase 1: Row Style Panel ─────────────────────────────────
+/**
+ * Opens the property panel in row-style mode (colIdx = -1).
+ * Shows only row-level style controls (Background, Border, Corner, Padding, Divider).
+ */
+function openRowStylePanel(rowIdx) {
+  const row = state.rows[rowIdx];
+  if (!row) return;
+
+  _editTarget = { rowIdx, colIdx: -1 };
+
+  // Show row style section only
+  document.getElementById("cellPropSections").style.display = "none";
+  document.getElementById("rowStyleSection").style.display  = "";
+  document.getElementById("propDelete").style.display       = "none";
+
+  document.getElementById("propPanelTitle").textContent = `Row ${rowIdx + 1} — Style`;
+
+  const rs = row.rowStyle || {};
+  document.getElementById("rsBgEnable").checked    = !!rs.background;
+  document.getElementById("rsBgColor").value       = rs.background   || "#f0f4ff";
+  document.getElementById("rsBorderColor").value   = rs.borderColor  || "#cccccc";
+  document.getElementById("rsBorderWidth").value   = rs.borderWidth  != null ? rs.borderWidth : 0;
+  document.getElementById("rsCornerRadius").value  = rs.cornerRadius != null ? rs.cornerRadius : 0;
+  document.getElementById("rsPaddingV").value      = rs.paddingVertical   != null ? rs.paddingVertical   : 0;
+  document.getElementById("rsPaddingH").value      = rs.paddingHorizontal != null ? rs.paddingHorizontal : 0;
+  document.getElementById("rsShowDivider").checked = !!rs.showDivider;
+  document.getElementById("rsDividerColor").value  = rs.dividerColor  || "#e0e0e0";
+  document.getElementById("rsDividerStyle").value  = rs.dividerStyle  || "solid";
+  document.getElementById("rsDividerOptions").style.display = rs.showDivider ? "" : "none";
 
   document.getElementById("propPanel").classList.add("open");
   document.getElementById("propOverlay").classList.add("show");
@@ -213,6 +254,10 @@ function buildAmountTotalUI(cell) {
 function closePropPanel() {
   document.getElementById("propPanel").classList.remove("open");
   document.getElementById("propOverlay").classList.remove("show");
+  // Reset sections to default (cell mode) so next open is clean
+  document.getElementById("cellPropSections").style.display = "";
+  document.getElementById("rowStyleSection").style.display  = "none";
+  document.getElementById("propDelete").style.display       = "";
   _editTarget = null;
 }
 
@@ -238,6 +283,11 @@ function bindPropPanel() {
     document.getElementById("propColorHex").textContent = e.target.value;
   });
 
+  // Phase 1: divider toggle shows/hides divider sub-options
+  document.getElementById("rsShowDivider").addEventListener("change", e => {
+    document.getElementById("rsDividerOptions").style.display = e.target.checked ? "" : "none";
+  });
+
   document.getElementById("propApply").addEventListener("click", applyPropPanel);
 
   document.getElementById("propDelete").addEventListener("click", () => {
@@ -249,6 +299,13 @@ function bindPropPanel() {
 
 function applyPropPanel() {
   if (!_editTarget) return;
+
+  // Phase 1: row-style mode
+  if (_editTarget.colIdx === -1) {
+    applyRowStyle();
+    return;
+  }
+
   const { rowIdx, colIdx } = _editTarget;
   const cell = state.rows[rowIdx].cols[colIdx];
   if (!cell) return;
@@ -256,6 +313,7 @@ function applyPropPanel() {
   cell.caption     = document.getElementById("propCaption").value.trim();
   cell.iconCaption = document.getElementById("propIconCaption").value;
   cell.maxLine     = Math.max(1, Math.min(5, parseInt(document.getElementById("propMaxLine").value) || 1));
+  cell.colSpan     = Math.max(1, Math.min(MAX_COLS, parseInt(document.getElementById("propColSpan").value) || 1));  // Phase 1
   cell.textAlign   = document.querySelector(".align-btn[data-align].active")?.dataset.align || "left";
   state.rows[rowIdx].isExpandedRow = document.getElementById("propIsExpandedRow").checked;
 
@@ -300,6 +358,55 @@ function applyPropPanel() {
     }
   }
 
+  closePropPanel();
+  renderAll();
+}
+
+// ── Phase 1: Apply Row Style ─────────────────────────────────
+/**
+ * Reads the row-style form and writes to state.rows[rowIdx].rowStyle.
+ * Only stores non-default values to keep state clean.
+ */
+function applyRowStyle() {
+  const { rowIdx } = _editTarget;
+  const row = state.rows[rowIdx];
+  if (!row) return;
+
+  const rs = {};
+
+  // Background — only if the enable checkbox is ticked
+  if (document.getElementById("rsBgEnable").checked) {
+    const bg = document.getElementById("rsBgColor").value;
+    if (bg) rs.background = bg;
+  }
+
+  // Border — only if width > 0
+  const bw = parseFloat(document.getElementById("rsBorderWidth").value) || 0;
+  if (bw > 0) {
+    rs.borderWidth = bw;
+    rs.borderColor = document.getElementById("rsBorderColor").value;
+  }
+
+  // Corner radius
+  const cr = parseFloat(document.getElementById("rsCornerRadius").value) || 0;
+  if (cr > 0) rs.cornerRadius = cr;
+
+  // Padding
+  const pv = parseFloat(document.getElementById("rsPaddingV").value) || 0;
+  const ph = parseFloat(document.getElementById("rsPaddingH").value) || 0;
+  if (pv > 0) rs.paddingVertical   = pv;
+  if (ph > 0) rs.paddingHorizontal = ph;
+
+  // Divider
+  if (document.getElementById("rsShowDivider").checked) {
+    rs.showDivider = true;
+    const dc = document.getElementById("rsDividerColor").value;
+    const ds = document.getElementById("rsDividerStyle").value;
+    if (dc && dc !== "#e0e0e0") rs.dividerColor = dc;
+    if (ds && ds !== "solid")   rs.dividerStyle = ds;
+  }
+
+  row.rowStyle = rs;
   closePropPanel();
   renderAll();
 }

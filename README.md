@@ -480,6 +480,92 @@ Phone preview uses light theme (white cards, #1976D2 app bar — Material Design
 
 ---
 
+### [2026-04-02] — Phase 1 Design Integration: Row Style + Column Span
+
+**Branch:** `feature/integrate-all-design`
+
+**What changed (Phase 1 only — visual foundation):**
+
+**A) Row-level visual style controls**
+- Each row now carries an optional `rowStyle` object: `background`, `borderColor`, `borderWidth`, `cornerRadius`, `paddingVertical`, `paddingHorizontal`, `showDivider`, `dividerColor`, `dividerStyle`.
+- All fields default to "off" — existing layouts are visually identical if `rowStyle` is absent or empty.
+- A **⬡ Row Style** button added to every canvas row header. When any style is active the button highlights (accent color).
+- Clicking the button opens the property panel in **row-style mode** (cell controls are hidden; row style controls shown): Background (checkbox+picker), Border (color+width), Corner, Padding V/H, Divider (toggle + color/style sub-options).
+
+**B) Column span (per-cell `colSpan`)**
+- Each cell now has a `colSpan` field (default 1).
+- Editable via **Column Span** input in the property panel DISPLAY section (range 1–MAX_COLS).
+- Canvas renders spanning cells with `grid-column: span N`; covered neighbour slots are skipped.
+- Overlap auto-correction: if a span would cover a non-null cell, span is reduced + a warning toast shown.
+- Canvas shows a purple `⊞×N` tag on spanning cells.
+
+**C) Canvas rendering**
+- Row-style background and border/radius applied as inline styles on `.canvas-row-wrap`.
+- Row padding applied to the `.cell-grid` inner area.
+- colSpan applied via CSS grid `gridColumn: span N`.
+
+**D) Preview rendering**
+- `rowStyle` applied to each `.preview-row` element (background, padding, border, divider).
+- `colSpan` renders as proportional `flex` growth in the preview flex row.
+
+**E) JSON — additive only (fully backward-compatible)**
+- `rowStyle` written to `fieldConfigs[i].rowStyle` only if non-empty.
+- `colSpan` written to `columnConfig[j].colSpan` only if > 1.
+- Import: `hydrateFromJSON` reads both fields with safe defaults if absent.
+
+**Files changed:**
+- `js/modules/canvas.js` — addRow, addFieldToCell, renderCanvas
+- `js/modules/property-panel.js` — openPropPanel, openRowStylePanel, closePropPanel, applyPropPanel, applyRowStyle, bindPropPanel
+- `js/modules/preview.js` — buildDetailCard
+- `js/modules/json-modal.js` — generateJSON, hydrateFromJSON
+- `index.html` — prop panel body: cellPropSections wrapper, propColSpan input, rowStyleSection
+- `css/canvas.css` — .row-btn-style, .row-btn-style-active, .tag-span
+
+**Regression checklist:**
+1. ✅ Old JSON (no rowStyle/colSpan) loads and renders identically.
+2. ✅ Grouping/drill/back unaffected (preview.js path unchanged).
+3. ✅ Terminal tap-to-expand unaffected (buildDetailCard logic unchanged).
+4. ✅ Import/edit flow unaffected (hydrateFromJSON handles missing fields gracefully).
+5. ✅ Recovery restore unaffected (rowStyle:{} is serializable; old drafts missing it default safely).
+6. ✅ Save flow unaffected (generateJSON omits new fields when default).
+7. ✅ No row style = no visual change (all new inline styles conditional on non-empty values).
+
+**Also added — Advanced Format Library (format-library.js):**
+- 5 templates × 3–5 formats = 18 total sample formats (up from 6)
+- Every new format exercises Phase 1 rowStyle and/or colSpan attributes
+- See matrix below
+
+| TemplateID | FormatID | Visual intent |
+|---|---|---|
+| R0001 | F0001 | Compact ledger — indicator, icon+text, bold balance |
+| R0001 | F0002 | Grouped by City — drill navigation |
+| R0001 | F0003 | Rich Card — header bg, dividers, expanded tinted row |
+| R0001 | F0004 | GST Detail — colSpan party, 3-col GST table, red total |
+| R0001 | F0005 | Transaction View — purple header, colSpan date, DR/CR colors |
+| R0002 | F0001 | Day Book standard — indicator, date header |
+| R0002 | F0002 | Day Book grouped by Type — drill |
+| R0002 | F0003 | Colored Header — green header bg, colSpan party×3, DR/CR |
+| R0002 | F0004 | 3-Column Full — bordered body, colSpan narration, DR/CR |
+| R0003 | F0001 | Outstanding summary — red pending, due days |
+| R0003 | F0002 | Outstanding grouped by City — drill |
+| R0003 | F0003 | Invoice Detail — amber warning bg, colSpan party, expanded bill |
+| R0003 | F0004 | Status Bands — orange bordered row, colSpan+city, 3-col amounts |
+| R0004 | F0001 | Stock Compact — stock icon, 3-col qty/rate/uom |
+| R0004 | F0002 | Stock Grouped — product group drill, levelVisibility |
+| R0004 | F0003 | Order Summary — indigo header bg, colSpan party, qty status |
+| R0004 | F0004 | Order Status View — colSpan order no, bordered party+pending |
+| R0005 | F0001 | GST Basic — pink header, colSpan party, 2-row GST table |
+| R0005 | F0002 | GST Full Detail — 3-col header, max complexity, expanded narration |
+| R0005 | F0003 | GST by Party — group drill, levelVisibility on date vs party |
+
+**Deferred to Phase 2/3/4:**
+- Cell visual variants (text/icon/metric/badge)
+- Repeater/nested line-item rows
+- One-click style presets
+- Action icon behavior system
+
+---
+
 ### [2026-03-16] — Phase 1 Complete: Initial Build
 
 **What was built:**

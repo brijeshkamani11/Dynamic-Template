@@ -14,6 +14,7 @@ function addRow() {
     id           : "row_" + Date.now(),
     isExpandedRow: false,
     cols         : [null],  // start with 1 column; user adds more
+    rowStyle     : {},      // Phase 1: row visual style (empty = all defaults)
   });
   renderAll();
 }
@@ -72,6 +73,7 @@ function addFieldToCell(fieldId, rowIdx, colIdx) {
     iconCaption    : "",
     textAlign      : "left",
     maxLine        : 1,
+    colSpan        : 1,       // Phase 1: column span (default 1 = no spanning)
     levelVisibility: "all",   // "all" or array of level numbers e.g. [1,3]
     style          : { color: "", fontSize: "", fontWeight: "normal", fontFamily: "" },
   };
@@ -147,9 +149,18 @@ function renderCanvas() {
     wrap.className = "canvas-row-wrap" + (row.isExpandedRow ? " is-expanded" : "");
     wrap.dataset.rowIdx = rIdx;
 
+    // ── Phase 1: apply row-level visual style to canvas wrap ────
+    const rs = row.rowStyle || {};
+    if (rs.background)                       wrap.style.background   = rs.background;
+    if (rs.borderColor && rs.borderWidth > 0) {
+      wrap.style.border       = `${rs.borderWidth}px solid ${rs.borderColor}`;
+      wrap.style.borderRadius = rs.cornerRadius ? rs.cornerRadius + "px" : "";
+    }
+
     // Row header
     const header = document.createElement("div");
     header.className = "row-header";
+    const hasRowStyle = Object.keys(rs).length > 0;
     header.innerHTML = `
       <div class="row-badge">Row ${rIdx + 1}</div>
       <div class="row-badge-exp ${row.isExpandedRow ? "active" : ""}" title="Toggle expanded row">
@@ -161,6 +172,7 @@ function renderCanvas() {
         <button class="row-btn row-btn-col" title="Add column" data-action="addcol" data-row="${rIdx}"${colCount >= MAX_COLS ? " disabled" : ""}>+</button>
       </div>
       <div class="row-actions">
+        <button class="row-btn row-btn-style${hasRowStyle ? " row-btn-style-active" : ""}" title="Row style" data-action="style" data-row="${rIdx}">⬡</button>
         <button class="row-btn" title="Move up"   data-action="up"  data-row="${rIdx}">↑</button>
         <button class="row-btn" title="Move down" data-action="down" data-row="${rIdx}">↓</button>
         <button class="row-btn row-btn-toggle" title="Toggle expanded" data-action="toggle" data-row="${rIdx}">⤵</button>
@@ -178,6 +190,7 @@ function renderCanvas() {
         if (a === "del")     deleteRow(r);
         if (a === "addcol")  addColToRow(r);
         if (a === "remcol")  removeColFromRow(r);
+        if (a === "style")   openRowStylePanel(r);
       });
     });
 
@@ -186,19 +199,52 @@ function renderCanvas() {
     cellGrid.className = "cell-grid";
     cellGrid.style.gridTemplateColumns = `repeat(${colCount}, 1fr)`;
 
+    // ── Phase 1: apply row padding to cell-grid area ──
+    if (rs.paddingVertical || rs.paddingHorizontal) {
+      cellGrid.style.padding = `${rs.paddingVertical || 0}px ${rs.paddingHorizontal || 0}px`;
+    }
+
+    // ── Phase 1: compute colSpan coverage (auto-correct overlaps) ──
+    const coveredCols  = new Set();
+    const adjustedSpans = new Array(colCount).fill(1);
+    let   spanWarnShown = false;
     for (let cIdx = 0; cIdx < colCount; cIdx++) {
+      if (coveredCols.has(cIdx)) continue;
       const cell = row.cols[cIdx];
+      const raw  = (cell && cell.colSpan > 1) ? cell.colSpan : 1;
+      let   span = Math.min(raw, colCount - cIdx);
+      for (let s = 1; s < span; s++) {
+        if (cIdx + s < colCount && row.cols[cIdx + s] !== null) {
+          span = s;
+          if (cell) cell.colSpan = s;
+          if (!spanWarnShown) {
+            showToast("Column span auto-corrected to avoid overlap.", "warn");
+            spanWarnShown = true;
+          }
+          break;
+        }
+      }
+      adjustedSpans[cIdx] = span;
+      for (let s = 1; s < span; s++) coveredCols.add(cIdx + s);
+    }
+
+    for (let cIdx = 0; cIdx < colCount; cIdx++) {
+      if (coveredCols.has(cIdx)) continue;   // hidden by a spanning neighbour
+      const cell = row.cols[cIdx];
+      const span = adjustedSpans[cIdx];
       const cellEl = document.createElement("div");
       cellEl.className = "cell" + (cell ? " cell-filled" : " cell-empty");
       cellEl.dataset.row = rIdx;
       cellEl.dataset.col = cIdx;
+      if (span > 1) cellEl.style.gridColumn = `span ${span}`;
 
       if (cell) {
         const field = FIELD_REGISTRY.find(f => f.id === cell.fieldId);
         const icon  = cell.iconCaption ? (ICON_MAP[cell.iconCaption] || "") : "";
-        const visTag = cell.levelVisibility === "all"
+        const visTag  = cell.levelVisibility === "all"
           ? ""
           : `<span class="tag tag-level">L${cell.levelVisibility.join(",")}</span>`;
+        const spanTag = span > 1 ? `<span class="tag tag-span">⊞×${span}</span>` : "";
         cellEl.innerHTML = `
           <div class="cell-content">
             <div class="cell-field-name">${icon} ${field ? field.label : "?"}</div>
@@ -207,7 +253,7 @@ function renderCanvas() {
               ${cell.textAlign !== "left" ? `<span class="tag">${cell.textAlign}</span>` : ""}
               ${cell.style.fontWeight === "bold" ? '<span class="tag">bold</span>' : ""}
               ${cell.style.fontSize ? `<span class="tag">${cell.style.fontSize}px</span>` : ""}
-              ${visTag}
+              ${visTag}${spanTag}
             </div>
           </div>
           <button class="cell-edit-btn" data-row="${rIdx}" data-col="${cIdx}" title="Edit">✎</button>

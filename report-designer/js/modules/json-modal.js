@@ -39,6 +39,9 @@ function generateJSON() {
         cfg.levelVisibility = cell.levelVisibility;
       }
 
+      // Phase 1: colSpan — omit if default (1)
+      if (cell.colSpan && cell.colSpan > 1) cfg.colSpan = cell.colSpan;
+
       if (cell.includeTotal) {
         cfg.totalConfig = {
           includeTotal   : true,
@@ -51,11 +54,31 @@ function generateJSON() {
 
     if (columnConfig.length === 0) return;
 
-    fieldConfigs.push({
+    const fc = {
       isExpandedRow: row.isExpandedRow,
-      columnCount: row.cols.length,
+      columnCount  : row.cols.length,
       columnConfig,
-    });
+    };
+
+    // Phase 1: rowStyle — omit entirely if empty (defaults used)
+    const rs = row.rowStyle || {};
+    if (Object.keys(rs).length > 0) {
+      const rsOut = {};
+      if (rs.background)            rsOut.background        = rs.background;
+      if (rs.borderColor)           rsOut.borderColor       = rs.borderColor;
+      if (rs.borderWidth > 0)       rsOut.borderWidth       = rs.borderWidth;
+      if (rs.cornerRadius > 0)      rsOut.cornerRadius      = rs.cornerRadius;
+      if (rs.paddingVertical > 0)   rsOut.paddingVertical   = rs.paddingVertical;
+      if (rs.paddingHorizontal > 0) rsOut.paddingHorizontal = rs.paddingHorizontal;
+      if (rs.showDivider) {
+        rsOut.showDivider = true;
+        if (rs.dividerColor) rsOut.dividerColor = rs.dividerColor;
+        if (rs.dividerStyle && rs.dividerStyle !== "solid") rsOut.dividerStyle = rs.dividerStyle;
+      }
+      if (Object.keys(rsOut).length > 0) fc.rowStyle = rsOut;
+    }
+
+    fieldConfigs.push(fc);
   });
 
   const layout = {
@@ -164,6 +187,7 @@ function hydrateFromJSON(json) {
         iconCaption    : cfg.iconCaption || "",
         textAlign      : cfg.textAlign || "left",
         maxLine        : cfg.maxLine || 1,
+        colSpan        : cfg.colSpan  || 1,   // Phase 1
         levelVisibility: cfg.levelVisibility || "all",
         style          : {
           color      : (cfg.style && cfg.style.color)      || "",
@@ -184,6 +208,7 @@ function hydrateFromJSON(json) {
     newRows.push({
       id           : "row_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
       isExpandedRow: !!fc.isExpandedRow,
+      rowStyle     : fc.rowStyle || {},   // Phase 1: default empty if absent
       cols         : cols,
     });
   });

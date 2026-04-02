@@ -139,82 +139,144 @@
     <button class="prop-close" id="propClose">✕</button>
   </div>
   <div class="prop-panel-body">
-    <div class="prop-section">DISPLAY</div>
-    <div class="prop-row">
-      <label>Caption</label>
-      <input type="text" id="propCaption" class="prop-input" placeholder="e.g. Party Name" />
-    </div>
-    <div class="prop-row">
-      <label>Icon Caption</label>
-      <select id="propIconCaption" class="prop-input">
-        <option value="">— none —</option>
-        <option value="location">📍 location</option>
-        <option value="amount">₹ amount</option>
-        <option value="date">📅 date</option>
-        <option value="phone">📞 phone</option>
-        <option value="email">✉ email</option>
-        <option value="person">👤 person</option>
-        <option value="invoice">🧾 invoice</option>
-        <option value="stock">📦 stock</option>
-      </select>
-    </div>
-    <div class="prop-row">
-      <label>Text Align</label>
-      <div class="align-btns" id="propTextAlign">
-        <button class="align-btn active" data-align="left">⬛◻◻ Left</button>
-        <button class="align-btn" data-align="center">◻⬛◻ Center</button>
-        <button class="align-btn" data-align="right">◻◻⬛ Right</button>
+
+    <!-- ── Cell property sections (hidden in row-style mode) ── -->
+    <div id="cellPropSections">
+      <div class="prop-section">DISPLAY</div>
+      <div class="prop-row">
+        <label>Caption</label>
+        <input type="text" id="propCaption" class="prop-input" placeholder="e.g. Party Name" />
       </div>
-    </div>
-    <div class="prop-row">
-      <label>Max Lines</label>
-      <input type="number" id="propMaxLine" class="prop-input prop-input-sm" min="1" max="5" value="1" />
-    </div>
-    <div class="prop-section">STYLE</div>
-    <div class="prop-row">
-      <label>Font Size</label>
-      <input type="number" id="propFontSize" class="prop-input prop-input-sm" placeholder="14" min="8" max="32" />
-    </div>
-    <div class="prop-row">
-      <label>Font Weight</label>
-      <div class="align-btns" id="propFontWeight">
-        <button class="align-btn active" data-fw="normal">Normal</button>
-        <button class="align-btn" data-fw="bold">Bold</button>
+      <div class="prop-row">
+        <label>Icon Caption</label>
+        <select id="propIconCaption" class="prop-input">
+          <option value="">— none —</option>
+          <option value="location">📍 location</option>
+          <option value="amount">₹ amount</option>
+          <option value="date">📅 date</option>
+          <option value="phone">📞 phone</option>
+          <option value="email">✉ email</option>
+          <option value="person">👤 person</option>
+          <option value="invoice">🧾 invoice</option>
+          <option value="stock">📦 stock</option>
+        </select>
       </div>
-    </div>
-    <div class="prop-row">
-      <label>Font Family</label>
-      <select id="propFontFamily" class="prop-input">
-        <option value="">— default —</option>
-        <option value="Quicksand">Quicksand</option>
-        <option value="Quicksand-Bold">Quicksand-Bold</option>
-      </select>
-    </div>
-    <div class="prop-row">
-      <label>Text Color</label>
-      <div class="color-row">
-        <input type="color" id="propColor" class="prop-color" value="#000000" />
-        <span class="color-hex" id="propColorHex">#000000</span>
+      <div class="prop-row">
+        <label>Text Align</label>
+        <div class="align-btns" id="propTextAlign">
+          <button class="align-btn active" data-align="left">⬛◻◻ Left</button>
+          <button class="align-btn" data-align="center">◻⬛◻ Center</button>
+          <button class="align-btn" data-align="right">◻◻⬛ Right</button>
+        </div>
       </div>
-    </div>
-    <div class="prop-section">BEHAVIOR</div>
-    <div class="prop-row">
-      <label>Expanded Row?</label>
-      <div class="toggle-wrap">
-        <input type="checkbox" id="propIsExpandedRow" class="prop-toggle" />
-        <label for="propIsExpandedRow" class="toggle-switch"></label>
-        <span class="toggle-desc">Marks this field's row as expanded-only</span>
+      <div class="prop-row">
+        <label>Max Lines</label>
+        <input type="number" id="propMaxLine" class="prop-input prop-input-sm" min="1" max="5" value="1" />
       </div>
-    </div>
-    <div class="prop-section">VISIBILITY</div>
-    <div class="prop-row">
-      <label>Level Visibility</label>
-      <div id="propLevelVisibility" class="level-visibility-wrap"></div>
-    </div>
-    <div class="prop-row" id="propAmountTotalRow">
-      <div class="prop-section">TOTALS (Amount)</div>
-      <div id="propAmountTotal" class="level-visibility-wrap"></div>
-    </div>
+      <div class="prop-row">
+        <label>Column Span</label>
+        <input type="number" id="propColSpan" class="prop-input prop-input-sm" min="1" max="5" value="1" title="1 = normal, 2+ = span across columns" />
+      </div>
+      <div class="prop-section">STYLE</div>
+      <div class="prop-row">
+        <label>Font Size</label>
+        <input type="number" id="propFontSize" class="prop-input prop-input-sm" placeholder="14" min="8" max="32" />
+      </div>
+      <div class="prop-row">
+        <label>Font Weight</label>
+        <div class="align-btns" id="propFontWeight">
+          <button class="align-btn active" data-fw="normal">Normal</button>
+          <button class="align-btn" data-fw="bold">Bold</button>
+        </div>
+      </div>
+      <div class="prop-row">
+        <label>Font Family</label>
+        <select id="propFontFamily" class="prop-input">
+          <option value="">— default —</option>
+          <option value="Quicksand">Quicksand</option>
+          <option value="Quicksand-Bold">Quicksand-Bold</option>
+        </select>
+      </div>
+      <div class="prop-row">
+        <label>Text Color</label>
+        <div class="color-row">
+          <input type="color" id="propColor" class="prop-color" value="#000000" />
+          <span class="color-hex" id="propColorHex">#000000</span>
+        </div>
+      </div>
+      <div class="prop-section">BEHAVIOR</div>
+      <div class="prop-row">
+        <label>Expanded Row?</label>
+        <div class="toggle-wrap">
+          <input type="checkbox" id="propIsExpandedRow" class="prop-toggle" />
+          <label for="propIsExpandedRow" class="toggle-switch"></label>
+          <span class="toggle-desc">Marks this field's row as expanded-only</span>
+        </div>
+      </div>
+      <div class="prop-section">VISIBILITY</div>
+      <div class="prop-row">
+        <label>Level Visibility</label>
+        <div id="propLevelVisibility" class="level-visibility-wrap"></div>
+      </div>
+      <div class="prop-row" id="propAmountTotalRow">
+        <div class="prop-section">TOTALS (Amount)</div>
+        <div id="propAmountTotal" class="level-visibility-wrap"></div>
+      </div>
+    </div><!-- /cellPropSections -->
+
+    <!-- ── Row style section (shown only in row-style mode) ── -->
+    <div id="rowStyleSection" style="display:none">
+      <div class="prop-section">ROW STYLE</div>
+      <div class="prop-row">
+        <label>Background</label>
+        <div class="color-row">
+          <input type="checkbox" id="rsBgEnable" title="Enable background color" />
+          <input type="color" id="rsBgColor" class="prop-color" value="#f0f4ff" />
+          <span class="color-hex" style="font-size:10px">enable + pick</span>
+        </div>
+      </div>
+      <div class="prop-row">
+        <label>Border</label>
+        <div class="color-row">
+          <input type="color" id="rsBorderColor" class="prop-color" value="#cccccc" title="Border color" />
+          <input type="number" id="rsBorderWidth" class="prop-input prop-input-sm" min="0" max="8" value="0" placeholder="px" title="Width (0 = none)" style="width:52px" />
+          <span class="color-hex" style="font-size:10px">color + px</span>
+        </div>
+      </div>
+      <div class="prop-row">
+        <label>Corner Radius</label>
+        <input type="number" id="rsCornerRadius" class="prop-input prop-input-sm" min="0" max="24" value="0" placeholder="0 px" />
+      </div>
+      <div class="prop-row">
+        <label>Padding V / H</label>
+        <div style="display:flex;gap:6px;">
+          <input type="number" id="rsPaddingV" class="prop-input prop-input-sm" min="0" max="32" value="0" placeholder="V px" />
+          <input type="number" id="rsPaddingH" class="prop-input prop-input-sm" min="0" max="32" value="0" placeholder="H px" />
+        </div>
+      </div>
+      <div class="prop-row">
+        <label>Divider</label>
+        <div class="toggle-wrap">
+          <input type="checkbox" id="rsShowDivider" class="prop-toggle" />
+          <label for="rsShowDivider" class="toggle-switch"></label>
+          <span class="toggle-desc">Show row divider</span>
+        </div>
+      </div>
+      <div id="rsDividerOptions" style="display:none;padding-left:8px">
+        <div class="prop-row">
+          <label>Divider Color</label>
+          <input type="color" id="rsDividerColor" class="prop-color" value="#e0e0e0" />
+        </div>
+        <div class="prop-row">
+          <label>Divider Style</label>
+          <select id="rsDividerStyle" class="prop-input">
+            <option value="solid">Solid</option>
+            <option value="dashed">Dashed</option>
+          </select>
+        </div>
+      </div>
+    </div><!-- /rowStyleSection -->
+
   </div>
   <div class="prop-panel-footer">
     <button class="btn btn-danger-ghost" id="propDelete">🗑 Remove Field</button>
