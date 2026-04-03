@@ -28,6 +28,30 @@ function renderPalette() {
 
   list.innerHTML = "";
 
+  // ── Layout Only mode: field palette is not used ──────────
+  // Show an informational notice instead of the field list.
+  // The user builds structure by adding rows and clicking empty cells.
+  if (isLayoutMode()) {
+    headerEl.textContent  = "Layout Only Mode";
+    hintEl.textContent    = "No field mapping in this mode";
+    searchEl.style.display = "none";
+    stageNav.innerHTML    = "";
+    list.innerHTML = `
+      <div class="layout-mode-notice">
+        <div class="layout-mode-notice-icon">⊞</div>
+        <div class="layout-mode-notice-title">Layout Only Mode</div>
+        <div class="layout-mode-notice-desc">
+          Field palette is hidden. Add rows using <strong>+ Add Row</strong>,
+          then click any empty cell to add a placeholder.<br><br>
+          Placeholders capture visual design without binding to specific data fields.
+        </div>
+      </div>`;
+    return;
+  }
+
+  // ── Full Template mode: restore normal palette UI ─────────
+  searchEl.style.display = "";
+
   // Update header
   if (_paletteStage === "group") {
     headerEl.textContent = "① Row Group Fields";

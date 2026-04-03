@@ -49,6 +49,35 @@
 .template-name-input:focus { border-color: var(--accent); }
 .template-name-input::placeholder { color: var(--text-muted); }
 
+/* ── DESIGNER MODE SELECTOR ──────────────────────────────── */
+.mode-selector-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.mode-selector-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+.mode-select {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+.mode-select:focus { outline: none; border-color: var(--accent); }
+/* Highlight the topbar when in layout mode to reinforce current mode */
+.topbar.mode-layout .mode-select { border-color: rgba(124,58,237,0.5); color: #a78bfa; }
+
 /* ── STATUS CHIP ─────────────────────────────────────────── */
 .status-chip {
   font-size: 10px;

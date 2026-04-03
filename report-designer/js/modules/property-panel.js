@@ -17,8 +17,32 @@ function openPropPanel(rowIdx, colIdx) {
   document.getElementById("rowStyleSection").style.display  = "none";
   document.getElementById("propDelete").style.display       = "";
 
-  const field = FIELD_REGISTRY.find(f => f.id === cell.fieldId);
-  document.getElementById("propPanelTitle").textContent = field ? field.label : "Field";
+  const layoutMode = isLayoutMode();
+
+  // ── Panel title: placeholder label in layout mode, field label in full mode ──
+  if (layoutMode) {
+    document.getElementById("propPanelTitle").textContent =
+      cell.placeholderLabel || "Placeholder";
+  } else {
+    const field = FIELD_REGISTRY.find(f => f.id === cell.fieldId);
+    document.getElementById("propPanelTitle").textContent = field ? field.label : "Field";
+  }
+
+  // ── Placeholder label input: layout mode only ────────────
+  const phRow = document.getElementById("propPlaceholderLabelRow");
+  if (phRow) {
+    phRow.style.display = layoutMode ? "" : "none";
+    if (layoutMode) {
+      document.getElementById("propPlaceholderLabel").value = cell.placeholderLabel || "";
+    }
+  }
+
+  // ── Full-mode-only fields: visibility + totals ───────────
+  // Hide level visibility and amount totals in layout mode (not applicable)
+  const fullModeFields = document.getElementById("propFullModeFields");
+  if (fullModeFields) {
+    fullModeFields.style.display = layoutMode ? "none" : "";
+  }
 
   document.getElementById("propCaption").value     = cell.caption || "";
   document.getElementById("propIconCaption").value = cell.iconCaption || "";
@@ -42,11 +66,11 @@ function openPropPanel(rowIdx, colIdx) {
   document.getElementById("propColor").value       = hex;
   document.getElementById("propColorHex").textContent = hex;
 
-  // Level visibility
-  buildLevelVisibilityUI(cell);
-
-  // Amount total config
-  buildAmountTotalUI(cell);
+  // Level visibility + amount totals — only in full mode
+  if (!layoutMode) {
+    buildLevelVisibilityUI(cell);
+    buildAmountTotalUI(cell);
+  }
 
   document.getElementById("propPanel").classList.add("open");
   document.getElementById("propOverlay").classList.add("show");
@@ -275,6 +299,11 @@ function closePropPanel() {
   document.getElementById("rowStyleSection").style.display  = "none";
   document.getElementById("propDelete").style.display       = "";
   document.getElementById("propResetStyle").style.display   = "none";  // Phase 4
+  // Reset layout-mode-specific fields
+  const phRow = document.getElementById("propPlaceholderLabelRow");
+  if (phRow) phRow.style.display = "none";
+  const fullModeFields = document.getElementById("propFullModeFields");
+  if (fullModeFields) fullModeFields.style.display = "";
   _editTarget = null;
 }
 
@@ -346,6 +375,18 @@ function applyPropPanel() {
   const cell = state.rows[rowIdx].cols[colIdx];
   if (!cell) return;
 
+  // ── Layout mode: save placeholder label (the human-readable name for this slot) ──
+  if (isLayoutMode()) {
+    const phLabel = document.getElementById("propPlaceholderLabel");
+    if (phLabel) {
+      cell.placeholderLabel = phLabel.value.trim();
+      // Mirror to caption if caption is still default, so preview shows the label
+      if (!cell.caption || cell.caption === "Placeholder") {
+        cell.caption = cell.placeholderLabel || "Placeholder";
+      }
+    }
+  }
+
   cell.caption      = document.getElementById("propCaption").value.trim();
   cell.iconCaption  = document.getElementById("propIconCaption").value;
   cell.maxLine      = Math.max(1, Math.min(5, parseInt(document.getElementById("propMaxLine").value) || 1));
@@ -364,34 +405,35 @@ function applyPropPanel() {
   cell.style.fontFamily  = ff;
   cell.style.color       = colorHex !== "#000000" ? hexToArgb(colorHex) : "0xFF000000";
 
-  // Level visibility
-  const modeRadio = document.querySelector('input[name="levelVisMode"]:checked');
-  if (modeRadio && modeRadio.value === "selected") {
-    const checks = document.querySelectorAll("#levelCheckboxes input[type=checkbox]:checked");
-    const levels = [...checks].map(cb => parseInt(cb.value));
-    cell.levelVisibility = levels.length > 0 ? levels : "all";
-  } else {
-    cell.levelVisibility = "all";
-  }
-
-  // Amount total config
-  const field = FIELD_REGISTRY.find(f => f.id === cell.fieldId);
-  if (field && field.isAmount) {
-    const inclChk = document.getElementById("propIncludeTotal");
-    cell.includeTotal = inclChk ? inclChk.checked : false;
-    if (cell.includeTotal) {
-      const scopeRadio = document.querySelector('input[name="totalScope"]:checked');
-      if (scopeRadio) {
-        if (scopeRadio.value === "specific") {
-          const scopeCbs = document.querySelectorAll("#totalScopeLevels input[type=checkbox]:checked");
-          const scopeLevels = [...scopeCbs].map(cb => parseInt(cb.value));
-          cell.totalScopeLevel = scopeLevels.length > 0 ? scopeLevels : "all";
-        } else {
-          cell.totalScopeLevel = scopeRadio.value; // "all" or "first"
-        }
-      }
+  // Level visibility + amount totals — full mode only
+  if (isFullMode()) {
+    const modeRadio = document.querySelector('input[name="levelVisMode"]:checked');
+    if (modeRadio && modeRadio.value === "selected") {
+      const checks = document.querySelectorAll("#levelCheckboxes input[type=checkbox]:checked");
+      const levels = [...checks].map(cb => parseInt(cb.value));
+      cell.levelVisibility = levels.length > 0 ? levels : "all";
     } else {
-      cell.totalScopeLevel = "all";
+      cell.levelVisibility = "all";
+    }
+
+    const field = FIELD_REGISTRY.find(f => f.id === cell.fieldId);
+    if (field && field.isAmount) {
+      const inclChk = document.getElementById("propIncludeTotal");
+      cell.includeTotal = inclChk ? inclChk.checked : false;
+      if (cell.includeTotal) {
+        const scopeRadio = document.querySelector('input[name="totalScope"]:checked');
+        if (scopeRadio) {
+          if (scopeRadio.value === "specific") {
+            const scopeCbs = document.querySelectorAll("#totalScopeLevels input[type=checkbox]:checked");
+            const scopeLevels = [...scopeCbs].map(cb => parseInt(cb.value));
+            cell.totalScopeLevel = scopeLevels.length > 0 ? scopeLevels : "all";
+          } else {
+            cell.totalScopeLevel = scopeRadio.value;
+          }
+        }
+      } else {
+        cell.totalScopeLevel = "all";
+      }
     }
   }
 

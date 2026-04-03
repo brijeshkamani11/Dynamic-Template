@@ -92,7 +92,41 @@ function removeColFromRow(rowIdx) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// FIELD CELL MANAGEMENT
+// PLACEHOLDER CELL MANAGEMENT (Layout Only mode)
+// ═══════════════════════════════════════════════════════════
+/**
+ * Adds a placeholder cell to a specific canvas slot.
+ * Used in Layout Only mode instead of dragging real fields.
+ * After placing, opens the property panel so the user can set the label immediately.
+ */
+function addPlaceholderToCell(rowIdx, colIdx) {
+  const row = state.rows[rowIdx];
+  if (!row) return;
+
+  // Confirm before replacing a filled placeholder
+  if (row.cols[colIdx] && !confirm("Replace existing placeholder in this cell?")) return;
+
+  row.cols[colIdx] = {
+    uid             : uid(),
+    placeholderId   : nextPlaceholderId(),
+    placeholderLabel: "",           // user sets this in property panel
+    caption         : "Placeholder",
+    iconCaption     : "",
+    textAlign       : "left",
+    maxLine         : 1,
+    colSpan         : 1,
+    cellVariant     : "text",
+    levelVisibility : "all",        // not used in layout mode, but kept for schema parity
+    style           : { color: "", fontSize: "", fontWeight: "normal", fontFamily: "" },
+  };
+
+  renderAll();
+  // Open prop panel immediately so user can name the placeholder
+  openPropPanel(rowIdx, colIdx);
+}
+
+// ═══════════════════════════════════════════════════════════
+// FIELD CELL MANAGEMENT (Full Template mode)
 // ═══════════════════════════════════════════════════════════
 function addFieldToCell(fieldId, rowIdx, colIdx) {
   const field = FIELD_REGISTRY.find(f => f.id === fieldId);
@@ -166,6 +200,14 @@ function renderCanvas() {
   canvas.querySelectorAll(".canvas-row-wrap").forEach(el => el.remove());
 
   rowCount.textContent = state.rows.length;
+
+  // Update canvas hint text based on current designer mode
+  const hintEl = document.getElementById("canvasHintText");
+  if (hintEl) {
+    hintEl.textContent = isLayoutMode()
+      ? "Click empty cells to add placeholders"
+      : "Drop fields into cells";
+  }
 
   if (state.rows.length === 0) {
     emptyMsg.style.display = "flex";
@@ -291,23 +333,38 @@ function renderCanvas() {
       if (span > 1) cellEl.style.gridColumn = `span ${span}`;
 
       if (cell) {
-        const field = FIELD_REGISTRY.find(f => f.id === cell.fieldId);
-        const icon  = cell.iconCaption ? (ICON_MAP[cell.iconCaption] || "") : "";
-        const visTag     = cell.levelVisibility === "all"
-          ? ""
-          : `<span class="tag tag-level">L${cell.levelVisibility.join(",")}</span>`;
+        const layoutMode = isLayoutMode();
+
+        // In full mode, look up the field registry. In layout mode, show placeholder label.
+        const field       = layoutMode ? null : FIELD_REGISTRY.find(f => f.id === cell.fieldId);
+        const displayName = layoutMode
+          ? (cell.placeholderLabel || cell.caption || "Placeholder")
+          : (field ? field.label : "?");
+
+        const icon       = cell.iconCaption ? (ICON_MAP[cell.iconCaption] || "") : "";
         const spanTag    = span > 1 ? `<span class="tag tag-span">⊞×${span}</span>` : "";
         const varTag     = (cell.cellVariant && cell.cellVariant !== "text")
           ? `<span class="tag tag-cell-variant">${cell.cellVariant}</span>` : "";
+        // Level visibility tag: only meaningful in full mode
+        const visTag     = (!layoutMode && cell.levelVisibility !== "all")
+          ? `<span class="tag tag-level">L${cell.levelVisibility.join(",")}</span>` : "";
+        // Placeholder ID tag in layout mode
+        const phTag      = layoutMode
+          ? `<span class="tag" style="color:#a78bfa;border-color:rgba(124,58,237,0.3)">${cell.placeholderId || "ph"}</span>` : "";
+
+        // Use different CSS class for placeholder cells in layout mode
+        cellEl.className = "cell " + (layoutMode ? "cell-placeholder" : "cell-filled");
+        if (span > 1) cellEl.style.gridColumn = `span ${span}`;
+
         cellEl.innerHTML = `
           <div class="cell-content">
-            <div class="cell-field-name">${icon} ${field ? field.label : "?"}</div>
+            <div class="cell-field-name">${icon} ${displayName}</div>
             <div class="cell-caption">"${cell.caption}"</div>
             <div class="cell-meta">
               ${cell.textAlign !== "left" ? `<span class="tag">${cell.textAlign}</span>` : ""}
               ${cell.style.fontWeight === "bold" ? '<span class="tag">bold</span>' : ""}
               ${cell.style.fontSize ? `<span class="tag">${cell.style.fontSize}px</span>` : ""}
-              ${visTag}${spanTag}${varTag}
+              ${visTag}${spanTag}${varTag}${phTag}
             </div>
           </div>
           <button class="cell-edit-btn" data-row="${rIdx}" data-col="${cIdx}" title="Edit">✎</button>
@@ -325,32 +382,46 @@ function renderCanvas() {
           removeFieldFromCell(parseInt(e.currentTarget.dataset.row), parseInt(e.currentTarget.dataset.col));
         });
       } else {
-        cellEl.innerHTML = `
-          <div class="cell-drop-hint">
-            <span>Drop field here</span>
-            <span class="col-label">Col ${cIdx + 1}</span>
-          </div>
-        `;
+        // Empty cell: layout mode → click to add placeholder; full mode → drop hint
+        if (isLayoutMode()) {
+          cellEl.classList.add("layout-drop");
+          cellEl.innerHTML = `
+            <div class="cell-drop-hint">
+              <span>+ Click to add</span>
+              <span class="col-label">Col ${cIdx + 1}</span>
+            </div>
+          `;
+          cellEl.addEventListener("click", () => addPlaceholderToCell(rIdx, cIdx));
+        } else {
+          cellEl.innerHTML = `
+            <div class="cell-drop-hint">
+              <span>Drop field here</span>
+              <span class="col-label">Col ${cIdx + 1}</span>
+            </div>
+          `;
+        }
       }
 
-      // Drag-over / Drop
-      cellEl.addEventListener("dragover", e => {
-        e.preventDefault();
-        cellEl.classList.add("drag-over");
-      });
-      cellEl.addEventListener("dragleave", () => cellEl.classList.remove("drag-over"));
-      cellEl.addEventListener("drop", e => {
-        e.preventDefault();
-        cellEl.classList.remove("drag-over");
-        if (_dragFieldId) {
-          if (row.cols[cIdx] && !confirm("Replace existing field in this cell?")) {
+      // Drag-over / Drop — only active in full mode
+      if (isFullMode()) {
+        cellEl.addEventListener("dragover", e => {
+          e.preventDefault();
+          cellEl.classList.add("drag-over");
+        });
+        cellEl.addEventListener("dragleave", () => cellEl.classList.remove("drag-over"));
+        cellEl.addEventListener("drop", e => {
+          e.preventDefault();
+          cellEl.classList.remove("drag-over");
+          if (_dragFieldId) {
+            if (row.cols[cIdx] && !confirm("Replace existing field in this cell?")) {
+              _dragFieldId = null;
+              return;
+            }
+            addFieldToCell(_dragFieldId, rIdx, cIdx);
             _dragFieldId = null;
-            return;
           }
-          addFieldToCell(_dragFieldId, rIdx, cIdx);
-          _dragFieldId = null;
-        }
-      });
+        });
+      }
 
       cellGrid.appendChild(cellEl);
     }

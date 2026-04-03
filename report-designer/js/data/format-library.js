@@ -1,6 +1,9 @@
 /**
- * MCloud Mobile Template Card Designer — Dummy Format Library
- * ────────────────────────────────────────────────────────────
+ * MCloud Mobile Template Card Designer — Dummy Format Library + Layout Library
+ * ─────────────────────────────────────────────────────────────────────────────
+ * DUMMY_FORMAT_LIBRARY — full-mode sample templates (require real field mapping)
+ * LAYOUT_LIBRARY       — layout-only presets (placeholder cells, no dataField)
+ *
  * Sample template/format combinations for Copy Existing Format flow.
  * Phase 1 update: now includes advanced formats demonstrating rowStyle,
  * colSpan, indicator, icon+text combos, and multi-row card hierarchy.
@@ -2079,6 +2082,204 @@ const DUMMY_FORMAT_LIBRARY = {
         }
       }
 
+    }
+  }
+
+};
+
+// ═══════════════════════════════════════════════════════════
+// LAYOUT LIBRARY — reusable layout skeletons (no field binding)
+// ───────────────────────────────────────────────────────────
+// These use `mode: "layout"` and placeholder cells (placeholderId / placeholderLabel).
+// No dataField — safe to use across any report type.
+// Users load a layout preset, then re-map placeholders to real fields later.
+// ═══════════════════════════════════════════════════════════
+const LAYOUT_LIBRARY = {
+
+  // ── L0001: Compact Ledger Card ───────────────────────────
+  // 3-row card: header strip → data row → expanded detail
+  L0001: {
+    layoutName : "Compact Ledger Card",
+    description: "Header strip + compact data row + expanded detail row",
+    json: {
+      layoutType: "grid",
+      mode: "layout",
+      gridSize: { rows: 2 },
+      fieldConfigs: [
+        {
+          isExpandedRow: false,
+          columnCount: 2,
+          rowVariant: "stripHeader",
+          rhythm: "normal",
+          rowStyle: { background: "#e3f0fb", paddingVertical: 6, paddingHorizontal: 8, cornerRadius: 6 },
+          columnConfig: [
+            { placeholderId: "ph_1", placeholderLabel: "Party Name",   col: 1, caption: "Party Name",
+              cellVariant: "emphasis", colSpan: 1, style: { fontWeight: "bold" } },
+            { placeholderId: "ph_2", placeholderLabel: "Balance",      col: 2, caption: "Balance",
+              textAlign: "right", style: { fontWeight: "bold" } }
+          ]
+        },
+        {
+          isExpandedRow: false,
+          columnCount: 3,
+          rhythm: "compact",
+          rowStyle: { showDivider: true },
+          columnConfig: [
+            { placeholderId: "ph_3", placeholderLabel: "City",    col: 1, caption: "City",    iconCaption: "location" },
+            { placeholderId: "ph_4", placeholderLabel: "Bill No", col: 2, caption: "Bill No" },
+            { placeholderId: "ph_5", placeholderLabel: "Amount",  col: 3, caption: "Amount",  textAlign: "right" }
+          ]
+        },
+        {
+          isExpandedRow: true,
+          columnCount: 2,
+          rowVariant: "softPanel",
+          rowStyle: { background: "#f0f4ff", paddingVertical: 6, paddingHorizontal: 8 },
+          columnConfig: [
+            { placeholderId: "ph_6", placeholderLabel: "Date",      col: 1, caption: "Date",     iconCaption: "date" },
+            { placeholderId: "ph_7", placeholderLabel: "Narration", col: 2, caption: "Narration", maxLine: 2 }
+          ]
+        }
+      ]
+    }
+  },
+
+  // ── L0002: Summary Card with Totals ─────────────────────
+  // 3-row: header → detail body → summary band
+  L0002: {
+    layoutName : "Summary Card with Totals",
+    description: "Header strip + detail rows + bold summary/total band",
+    json: {
+      layoutType: "grid",
+      mode: "layout",
+      gridSize: { rows: 3 },
+      fieldConfigs: [
+        {
+          isExpandedRow: false,
+          columnCount: 2,
+          rowVariant: "stripHeader",
+          rhythm: "normal",
+          rowStyle: { background: "#e8f5e9", paddingVertical: 6, paddingHorizontal: 8, cornerRadius: 6 },
+          columnConfig: [
+            { placeholderId: "ph_1", placeholderLabel: "Title",  col: 1, caption: "Title",
+              colSpan: 2, style: { fontWeight: "bold", fontSize: 13 } }
+          ]
+        },
+        {
+          isExpandedRow: false,
+          columnCount: 3,
+          rhythm: "normal",
+          columnConfig: [
+            { placeholderId: "ph_2", placeholderLabel: "Label 1", col: 1, caption: "Label 1" },
+            { placeholderId: "ph_3", placeholderLabel: "Label 2", col: 2, caption: "Label 2", textAlign: "center" },
+            { placeholderId: "ph_4", placeholderLabel: "Value",   col: 3, caption: "Value",   textAlign: "right" }
+          ]
+        },
+        {
+          isExpandedRow: false,
+          columnCount: 2,
+          rowVariant: "summary",
+          rhythm: "normal",
+          rowStyle: { background: "#e8f5e9", borderColor: "#43a047", borderWidth: 1,
+                      cornerRadius: 4, paddingVertical: 6, paddingHorizontal: 8 },
+          columnConfig: [
+            { placeholderId: "ph_5", placeholderLabel: "Total Label", col: 1, caption: "Total Label",
+              style: { fontWeight: "bold" } },
+            { placeholderId: "ph_6", placeholderLabel: "Total Value",  col: 2, caption: "Total Value",
+              textAlign: "right", cellVariant: "emphasis", style: { fontWeight: "bold" } }
+          ]
+        }
+      ]
+    }
+  },
+
+  // ── L0003: Transaction List Card ────────────────────────
+  // 2-row: header strip + repeater block
+  L0003: {
+    layoutName : "Transaction List Card",
+    description: "Header strip + repeating transaction rows with dividers",
+    json: {
+      layoutType: "grid",
+      mode: "layout",
+      gridSize: { rows: 2 },
+      fieldConfigs: [
+        {
+          isExpandedRow: false,
+          columnCount: 2,
+          rowVariant: "stripHeader",
+          rhythm: "normal",
+          rowStyle: { background: "#e3f0fb", paddingVertical: 6, paddingHorizontal: 8, cornerRadius: 6 },
+          columnConfig: [
+            { placeholderId: "ph_1", placeholderLabel: "Party Name", col: 1, caption: "Party Name",
+              style: { fontWeight: "bold" } },
+            { placeholderId: "ph_2", placeholderLabel: "Total",      col: 2, caption: "Total",
+              textAlign: "right", style: { fontWeight: "bold" } }
+          ]
+        },
+        {
+          isExpandedRow: false,
+          columnCount: 4,
+          rowType: "repeater",
+          repeaterConfig: { mockKey: "transactions", maxItems: 3, showDivider: true, showMoreFooter: true },
+          rhythm: "compact",
+          columnConfig: [
+            { placeholderId: "ph_3", placeholderLabel: "Date",   col: 1, caption: "Date" },
+            { placeholderId: "ph_4", placeholderLabel: "Ref No", col: 2, caption: "Ref No" },
+            { placeholderId: "ph_5", placeholderLabel: "Debit",  col: 3, caption: "Debit",  textAlign: "right" },
+            { placeholderId: "ph_6", placeholderLabel: "Credit", col: 4, caption: "Credit", textAlign: "right" }
+          ]
+        }
+      ]
+    }
+  },
+
+  // ── L0004: Alert / Outstanding Card ─────────────────────
+  // 3-row: header + alert band + footer actions
+  L0004: {
+    layoutName : "Alert / Outstanding Card",
+    description: "Header + alert warning band + icon action footer",
+    json: {
+      layoutType: "grid",
+      mode: "layout",
+      gridSize: { rows: 3 },
+      fieldConfigs: [
+        {
+          isExpandedRow: false,
+          columnCount: 2,
+          rhythm: "normal",
+          columnConfig: [
+            { placeholderId: "ph_1", placeholderLabel: "Name",    col: 1, caption: "Name",
+              style: { fontWeight: "bold" } },
+            { placeholderId: "ph_2", placeholderLabel: "Due",     col: 2, caption: "Due",
+              textAlign: "right", cellVariant: "emphasis", style: { fontWeight: "bold" } }
+          ]
+        },
+        {
+          isExpandedRow: false,
+          columnCount: 2,
+          rowVariant: "summary",
+          rhythm: "spacious",
+          rowStyle: { background: "#fff3e0", borderColor: "#fb8c00", borderWidth: 1,
+                      cornerRadius: 6, paddingVertical: 8, paddingHorizontal: 10 },
+          columnConfig: [
+            { placeholderId: "ph_3", placeholderLabel: "Alert Label", col: 1, caption: "Alert Label" },
+            { placeholderId: "ph_4", placeholderLabel: "Alert Value", col: 2, caption: "Alert Value",
+              textAlign: "right", style: { fontWeight: "bold" } }
+          ]
+        },
+        {
+          isExpandedRow: false,
+          columnCount: 3,
+          rowVariant: "footerActions",
+          rhythm: "compact",
+          rowStyle: { background: "#f5f7fa", paddingVertical: 4, paddingHorizontal: 8 },
+          columnConfig: [
+            { placeholderId: "ph_5", placeholderLabel: "Action 1", col: 1, caption: "Print",    iconCaption: "print" },
+            { placeholderId: "ph_6", placeholderLabel: "Action 2", col: 2, caption: "WhatsApp", iconCaption: "whatsapp" },
+            { placeholderId: "ph_7", placeholderLabel: "Action 3", col: 3, caption: "Share",    iconCaption: "share" }
+          ]
+        }
+      ]
     }
   }
 

@@ -247,6 +247,50 @@
   color: #06b6d4;
 }
 
+/* ── Layout Mode: placeholder cells ─────────────────────── */
+/* Placeholder cells look like filled cells but with a distinct purple tint */
+.cell-placeholder {
+  background: var(--bg-cell);
+  border-left: 2px solid rgba(124,58,237,0.4);
+  cursor: pointer;
+  padding: 8px 10px;
+}
+.cell-placeholder:hover { background: var(--bg-card); }
+.cell-placeholder .cell-field-name { color: #a78bfa; }
+
+/* Empty cell in layout mode — click-to-add hint */
+.cell-empty.layout-drop {
+  cursor: pointer;
+}
+.cell-empty.layout-drop:hover {
+  background: rgba(124,58,237,0.08);
+  border: 1px dashed rgba(124,58,237,0.4);
+}
+.cell-empty.layout-drop .cell-drop-hint { opacity: 0.5; }
+.cell-empty.layout-drop:hover .cell-drop-hint { opacity: 0.9; color: #a78bfa; }
+
+/* Layout mode palette notice */
+.layout-mode-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  gap: 8px;
+  text-align: center;
+}
+.layout-mode-notice-icon { font-size: 32px; opacity: 0.5; }
+.layout-mode-notice-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #a78bfa;
+}
+.layout-mode-notice-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
 /* ── Phase 4: Duplicate + Reset buttons ─────────────────── */
 .row-btn-dup:hover  { background: rgba(16,185,129,0.12); color: #10b981; border-color: #10b981; }
 .row-btn-reset:hover{ background: rgba(245,158,11,0.12);  color: #f59e0b; border-color: #f59e0b; }

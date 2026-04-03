@@ -9,6 +9,12 @@
 const MAX_COLS = 5;               // max columns per row (change here to adjust globally)
 const GROUP_LEVEL_WARN = 4;       // warn when group fields exceed this count
 
+// ── DESIGNER MODES ───────────────────────────────────────
+// "full"   → full template: real field mapping, group fields, indicator, JSON for Flutter
+// "layout" → layout only: placeholder cells, no field binding, reusable layout skeleton
+const DESIGNER_MODE_FULL   = "full";
+const DESIGNER_MODE_LAYOUT = "layout";
+
 // ── DUMMY IDENTITY (backend provides real IDs later) ─────
 const DUMMY_TEMPLATE_ID   = "R0001";
 const DUMMY_FORMAT_ID     = "F0001";
@@ -21,6 +27,11 @@ let state = {
   mOnDoubleTap : "",              // auto-managed — NOT user-editable
   indicator    : { isShow: false, dataField: "" },
 
+  // ── Designer mode: "full" | "layout" ──────────────────
+  // "full"   → real field mapping (existing behavior)
+  // "layout" → placeholder-only layout skeleton (new)
+  designerMode : DESIGNER_MODE_FULL,
+
   // ── Template / format identity (read-only in UI; set by caller or dummy) ──
   templateId   : DUMMY_TEMPLATE_ID,
   formatId     : DUMMY_FORMAT_ID,
@@ -28,18 +39,23 @@ let state = {
 
   // ── Group fields (ordered) — defines level hierarchy ──
   // Each entry: { fieldId, dataField, label }
-  // Selection order = level order: index 0 → Level 1, etc.
+  // Only used in full mode; always empty in layout mode.
   groupFields  : [],
 
   // ── Display column fields (canvas rows) ──
   rows         : [],
-  // rows[i] = { id, isExpandedRow, cols: [ null | FieldCell ] }
-  // FieldCell = { uid, fieldId, dataField, caption, iconCaption,
-  //               textAlign, maxLine,
-  //               levelVisibility: "all" | number[],   // which levels show this column
-  //               includeTotal: false,                  // amount fields only
-  //               totalScopeLevel: "all",               // "all" | "first" | number[]
-  //               style:{color,fontSize,fontWeight,fontFamily} }
+  // rows[i] = { id, isExpandedRow, rowStyle, rowVariant, rhythm, rowType, cols: [ null | Cell ] }
+  //
+  // Full mode cell (FieldCell):
+  //   { uid, fieldId, dataField, caption, iconCaption, textAlign, maxLine,
+  //     colSpan, cellVariant, levelVisibility, includeTotal?, totalScopeLevel?,
+  //     style:{color,fontSize,fontWeight,fontFamily} }
+  //
+  // Layout mode cell (PlaceholderCell):
+  //   { uid, placeholderId, placeholderLabel, caption, iconCaption, textAlign, maxLine,
+  //     colSpan, cellVariant, levelVisibility:"all",
+  //     style:{color,fontSize,fontWeight,fontFamily} }
+  //   NOTE: no fieldId, no dataField
 };
 
 // ── UI/transient state (not persisted in JSON) ───────────
@@ -47,12 +63,19 @@ let _editTarget = null;           // { rowIdx, colIdx } currently open in prop p
 let _dragFieldId = null;          // field being dragged from palette
 let _showExpandedInCanvas = true; // always show all rows in canvas now
 let _cellCounter = 0;
+let _placeholderCounter = 0;      // auto-increments placeholderId for layout mode cells
 let _paletteStage = "group";      // "group" | "column" — two-stage palette flow
 let _drillPath = [];              // preview drill state: array of { level, groupValue, groupLabel, dataField }
 let _expandedCardIdx = -1;        // index of tapped card in terminal preview (-1 = none expanded)
-let _designerMode = "add";        // "add" | "edit" — set by caller or import
+let _designerMode = "add";        // "add" | "edit" — set by caller or import (NOT the same as state.designerMode)
 
-function uid() { return "c" + (++_cellCounter); }
+function uid()              { return "c"  + (++_cellCounter); }
+function nextPlaceholderId(){ return "ph_" + (++_placeholderCounter); }
+
+// ── Mode query helpers ────────────────────────────────────
+// Use these everywhere instead of raw string comparisons.
+function isLayoutMode() { return state.designerMode === DESIGNER_MODE_LAYOUT; }
+function isFullMode()   { return state.designerMode === DESIGNER_MODE_FULL; }
 
 /**
  * Derived helpers

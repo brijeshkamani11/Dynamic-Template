@@ -24,11 +24,11 @@ function renderPreview() {
 
   renderBreadcrumb();
 
-  // If we're at a group level (not terminal), show group cards
-  if (state.groupFields.length > 0 && currentLevel <= state.groupFields.length) {
+  // Layout mode: no group fields / drill navigation — always show flat detail cards
+  // Full mode: may have group levels and drill navigation
+  if (!isLayoutMode() && state.groupFields.length > 0 && currentLevel <= state.groupFields.length) {
     renderGroupLevel(phoneList, currentLevel);
   } else {
-    // Terminal level (or flat/no groups) — show detail cards
     renderTerminalLevel(phoneList);
   }
 }
@@ -316,11 +316,22 @@ function buildPreviewCellEl(cell, record) {
   const span    = cell.colSpan || 1;
   const icon    = cell.iconCaption ? (ICON_MAP[cell.iconCaption] || "") : "";
 
-  let rawVal = record[cell.dataField];
-  if (typeof rawVal === "number") {
-    rawVal = "₹ " + Math.abs(rawVal).toLocaleString("en-IN", { minimumFractionDigits: 2 });
+  // ── Layout mode: no dataField — show placeholder label as the preview value ──
+  // In layout mode cells only have placeholderId/placeholderLabel, no dataField.
+  // Display the placeholder label (or caption) in italic to distinguish from real data.
+  let val;
+  if (isLayoutMode() || !cell.dataField) {
+    val = cell.placeholderLabel || cell.caption || "—";
+    // Wrap in an italic indicator so designers know this is placeholder, not real data
+    // This is only visual — it does not affect the exported JSON.
+    val = `[${val}]`;
+  } else {
+    let rawVal = record[cell.dataField];
+    if (typeof rawVal === "number") {
+      rawVal = "₹ " + Math.abs(rawVal).toLocaleString("en-IN", { minimumFractionDigits: 2 });
+    }
+    val = rawVal !== undefined ? String(rawVal) : cell.caption;
   }
-  const val = rawVal !== undefined ? String(rawVal) : cell.caption;
 
   let inlineStyle = "";
   if (cell.style.fontWeight === "bold") inlineStyle += "font-weight:700;";

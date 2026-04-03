@@ -2,14 +2,30 @@
  * MCloud Mobile Template Card Designer — JSON Generation & Modal Module
  * ───────────────────────────────────────────────────────────────
  * Generates the Flutter-consumable JSON and manages the preview modal.
- * Also manages import flow (paste JSON + copy existing format).
+ * Also manages import flow (paste JSON + copy existing format + sample layouts).
+ *
+ * Dual-mode JSON generation:
+ *   generateJSON()       — routes to full or layout generator based on state.designerMode
+ *   generateFullJSON()   — full template JSON (existing behavior, backward-compatible)
+ *   generateLayoutJSON() — layout-only JSON with mode:"layout" marker and placeholder cells
+ *
+ * Dual-mode hydration:
+ *   hydrateFromJSON(json) — auto-detects json.mode and routes accordingly
+ *   hydrateFromLayoutJSON(json) — restores layout mode state from layout JSON
+ *
  * Depends on: state.js, format-library.js, recovery.js
  */
 
 // ═══════════════════════════════════════════════════════════
-// JSON GENERATION
+// JSON GENERATION — mode router
 // ═══════════════════════════════════════════════════════════
 function generateJSON() {
+  // Route to mode-specific generator
+  return isLayoutMode() ? generateLayoutJSON() : generateFullJSON();
+}
+
+// ── Full Template JSON (original behavior, unchanged) ────────
+function generateFullJSON() {
   computeTapValues();
 
   const fieldConfigs = [];
@@ -127,9 +143,97 @@ function generateJSON() {
   return layout;
 }
 
+// ── Layout Only JSON ─────────────────────────────────────────
+/**
+ * Generates a layout-only JSON with mode:"layout" top-level marker.
+ * Uses placeholder cells (placeholderId / placeholderLabel) instead of dataField.
+ * This JSON can be imported back to restore the layout state without real field binding.
+ */
+function generateLayoutJSON() {
+  const fieldConfigs = [];
+
+  state.rows.forEach((row, rIdx) => {
+    const columnConfig = [];
+
+    row.cols.forEach((cell, cIdx) => {
+      if (!cell) return;
+
+      const cfg = {
+        placeholderId   : cell.placeholderId   || ("ph_" + (rIdx * 100 + cIdx + 1)),
+        placeholderLabel: cell.placeholderLabel || cell.caption || "",
+        col             : cIdx + 1,
+        caption         : cell.caption,
+      };
+
+      if (cell.iconCaption)               cfg.iconCaption = cell.iconCaption;
+      if (cell.maxLine && cell.maxLine !== 1) cfg.maxLine = cell.maxLine;
+      if (cell.textAlign && cell.textAlign !== "left") cfg.textAlign = cell.textAlign;
+      if (cell.colSpan && cell.colSpan > 1)    cfg.colSpan    = cell.colSpan;
+      if (cell.cellVariant && cell.cellVariant !== "text") cfg.cellVariant = cell.cellVariant;
+
+      const styleObj = {};
+      if (cell.style.color && cell.style.color !== "0xFF000000") styleObj.color = cell.style.color;
+      if (cell.style.fontSize)   styleObj.fontSize   = cell.style.fontSize;
+      if (cell.style.fontWeight && cell.style.fontWeight !== "normal") styleObj.fontWeight = cell.style.fontWeight;
+      if (cell.style.fontFamily) styleObj.fontFamily = cell.style.fontFamily;
+      if (Object.keys(styleObj).length) cfg.style = styleObj;
+
+      columnConfig.push(cfg);
+    });
+
+    if (columnConfig.length === 0) return;
+
+    const fc = {
+      isExpandedRow: row.isExpandedRow,
+      columnCount  : row.cols.length,
+      columnConfig,
+    };
+
+    // Include all Phase 1–3 visual properties (rowStyle, variants, rhythm, repeater)
+    if (row.rowVariant && row.rowVariant !== "default") fc.rowVariant = row.rowVariant;
+    if (row.rhythm     && row.rhythm     !== "normal")  fc.rhythm     = row.rhythm;
+    if (row.rowType    && row.rowType    !== "normal") {
+      fc.rowType = row.rowType;
+      if (row.repeaterConfig) fc.repeaterConfig = row.repeaterConfig;
+    }
+    const rs = row.rowStyle || {};
+    if (Object.keys(rs).length > 0) {
+      const rsOut = {};
+      if (rs.background)            rsOut.background        = rs.background;
+      if (rs.borderColor)           rsOut.borderColor       = rs.borderColor;
+      if (rs.borderWidth > 0)       rsOut.borderWidth       = rs.borderWidth;
+      if (rs.cornerRadius > 0)      rsOut.cornerRadius      = rs.cornerRadius;
+      if (rs.paddingVertical > 0)   rsOut.paddingVertical   = rs.paddingVertical;
+      if (rs.paddingHorizontal > 0) rsOut.paddingHorizontal = rs.paddingHorizontal;
+      if (rs.showDivider) {
+        rsOut.showDivider = true;
+        if (rs.dividerColor) rsOut.dividerColor = rs.dividerColor;
+        if (rs.dividerStyle && rs.dividerStyle !== "solid") rsOut.dividerStyle = rs.dividerStyle;
+      }
+      if (Object.keys(rsOut).length > 0) fc.rowStyle = rsOut;
+    }
+
+    fieldConfigs.push(fc);
+  });
+
+  return {
+    layoutType  : "grid",
+    mode        : "layout",   // ← marker that identifies this as a layout-only JSON
+    gridSize    : { rows: state.rows.filter(r => !r.isExpandedRow).length },
+    fieldConfigs,
+  };
+}
+
 function openJSONModal() {
   const json = generateJSON();
   document.getElementById("jsonOutput").textContent = JSON.stringify(json, null, 2);
+  // Update modal title to reflect current mode
+  const titleEl = document.querySelector("#jsonOverlay .modal-header span");
+  if (titleEl) {
+    titleEl.textContent = isLayoutMode()
+      ? "Generated JSON — Layout Only"
+      : "Generated JSON — Full Template";
+  }
   document.getElementById("jsonOverlay").style.display = "flex";
 }
 
@@ -154,6 +258,8 @@ function bindJSONModal() {
 // ═══════════════════════════════════════════════════════════
 // IMPORT JSON — validate + hydrate state
 // ═══════════════════════════════════════════════════════════
+
+// ── Full-mode validator (original, unchanged) ────────────────
 function validateImportJSON(obj) {
   // Phase 4: plain-language error messages for non-technical users
   if (!obj || typeof obj !== "object") return { valid: false, error: "The pasted content is not valid JSON. Please copy the full JSON output and try again." };
@@ -190,12 +296,130 @@ function validateImportJSON(obj) {
   return { valid: true };
 }
 
+// ── Layout-mode validator ────────────────────────────────────
+/**
+ * Validates a layout-only JSON object.
+ * Requires mode:"layout" and placeholderId on every column.
+ */
+function validateLayoutJSON(obj) {
+  if (!obj || typeof obj !== "object")    return { valid: false, error: "The pasted content is not valid JSON." };
+  if (obj.layoutType !== "grid")          return { valid: false, error: "Missing layoutType: \"grid\"." };
+  if (obj.mode !== "layout")              return { valid: false, error: "This JSON is not a layout file (missing mode: \"layout\")." };
+  if (!Array.isArray(obj.fieldConfigs) || obj.fieldConfigs.length === 0)
+    return { valid: false, error: "The layout has no row definitions." };
+
+  for (let i = 0; i < obj.fieldConfigs.length; i++) {
+    const fc = obj.fieldConfigs[i];
+    if (!Array.isArray(fc.columnConfig)) {
+      return { valid: false, error: `Row ${i + 1} is missing its column list.` };
+    }
+    for (let j = 0; j < fc.columnConfig.length; j++) {
+      const col = fc.columnConfig[j];
+      if (!col.placeholderId) {
+        return { valid: false, error: `Row ${i + 1}, column ${j + 1} is missing a placeholderId. The layout JSON may be incomplete.` };
+      }
+    }
+  }
+  return { valid: true };
+}
+
+/**
+ * Hydrates state from a layout-only JSON.
+ * Sets state.designerMode = "layout" and rebuilds rows with placeholder cells.
+ * Backward-compatible: rows with only rowStyle/variant but no cells load cleanly.
+ */
+function hydrateFromLayoutJSON(json) {
+  const result = validateLayoutJSON(json);
+  if (!result.valid) {
+    showToast("Layout import failed: " + result.error, "warn");
+    return false;
+  }
+
+  const VALID_TEXT_ALIGN   = ["left", "center", "right"];
+  const VALID_CELL_VARIANT = ["text", "amount", "badge", "icon", "date", "link"];
+  const VALID_ROW_TYPE     = ["normal", "repeater"];
+  function clampTextAlign(v)   { return VALID_TEXT_ALIGN.includes(v)   ? v : "left"; }
+  function clampCellVariant(v) { return VALID_CELL_VARIANT.includes(v) ? v : "text"; }
+  function clampRowType(v)     { return VALID_ROW_TYPE.includes(v)     ? v : "normal"; }
+  function clampColSpan(v)     { const n = parseInt(v, 10); return (!isNaN(n) && n >= 1 && n <= MAX_COLS) ? n : 1; }
+
+  const newRows = [];
+  json.fieldConfigs.forEach(fc => {
+    const colCount = fc.columnCount || fc.columnConfig.length;
+    const cols = new Array(Math.min(colCount, MAX_COLS)).fill(null);
+
+    fc.columnConfig.forEach(cfg => {
+      const colIdx = (cfg.col || 1) - 1;
+      if (colIdx < 0 || colIdx >= cols.length) return;
+
+      cols[colIdx] = {
+        uid             : uid(),
+        placeholderId   : cfg.placeholderId   || nextPlaceholderId(),
+        placeholderLabel: cfg.placeholderLabel || cfg.caption || "",
+        caption         : cfg.caption  || cfg.placeholderLabel || "Placeholder",
+        iconCaption     : cfg.iconCaption || "",
+        textAlign       : clampTextAlign(cfg.textAlign),
+        maxLine         : cfg.maxLine   || 1,
+        colSpan         : clampColSpan(cfg.colSpan),
+        cellVariant     : clampCellVariant(cfg.cellVariant),
+        levelVisibility : "all",   // layout mode always uses "all"
+        style: {
+          color      : (cfg.style && cfg.style.color)      || "",
+          fontSize   : (cfg.style && cfg.style.fontSize)   || "",
+          fontWeight : (cfg.style && cfg.style.fontWeight) || "normal",
+          fontFamily : (cfg.style && cfg.style.fontFamily) || "",
+        },
+      };
+    });
+
+    const newRow = {
+      id           : "row_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+      isExpandedRow: !!fc.isExpandedRow,
+      rowStyle     : fc.rowStyle   || {},
+      rowVariant   : fc.rowVariant || "default",
+      rhythm       : fc.rhythm     || "normal",
+      rowType      : clampRowType(fc.rowType),
+      cols,
+    };
+    if (fc.repeaterConfig) newRow.repeaterConfig = fc.repeaterConfig;
+    newRows.push(newRow);
+  });
+
+  // Apply to state — clear full-mode-only fields
+  state.rows         = newRows;
+  state.groupFields  = [];         // no group fields in layout mode
+  state.mOnTap       = "expand";
+  state.mOnDoubleTap = "";
+  state.designerMode = DESIGNER_MODE_LAYOUT;
+
+  _drillPath        = [];
+  _expandedCardIdx  = -1;
+  _paletteStage     = "column";
+  computeTapValues();
+
+  return true;
+}
+
+/**
+ * Main import entry point — auto-detects mode from json.mode marker.
+ * Routes to hydrateFromLayoutJSON (layout) or full hydration (full/none).
+ * No state mutation happens before validation succeeds.
+ */
 function hydrateFromJSON(json) {
+  // Auto-detect: if the JSON carries a layout mode marker, use layout hydration
+  if (json && json.mode === "layout") {
+    return hydrateFromLayoutJSON(json);
+  }
+
+  // Full mode — validate and hydrate as before
   const result = validateImportJSON(json);
   if (!result.valid) {
     showToast("Import failed: " + result.error, "warn");
     return false;
   }
+
+  // Ensure state is set to full mode after importing a full JSON
+  state.designerMode = DESIGNER_MODE_FULL;
 
   // ── Import validation helpers ────────────────────────────────
   const VALID_TEXT_ALIGN    = ["left", "center", "right"];
@@ -298,6 +522,20 @@ let _importActiveTab = "paste";
 
 function openImportModal() {
   document.getElementById("importOverlay").style.display = "flex";
+
+  // Mode-based tab visibility:
+  //   Layout mode  → hide "Copy Existing Format" tab, show "Sample Layouts"
+  //   Full mode    → show "Copy Existing Format" tab, hide "Sample Layouts"
+  const layout = isLayoutMode();
+  document.querySelectorAll(".import-tab").forEach(t => {
+    if (t.dataset.tab === "copy")   t.style.display = layout ? "none" : "";
+    if (t.dataset.tab === "layout") t.style.display = layout ? ""     : "none";
+  });
+
+  // Update modal title based on mode
+  const titleEl = document.getElementById("importModalTitle");
+  if (titleEl) titleEl.textContent = layout ? "Import Layout" : "Import / Copy Format";
+
   switchImportTab("paste");
 }
 
@@ -310,18 +548,23 @@ function switchImportTab(tab) {
   document.querySelectorAll(".import-tab").forEach(t => {
     t.classList.toggle("active", t.dataset.tab === tab);
   });
-  document.getElementById("importPasteSection").style.display = tab === "paste" ? "block" : "none";
-  document.getElementById("importCopySection").style.display  = tab === "copy"  ? "block" : "none";
+  document.getElementById("importPasteSection").style.display  = tab === "paste"  ? "block" : "none";
+  document.getElementById("importCopySection").style.display   = tab === "copy"   ? "block" : "none";
+  document.getElementById("importLayoutSection").style.display = tab === "layout" ? "block" : "none";
 
   if (tab === "paste") {
     const ta = document.getElementById("importInput");
     ta.value = "";
     document.getElementById("importError").textContent = "";
     setTimeout(() => ta.focus(), 50);
-  } else {
+  } else if (tab === "copy") {
     populateTemplateDropdown();
     document.getElementById("copyFormatPreview").textContent = "";
     document.getElementById("copyError").textContent = "";
+  } else if (tab === "layout") {
+    populateLayoutDropdown();
+    document.getElementById("layoutPresetPreview").textContent = "";
+    document.getElementById("layoutError").textContent = "";
   }
 }
 
@@ -440,6 +683,75 @@ function handleCopyFormatClipboard() {
   });
 }
 
+// ═══════════════════════════════════════════════════════════
+// SAMPLE LAYOUTS TAB — layout preset browser + loader
+// ═══════════════════════════════════════════════════════════
+function populateLayoutDropdown() {
+  const sel = document.getElementById("layoutPresetId");
+  sel.innerHTML = '<option value="">— Select Layout —</option>';
+  Object.keys(LAYOUT_LIBRARY).forEach(lid => {
+    const entry = LAYOUT_LIBRARY[lid];
+    sel.innerHTML += `<option value="${lid}">${lid} — ${entry.layoutName}</option>`;
+  });
+  // Reset description row
+  document.getElementById("layoutPresetDescRow").style.display = "none";
+  document.getElementById("layoutPresetDesc").textContent = "";
+}
+
+function onLayoutSelect() {
+  const lid     = document.getElementById("layoutPresetId").value;
+  const preview = document.getElementById("layoutPresetPreview");
+  const descRow = document.getElementById("layoutPresetDescRow");
+  const descEl  = document.getElementById("layoutPresetDesc");
+  document.getElementById("layoutError").textContent = "";
+
+  if (!lid || !LAYOUT_LIBRARY[lid]) {
+    preview.textContent = "";
+    descRow.style.display = "none";
+    return;
+  }
+
+  const entry = LAYOUT_LIBRARY[lid];
+  descEl.textContent    = entry.description || "";
+  descRow.style.display = entry.description ? "flex" : "none";
+  preview.textContent   = JSON.stringify(entry.json, null, 2);
+}
+
+function handleLayoutLoad() {
+  const lid   = document.getElementById("layoutPresetId").value;
+  const errEl = document.getElementById("layoutError");
+  errEl.textContent = "";
+
+  if (!lid || !LAYOUT_LIBRARY[lid]) {
+    errEl.textContent = "Please select a layout preset.";
+    return;
+  }
+
+  const entry   = LAYOUT_LIBRARY[lid];
+  const success = hydrateFromJSON(entry.json);
+  if (success) {
+    closeImportModal();
+    _designerMode = "edit";
+    syncModeUI();
+    syncUIFromState();
+    renderPalette();
+    renderAll();
+    saveDraftImmediate();
+    showToast(`Loaded layout: ${entry.layoutName}`, "success");
+  }
+}
+
+function handleLayoutClipboard() {
+  const text = document.getElementById("layoutPresetPreview").textContent;
+  if (!text) {
+    showToast("No layout selected to copy.", "warn");
+    return;
+  }
+  navigator.clipboard.writeText(text).then(() => {
+    showToast("Layout JSON copied to clipboard!", "success");
+  });
+}
+
 function bindImportModal() {
   document.getElementById("importClose").addEventListener("click", closeImportModal);
   document.getElementById("importOverlay").addEventListener("click", e => {
@@ -457,6 +769,11 @@ function bindImportModal() {
   document.getElementById("copyFormatId").addEventListener("change", onFormatSelect);
   document.getElementById("btnCopyFormatLoad").addEventListener("click", handleCopyFormatLoad);
   document.getElementById("btnCopyFormatClip").addEventListener("click", handleCopyFormatClipboard);
+
+  // Sample layouts controls
+  document.getElementById("layoutPresetId").addEventListener("change", onLayoutSelect);
+  document.getElementById("btnLayoutPresetLoad").addEventListener("click", handleLayoutLoad);
+  document.getElementById("btnLayoutPresetClip").addEventListener("click", handleLayoutClipboard);
 }
 
 // ═══════════════════════════════════════════════════════════

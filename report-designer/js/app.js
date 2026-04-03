@@ -30,11 +30,17 @@ document.addEventListener("DOMContentLoaded", () => {
     state.templateId        = bootstrap.templateId || state.templateId;
     state.formatId          = bootstrap.formatId || state.formatId;
     state.reportDisplayName = bootstrap.templateName || state.reportDisplayName;
+    // Allow callers to pre-set designer mode ("full" | "layout")
+    if (bootstrap.designerMode === DESIGNER_MODE_LAYOUT) {
+      state.designerMode = DESIGNER_MODE_LAYOUT;
+    }
   }
 
   // ── 3. Check for recovery draft ──
   checkAndPromptRecovery(function(restored) {
     if (restored) {
+      // Draft restore includes designerMode — sync mode selector/topbar styling
+      syncModeUI();
       markBootComplete();
       return;
     }
@@ -43,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (bootstrap && bootstrap.mode === "edit" && bootstrap.initialJson) {
       const success = hydrateFromJSON(bootstrap.initialJson);
       if (success) {
+        syncModeUI();
         syncUIFromState();
         renderPalette();
         renderAll();
@@ -52,6 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ── 5. Default: fresh start ──
+    syncModeUI();
     syncUIFromState();
     renderAll();
     markBootComplete();

@@ -144,8 +144,9 @@
   font-weight: 500;
 }
 .copy-format-preview {
-  max-height: 260px;
-  min-height: 80px;
+  max-height: 180px;
+  min-height: 60px;
+  overflow-y: auto;
 }
 
 /* ── RECOVERY MODAL ──────────────────────────────────────── */

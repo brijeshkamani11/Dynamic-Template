@@ -7,6 +7,35 @@
 
 ---
 
+### [2026-04-03] — Dual-Mode Designer: Full Template + Layout Only
+
+**Branch:** `feature/integrate-all-design`
+
+**What changed:**
+
+Introduced a two-mode designer model. The mode is stored in `state.designerMode` (`"full"` | `"layout"`) and persisted in autosave drafts and exported JSON.
+
+**Full Template mode** (default) — no behavior change. All existing JSON is backward-compatible.
+
+**Layout Only mode** — placeholder-based skeleton designer:
+- Field palette hidden; canvas structure (rows, columns, row styles, variants, repeater) fully usable.
+- Each cell carries `placeholderId` / `placeholderLabel` instead of `dataField`.
+- Exported JSON has a top-level `"mode": "layout"` marker.
+- Importing a layout JSON auto-detects the marker and routes to `hydrateFromLayoutJSON()`.
+- Property panel still usable for visual/config on placeholder cells.
+
+**Mode switching (topbar selector):**
+- `full → layout`: filled cells are converted to placeholder cells (caption + style preserved, `dataField` dropped). Group fields cleared.
+- `layout → full`: placeholder cells are cleared to `null` (cannot auto-map to real fields). Confirmation required for both directions if canvas has content.
+
+**Sample Layout Presets (Import → Sample Layouts tab):**
+- 4 built-in layout skeletons: Compact Ledger Card, Summary Card with Totals, Transaction List Card, Alert / Outstanding Card (`L0001`–`L0004`).
+- Selectable from the import modal's new "Sample Layouts" tab; shows description and JSON preview before loading.
+
+**Files changed:** `state.js`, `format-library.js`, `index.html`, `canvas.css`, `topbar.css`, `canvas.js`, `palette.js`, `property-panel.js`, `preview.js`, `json-modal.js`, `recovery.js`, `topbar.js`, `app.js`.
+
+---
+
 ### [2026-04-03] — Code-Review Fixes (Steps A–E)
 
 **Branch:** `ui-polish`

@@ -32,6 +32,14 @@
     <span class="status-chip" id="saveStatusChip"></span>
   </div>
   <div class="topbar-right">
+    <!-- Designer mode selector: "Full Template" vs "Layout Only" -->
+    <div class="mode-selector-wrap" title="Full Template: real field mapping · Layout Only: placeholder skeleton">
+      <label class="mode-selector-label" for="designerModeSel">Mode</label>
+      <select id="designerModeSel" class="form-select mode-select">
+        <option value="full">Full Template</option>
+        <option value="layout">Layout Only</option>
+      </select>
+    </div>
     <button class="btn btn-secondary" id="btnImportJSON" title="Import / Copy Format">⬇ Import</button>
     <button class="btn btn-ghost" id="btnClearAll" title="Clear canvas">✕ Clear</button>
     <button class="btn btn-secondary" id="btnPreviewJSON">{ } JSON</button>
@@ -91,7 +99,7 @@
     <div class="canvas-toolbar">
       <button class="btn btn-sm btn-outline" id="btnAddRow">+ Add Row</button>
       <div class="canvas-toolbar-hint">
-        <span id="rowCount">0</span> rows &nbsp;·&nbsp; Drop fields into cells
+        <span id="rowCount">0</span> rows &nbsp;·&nbsp; <span id="canvasHintText">Drop fields into cells</span>
       </div>
     </div>
     <div class="canvas" id="canvas">
@@ -143,6 +151,11 @@
     <!-- ── Cell property sections (hidden in row-style mode) ── -->
     <div id="cellPropSections">
       <div class="prop-section">DISPLAY</div>
+      <!-- Placeholder label: shown only in Layout Only mode -->
+      <div class="prop-row" id="propPlaceholderLabelRow" style="display:none">
+        <label>Placeholder Label</label>
+        <input type="text" id="propPlaceholderLabel" class="prop-input" placeholder="e.g. Party Name" />
+      </div>
       <div class="prop-row">
         <label>Caption</label>
         <input type="text" id="propCaption" class="prop-input" placeholder="e.g. Party Name" />
@@ -228,15 +241,18 @@
           <span class="toggle-desc">Marks this field's row as expanded-only</span>
         </div>
       </div>
-      <div class="prop-section">VISIBILITY</div>
-      <div class="prop-row">
-        <label>Level Visibility</label>
-        <div id="propLevelVisibility" class="level-visibility-wrap"></div>
-      </div>
-      <div class="prop-row" id="propAmountTotalRow">
-        <div class="prop-section">TOTALS (Amount)</div>
-        <div id="propAmountTotal" class="level-visibility-wrap"></div>
-      </div>
+      <!-- Full-mode-only: level visibility + amount totals (hidden in Layout Only mode) -->
+      <div id="propFullModeFields">
+        <div class="prop-section">VISIBILITY</div>
+        <div class="prop-row">
+          <label>Level Visibility</label>
+          <div id="propLevelVisibility" class="level-visibility-wrap"></div>
+        </div>
+        <div class="prop-row" id="propAmountTotalRow">
+          <div class="prop-section">TOTALS (Amount)</div>
+          <div id="propAmountTotal" class="level-visibility-wrap"></div>
+        </div>
+      </div><!-- /propFullModeFields -->
     </div><!-- /cellPropSections -->
 
     <!-- ── Row style section (shown only in row-style mode) ── -->
@@ -416,7 +432,7 @@
 <div class="modal-overlay" id="importOverlay" style="display:none">
   <div class="modal json-modal import-modal-wide">
     <div class="modal-header">
-      <span>Import / Copy Format</span>
+      <span id="importModalTitle">Import / Copy Format</span>
       <button class="modal-close" id="importClose">✕</button>
     </div>
 
@@ -424,6 +440,7 @@
     <div class="import-tabs">
       <button class="import-tab active" data-tab="paste">Paste JSON</button>
       <button class="import-tab" data-tab="copy">Copy Existing Format</button>
+      <button class="import-tab" data-tab="layout">Sample Layouts</button>
     </div>
 
     <div class="modal-body">
@@ -457,6 +474,30 @@
         <div class="json-actions" style="margin-top:10px;">
           <button class="btn btn-primary" id="btnCopyFormatLoad">Load into Designer</button>
           <button class="btn btn-outline" id="btnCopyFormatClip">⎘ Copy JSON</button>
+        </div>
+      </div>
+
+      <!-- ── TAB 3: Sample Layouts (Layout Only mode presets) ── -->
+      <div id="importLayoutSection" style="display:none">
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;">
+          Load a ready-made layout skeleton. This will switch to <strong>Layout Only</strong> mode.
+          Placeholders can be re-mapped to real fields later.
+        </p>
+        <div class="copy-format-controls">
+          <div class="copy-format-row">
+            <label>Layout</label>
+            <select id="layoutPresetId" class="form-select"></select>
+          </div>
+          <div class="copy-format-row" id="layoutPresetDescRow" style="display:none">
+            <label>About</label>
+            <span id="layoutPresetDesc" style="font-size:11px;color:var(--text-secondary)"></span>
+          </div>
+        </div>
+        <pre class="json-output copy-format-preview" id="layoutPresetPreview"></pre>
+        <div class="import-error" id="layoutError"></div>
+        <div class="json-actions" style="margin-top:10px;">
+          <button class="btn btn-primary" id="btnLayoutPresetLoad">Load Layout</button>
+          <button class="btn btn-outline" id="btnLayoutPresetClip">⎘ Copy JSON</button>
         </div>
       </div>
 

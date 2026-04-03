@@ -35,6 +35,7 @@ function buildDraftPayload() {
     formatId: state.formatId,
     updatedAt: new Date().toISOString(),
     state: {
+      designerMode: state.designerMode,
       templateName: state.templateName,
       mOnTap: state.mOnTap,
       mOnDoubleTap: state.mOnDoubleTap,
@@ -127,6 +128,7 @@ function hydrateFromDraft(draft) {
   // Validate rows have actual content
   if (!Array.isArray(s.rows)) return false;
 
+  state.designerMode      = (s.designerMode === DESIGNER_MODE_LAYOUT) ? DESIGNER_MODE_LAYOUT : DESIGNER_MODE_FULL;
   state.templateName      = s.templateName || "";
   state.mOnTap            = s.mOnTap || "expand";
   state.mOnDoubleTap      = s.mOnDoubleTap || "";
@@ -137,13 +139,18 @@ function hydrateFromDraft(draft) {
   state.groupFields       = Array.isArray(s.groupFields) ? s.groupFields : [];
   state.rows              = s.rows;
 
-  // Advance _cellCounter past any existing uids to avoid collisions
+  // Advance _cellCounter and _placeholderCounter past existing IDs to avoid collisions
   state.rows.forEach(row => {
     if (!row.cols) row.cols = [];
     row.cols.forEach(cell => {
-      if (cell && cell.uid) {
+      if (!cell) return;
+      if (cell.uid) {
         const num = parseInt(cell.uid.replace("c", ""), 10);
         if (!isNaN(num) && num > _cellCounter) _cellCounter = num;
+      }
+      if (cell.placeholderId) {
+        const num = parseInt(cell.placeholderId.replace("ph_", ""), 10);
+        if (!isNaN(num) && num > _placeholderCounter) _placeholderCounter = num;
       }
     });
   });
