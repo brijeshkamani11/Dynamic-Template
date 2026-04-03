@@ -41,6 +41,8 @@ function generateJSON() {
 
       // Phase 1: colSpan — omit if default (1)
       if (cell.colSpan && cell.colSpan > 1) cfg.colSpan = cell.colSpan;
+      // Phase 2: cellVariant — omit if default ("text")
+      if (cell.cellVariant && cell.cellVariant !== "text") cfg.cellVariant = cell.cellVariant;
 
       if (cell.includeTotal) {
         cfg.totalConfig = {
@@ -59,6 +61,10 @@ function generateJSON() {
       columnCount  : row.cols.length,
       columnConfig,
     };
+
+    // Phase 2: rowVariant + rhythm — omit if defaults
+    if (row.rowVariant && row.rowVariant !== "default") fc.rowVariant = row.rowVariant;
+    if (row.rhythm     && row.rhythm     !== "normal")  fc.rhythm     = row.rhythm;
 
     // Phase 1: rowStyle — omit entirely if empty (defaults used)
     const rs = row.rowStyle || {};
@@ -187,7 +193,8 @@ function hydrateFromJSON(json) {
         iconCaption    : cfg.iconCaption || "",
         textAlign      : cfg.textAlign || "left",
         maxLine        : cfg.maxLine || 1,
-        colSpan        : cfg.colSpan  || 1,   // Phase 1
+        colSpan        : cfg.colSpan     || 1,        // Phase 1
+        cellVariant    : cfg.cellVariant  || "text",  // Phase 2
         levelVisibility: cfg.levelVisibility || "all",
         style          : {
           color      : (cfg.style && cfg.style.color)      || "",
@@ -208,7 +215,9 @@ function hydrateFromJSON(json) {
     newRows.push({
       id           : "row_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
       isExpandedRow: !!fc.isExpandedRow,
-      rowStyle     : fc.rowStyle || {},   // Phase 1: default empty if absent
+      rowStyle     : fc.rowStyle   || {},           // Phase 1
+      rowVariant   : fc.rowVariant || "default",    // Phase 2
+      rhythm       : fc.rhythm     || "normal",     // Phase 2
       cols         : cols,
     });
   });

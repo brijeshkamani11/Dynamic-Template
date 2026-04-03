@@ -480,6 +480,80 @@ Phone preview uses light theme (white cards, #1976D2 app bar — Material Design
 
 ---
 
+### [2026-04-03] — Phase 2 Design Integration: Variants, Rhythm, Presets
+
+**Branch:** `feature/integrate-all-design`
+
+**What changed (Phase 2 — visual fidelity, variants, presets):**
+
+**A) Row variants** (`rowVariant` on each row, default `"default"`):
+- `default` — standard card row (no change from Phase 1 baseline)
+- `stripHeader` — tinted blue header strip (`#e3f0fb` bg, bold blue text)
+- `softPanel` — soft background panel (`#f0f4ff`, slight radius)
+- `summary` — amber warning band (`#fff3e0`, orange border, bold values)
+- `footerActions` — icon action row rendered as centred icon+label buttons (print / whatsapp / share / copy)
+
+**B) Cell variants** (`cellVariant` on each cell, default `"text"`):
+- `text` — standard icon + value (unchanged baseline)
+- `iconText` — slightly larger icon prefix + value
+- `metric` — large numeric value + small caption label below
+- `metaPair` — uppercase caption label above, value below
+- `emphasis` — bold accent-coloured value (`#1976D2`)
+- `muted` — italic secondary text (`#999`)
+
+**C) Vertical rhythm** (`rhythm` on each row, default `"normal"`):
+- `compact` → `2px 8px` row padding
+- `normal` → `4px 8px` row padding
+- `spacious` → `8px 10px` row padding
+- Explicit `rowStyle.paddingVertical/Horizontal` still overrides rhythm when set.
+
+**D) Quick presets** (5 named presets in row-style panel):
+- **Compact Ledger** — default/compact + divider
+- **Strip Header** — stripHeader/normal + blue tint
+- **Alert Summary** — summary/spacious + amber border
+- **Footer Actions** — footerActions/compact + light bg
+- **Soft Detail Card** — softPanel/normal + light blue bg
+- Clicking a preset populates all form fields for review; Apply then saves.
+
+**E) Action icons added to ICON_MAP** (for footer rows):
+- `print` → 🖨, `share` → 📤, `whatsapp` → 💬, `copy` → ⎘
+
+**F) Canvas header badges** — non-default `rowVariant` and `rhythm` shown as colour-coded badges in the row header. Non-default `cellVariant` shown as a cyan tag in the cell meta row.
+
+**Files changed:**
+- `js/modules/canvas.js` — `addRow()` + `addFieldToCell()` defaults; header badges; cell variant tag
+- `js/modules/property-panel.js` — `openPropPanel()`, `openRowStylePanel()`, `applyPropPanel()`, `applyRowStyle()` all updated; `applyPreset()` + `PRESETS` map added; preset button binding
+- `js/modules/preview.js` — `buildDetailCard()` refactored: rhythm padding, `pv-row--*` class, `footerActions` branch; `buildPreviewCellEl()` helper added; `buildFooterActionRow()` added
+- `js/modules/json-modal.js` — emit `rowVariant`, `rhythm`, `cellVariant` (omit if defaults); hydrate all three on import
+- `js/data/field-registry.js` — ICON_MAP extended with 4 action icons
+- `js/data/format-library.js` — R0006 Variant Showcase template: 5 formats (F0001–F0005) covering all 5 row variants and all 6 cell variants
+- `report-designer/index.html` — `#propCellVariant` select in cell panel; `#rsVariant`, `#rsRhythm` selects + `#presetGrid` in row-style panel; 4 new `iconCaption` options
+- `css/preview.css` — `.pv-row--*` variant classes; `.pv-cell--*` variant classes; `.pv-footer-actions`, `.pv-action-btn`; rhythm padding constants
+- `css/canvas.css` — `.row-variant-badge`, `.row-rhythm-badge`, `.tag-cell-variant` with colour coding
+- `css/property-panel.css` — `.preset-grid`, `.preset-btn`, `.preset-btn-active`
+
+**Regression checklist (all pass):**
+- [x] Existing Phase 1 layouts load and render identically (no Phase 2 keys in JSON → defaults applied)
+- [x] Existing Phase 1 `rowStyle` still applies correctly on top of rhythm base padding
+- [x] `colSpan` still works (independent of `cellVariant`)
+- [x] `footerActions` row renders icon grid instead of data cells
+- [x] `metric` / `metaPair` cells show correct caption/value layout
+- [x] Preset buttons populate form fields but do NOT auto-save (requires Apply)
+- [x] JSON emit omits `rowVariant`/`rhythm`/`cellVariant` when at defaults → clean output for legacy layouts
+- [x] Import hydrates Phase 2 keys from JSON; missing keys fall back to safe defaults
+
+**Phase 2 variant coverage matrix (R0006 formats):**
+
+| Format | rowVariant used | cellVariant used | rhythm |
+|--------|-----------------|------------------|--------|
+| F0001 Compact Ledger | stripHeader, softPanel | emphasis, muted, metric, metaPair | compact |
+| F0002 Strip Header Card | stripHeader, default, footerActions | muted, iconText, metric, metaPair | normal/compact |
+| F0003 Alert Summary | default, summary, softPanel | emphasis, metric, iconText, metaPair | normal/spacious/compact |
+| F0004 Soft Detail Card | softPanel, footerActions | emphasis, muted, metaPair, metric | normal/compact |
+| F0005 All Variants Demo | stripHeader, default, softPanel, summary, footerActions | iconText, metric, metaPair, emphasis, muted | all 3 |
+
+---
+
 ### [2026-04-02] — Phase 1 Design Integration: Row Style + Column Span
 
 **Branch:** `feature/integrate-all-design`

@@ -15,6 +15,8 @@ function addRow() {
     isExpandedRow: false,
     cols         : [null],  // start with 1 column; user adds more
     rowStyle     : {},      // Phase 1: row visual style (empty = all defaults)
+    rowVariant   : "default",  // Phase 2: default | stripHeader | softPanel | summary | footerActions
+    rhythm       : "normal",   // Phase 2: compact | normal | spacious
   });
   renderAll();
 }
@@ -74,6 +76,7 @@ function addFieldToCell(fieldId, rowIdx, colIdx) {
     textAlign      : "left",
     maxLine        : 1,
     colSpan        : 1,       // Phase 1: column span (default 1 = no spanning)
+    cellVariant    : "text",  // Phase 2: text | iconText | metric | metaPair | emphasis | muted
     levelVisibility: "all",   // "all" or array of level numbers e.g. [1,3]
     style          : { color: "", fontSize: "", fontWeight: "normal", fontFamily: "" },
   };
@@ -160,12 +163,21 @@ function renderCanvas() {
     // Row header
     const header = document.createElement("div");
     header.className = "row-header";
-    const hasRowStyle = Object.keys(rs).length > 0;
+    const hasRowStyle  = Object.keys(rs).length > 0;
+    const rowVariant   = row.rowVariant || "default";
+    const rhythm       = row.rhythm     || "normal";
+    const variantBadge = rowVariant !== "default"
+      ? `<span class="row-variant-badge rv-${rowVariant}" title="Row variant">${rowVariant}</span>`
+      : "";
+    const rhythmBadge  = rhythm !== "normal"
+      ? `<span class="row-rhythm-badge rr-${rhythm}" title="Rhythm">${rhythm}</span>`
+      : "";
     header.innerHTML = `
       <div class="row-badge">Row ${rIdx + 1}</div>
       <div class="row-badge-exp ${row.isExpandedRow ? "active" : ""}" title="Toggle expanded row">
         ${row.isExpandedRow ? "⤵ Expanded" : "⊞ Normal"}
       </div>
+      ${variantBadge}${rhythmBadge}
       <div class="row-col-controls">
         <button class="row-btn row-btn-col" title="Remove column" data-action="remcol" data-row="${rIdx}"${colCount <= 1 ? " disabled" : ""}>−</button>
         <span class="row-col-count">${colCount} col${colCount > 1 ? "s" : ""}</span>
@@ -241,10 +253,12 @@ function renderCanvas() {
       if (cell) {
         const field = FIELD_REGISTRY.find(f => f.id === cell.fieldId);
         const icon  = cell.iconCaption ? (ICON_MAP[cell.iconCaption] || "") : "";
-        const visTag  = cell.levelVisibility === "all"
+        const visTag     = cell.levelVisibility === "all"
           ? ""
           : `<span class="tag tag-level">L${cell.levelVisibility.join(",")}</span>`;
-        const spanTag = span > 1 ? `<span class="tag tag-span">⊞×${span}</span>` : "";
+        const spanTag    = span > 1 ? `<span class="tag tag-span">⊞×${span}</span>` : "";
+        const varTag     = (cell.cellVariant && cell.cellVariant !== "text")
+          ? `<span class="tag tag-cell-variant">${cell.cellVariant}</span>` : "";
         cellEl.innerHTML = `
           <div class="cell-content">
             <div class="cell-field-name">${icon} ${field ? field.label : "?"}</div>
@@ -253,7 +267,7 @@ function renderCanvas() {
               ${cell.textAlign !== "left" ? `<span class="tag">${cell.textAlign}</span>` : ""}
               ${cell.style.fontWeight === "bold" ? '<span class="tag">bold</span>' : ""}
               ${cell.style.fontSize ? `<span class="tag">${cell.style.fontSize}px</span>` : ""}
-              ${visTag}${spanTag}
+              ${visTag}${spanTag}${varTag}
             </div>
           </div>
           <button class="cell-edit-btn" data-row="${rIdx}" data-col="${cIdx}" title="Edit">✎</button>

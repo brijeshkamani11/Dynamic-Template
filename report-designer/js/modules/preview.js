@@ -175,6 +175,9 @@ function renderTerminalLevel(phoneList) {
   }
 }
 
+// ── Phase 2: rhythm → row padding tokens ────────────────────
+const RHYTHM_PAD = { compact: "2px 8px", normal: "4px 8px", spacious: "8px 10px" };
+
 function buildDetailCard(record, level, showExpanded, cardIdx) {
   const card = document.createElement("div");
   card.className = "phone-card" + (showExpanded ? " phone-card-expanded" : "");
@@ -190,22 +193,37 @@ function buildDetailCard(record, level, showExpanded, cardIdx) {
   }
 
   state.rows.forEach(row => {
-    // C) Expanded rows only shown when this card is tapped/expanded
+    // Expanded rows only shown when this card is tapped/expanded
     if (row.isExpandedRow && !showExpanded) return;
 
+    const rowVariant = row.rowVariant || "default";
+    const rhythm     = row.rhythm     || "normal";
+
     const rowEl = document.createElement("div");
-    rowEl.className = "preview-row" + (row.isExpandedRow ? " preview-row-expanded" : "");
+    // Phase 2: add variant CSS class alongside existing classes
+    rowEl.className = [
+      "preview-row",
+      row.isExpandedRow ? "preview-row-expanded" : "",
+      `pv-row--${rowVariant}`,
+    ].filter(Boolean).join(" ");
+
+    // Phase 2: rhythm base padding (overridden below if rowStyle sets explicit padding)
+    rowEl.style.padding = RHYTHM_PAD[rhythm] || RHYTHM_PAD.normal;
 
     // ── Phase 1: apply row-level visual style ────────────────
     const rs = row.rowStyle || {};
-    if (rs.background)        rowEl.style.background    = rs.background;
-    if (rs.paddingVertical)   { rowEl.style.paddingTop    = rs.paddingVertical + "px";
-                                rowEl.style.paddingBottom = rs.paddingVertical + "px"; }
-    if (rs.paddingHorizontal) { rowEl.style.paddingLeft   = rs.paddingHorizontal + "px";
-                                rowEl.style.paddingRight  = rs.paddingHorizontal + "px"; }
+    if (rs.background)        rowEl.style.background = rs.background;
+    if (rs.paddingVertical) {
+      rowEl.style.paddingTop    = rs.paddingVertical + "px";
+      rowEl.style.paddingBottom = rs.paddingVertical + "px";
+    }
+    if (rs.paddingHorizontal) {
+      rowEl.style.paddingLeft  = rs.paddingHorizontal + "px";
+      rowEl.style.paddingRight = rs.paddingHorizontal + "px";
+    }
     if (rs.borderWidth > 0 && rs.borderColor) {
-      rowEl.style.border       = `${rs.borderWidth}px solid ${rs.borderColor}`;
-      if (rs.cornerRadius)     rowEl.style.borderRadius = rs.cornerRadius + "px";
+      rowEl.style.border = `${rs.borderWidth}px solid ${rs.borderColor}`;
+      if (rs.cornerRadius) rowEl.style.borderRadius = rs.cornerRadius + "px";
     }
     if (rs.showDivider) {
       const dvColor = rs.dividerColor || "#e0e0e0";
@@ -213,6 +231,14 @@ function buildDetailCard(record, level, showExpanded, cardIdx) {
       rowEl.style.borderBottom = `1px ${dvStyle} ${dvColor}`;
     }
     // ─────────────────────────────────────────────────────────
+
+    // Phase 2: footerActions variant — render icon action placeholders
+    if (rowVariant === "footerActions") {
+      const activeCells = row.cols.filter(Boolean);
+      rowEl.appendChild(buildFooterActionRow(activeCells));
+      card.appendChild(rowEl);
+      return;
+    }
 
     const activeCols = row.cols.filter(c => c !== null);
     if (activeCols.length === 0) return;
@@ -227,41 +253,13 @@ function buildDetailCard(record, level, showExpanded, cardIdx) {
     if (visibleCols.length === 0) return;
 
     visibleCols.forEach(cell => {
-      const cellEl = document.createElement("div");
-      cellEl.className = "preview-cell";
-      cellEl.style.textAlign = cell.textAlign || "left";
-      // Phase 1: colSpan → flex-grow proportional to span
-      const span = cell.colSpan || 1;
-      if (span > 1) cellEl.style.flex = span;
-
-      const icon = cell.iconCaption ? (ICON_MAP[cell.iconCaption] || "") : "";
-      let rawVal = record[cell.dataField];
-
-      if (typeof rawVal === "number") {
-        rawVal = "₹ " + Math.abs(rawVal).toLocaleString("en-IN", { minimumFractionDigits: 2 });
-      }
-
-      const val = rawVal !== undefined ? rawVal : cell.caption;
-
-      let style = "";
-      if (cell.style.fontWeight === "bold") style += "font-weight:700;";
-      if (cell.style.fontSize)  style += `font-size:${cell.style.fontSize}px;`;
-      if (cell.style.color && cell.style.color !== "0xFF000000") {
-        style += `color:${argbToHex(cell.style.color)};`;
-      }
-      if (cell.maxLine > 1) style += `-webkit-line-clamp:${cell.maxLine};display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;`;
-
-      cellEl.innerHTML = `
-        ${icon ? `<span class="preview-icon">${icon}</span>` : ""}
-        <span class="preview-val" style="${style}">${val}</span>
-      `;
-      rowEl.appendChild(cellEl);
+      rowEl.appendChild(buildPreviewCellEl(cell, record));
     });
 
     card.appendChild(rowEl);
   });
 
-  // C) Tap on detail card toggles expanded rows
+  // Tap on detail card toggles expanded rows
   card.style.cursor = "pointer";
   card.addEventListener("click", () => {
     _expandedCardIdx = (_expandedCardIdx === cardIdx) ? -1 : cardIdx;
@@ -269,6 +267,106 @@ function buildDetailCard(record, level, showExpanded, cardIdx) {
   });
 
   return card;
+}
+
+// ── Phase 2: per-cell rendering routed by cellVariant ────────
+function buildPreviewCellEl(cell, record) {
+  const variant = cell.cellVariant || "text";
+  const span    = cell.colSpan || 1;
+  const icon    = cell.iconCaption ? (ICON_MAP[cell.iconCaption] || "") : "";
+
+  let rawVal = record[cell.dataField];
+  if (typeof rawVal === "number") {
+    rawVal = "₹ " + Math.abs(rawVal).toLocaleString("en-IN", { minimumFractionDigits: 2 });
+  }
+  const val = rawVal !== undefined ? String(rawVal) : cell.caption;
+
+  let inlineStyle = "";
+  if (cell.style.fontWeight === "bold") inlineStyle += "font-weight:700;";
+  if (cell.style.fontSize)  inlineStyle += `font-size:${cell.style.fontSize}px;`;
+  if (cell.style.color && cell.style.color !== "0xFF000000") {
+    inlineStyle += `color:${argbToHex(cell.style.color)};`;
+  }
+  if (cell.maxLine > 1) {
+    inlineStyle += `-webkit-line-clamp:${cell.maxLine};display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;`;
+  }
+
+  const cellEl = document.createElement("div");
+  cellEl.className = `preview-cell pv-cell--${variant}`;
+  cellEl.style.textAlign = cell.textAlign || "left";
+  if (span > 1) cellEl.style.flex = span;
+
+  switch (variant) {
+    case "metric":
+      // Large numeric value, caption below
+      cellEl.innerHTML = `
+        <div class="pv-metric">
+          <span class="pv-metric-val" style="${inlineStyle}">${val}</span>
+          <span class="pv-metric-cap">${cell.caption}</span>
+        </div>`;
+      break;
+
+    case "metaPair":
+      // Caption label above, value below
+      cellEl.innerHTML = `
+        <div class="pv-meta-pair">
+          <span class="pv-meta-cap">${cell.caption}</span>
+          <span class="pv-meta-val" style="${inlineStyle}">${val}</span>
+        </div>`;
+      break;
+
+    case "iconText":
+      // Icon prefix then value
+      cellEl.innerHTML = `
+        ${icon ? `<span class="preview-icon">${icon}</span>` : ""}
+        <span class="pv-icon-val" style="${inlineStyle}">${val}</span>`;
+      break;
+
+    case "emphasis":
+      // Bold, slightly larger, accent-colored
+      cellEl.innerHTML = `
+        <span class="pv-emphasis" style="${inlineStyle}">${val}</span>`;
+      break;
+
+    case "muted":
+      // De-emphasised secondary text
+      cellEl.innerHTML = `
+        <span class="pv-muted" style="${inlineStyle}">${val}</span>`;
+      break;
+
+    default: // "text"
+      cellEl.innerHTML = `
+        ${icon ? `<span class="preview-icon">${icon}</span>` : ""}
+        <span class="preview-val" style="${inlineStyle}">${val}</span>`;
+      break;
+  }
+
+  return cellEl;
+}
+
+// ── Phase 2: footer action row builder ───────────────────────
+function buildFooterActionRow(cells) {
+  const wrap = document.createElement("div");
+  wrap.className = "pv-footer-actions";
+
+  // If cells have iconCaptions, show those; otherwise show defaults
+  const icons = cells.length > 0
+    ? cells.map(c => ({ icon: ICON_MAP[c.iconCaption] || "●", label: c.caption }))
+    : [
+        { icon: ICON_MAP.print,    label: "Print"    },
+        { icon: ICON_MAP.whatsapp, label: "WhatsApp" },
+        { icon: ICON_MAP.share,    label: "Share"    },
+        { icon: ICON_MAP.copy,     label: "Copy"     },
+      ];
+
+  icons.forEach(({ icon, label }) => {
+    const btn = document.createElement("div");
+    btn.className = "pv-action-btn";
+    btn.innerHTML = `<span class="pv-action-icon">${icon}</span><span class="pv-action-label">${label}</span>`;
+    wrap.appendChild(btn);
+  });
+
+  return wrap;
 }
 
 // ═══════════════════════════════════════════════════════════

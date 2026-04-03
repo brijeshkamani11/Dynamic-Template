@@ -221,3 +221,28 @@
   border-color: rgba(139,92,246,0.3);
   color: #a78bfa;
 }
+
+/* ── Phase 2: Row variant + rhythm badges ─────────────────── */
+.row-variant-badge, .row-rhythm-badge {
+  display: inline-flex; align-items: center;
+  padding: 1px 6px; border-radius: 3px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.3px;
+  text-transform: uppercase;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+/* row variant colours */
+.rv-stripHeader  { background: rgba(25,118,210,0.12); border-color: rgba(25,118,210,0.35); color: #1976D2; }
+.rv-softPanel    { background: rgba(99,179,237,0.12); border-color: rgba(99,179,237,0.35); color: #3b82f6; }
+.rv-summary      { background: rgba(230,81,0,0.10);   border-color: rgba(230,81,0,0.30);   color: #e65100; }
+.rv-footerActions{ background: rgba(100,116,139,0.12);border-color: rgba(100,116,139,0.3); color: #64748b; }
+/* rhythm colours */
+.rr-compact   { background: rgba(16,185,129,0.10); border-color: rgba(16,185,129,0.30); color: #10b981; }
+.rr-spacious  { background: rgba(245,158,11,0.10); border-color: rgba(245,158,11,0.30); color: #f59e0b; }
+
+/* ── Phase 2: Cell variant tag ───────────────────────────── */
+.tag-cell-variant {
+  background: rgba(6,182,212,0.10);
+  border-color: rgba(6,182,212,0.30);
+  color: #06b6d4;
+}

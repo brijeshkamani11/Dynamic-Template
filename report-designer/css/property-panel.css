@@ -165,3 +165,29 @@
   border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
+
+/* ── Phase 2: Preset button grid ─────────────────────────── */
+.preset-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 4px 0 8px;
+}
+.preset-btn {
+  padding: 5px 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  background: var(--bg-cell);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--transition);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.preset-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(59,130,246,0.06); }
+.preset-btn-active { border-color: var(--accent) !important; color: var(--accent) !important; background: rgba(59,130,246,0.12) !important; }

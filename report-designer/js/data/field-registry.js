@@ -177,12 +177,17 @@ function getMockDistinctValues(dataField, drillPath) {
  * ICON MAP — iconCaption → emoji/symbol for preview rendering
  */
 const ICON_MAP = {
-  location : "📍",
-  amount   : "₹",
-  date     : "📅",
-  phone    : "📞",
-  email    : "✉",
-  person   : "👤",
-  invoice  : "🧾",
-  stock    : "📦",
+  location  : "📍",
+  amount    : "₹",
+  date      : "📅",
+  phone     : "📞",
+  email     : "✉",
+  person    : "👤",
+  invoice   : "🧾",
+  stock     : "📦",
+  // Phase 2: action icons (footer row placeholders)
+  print     : "🖨",
+  share     : "📤",
+  whatsapp  : "💬",
+  copy      : "⎘",
 };

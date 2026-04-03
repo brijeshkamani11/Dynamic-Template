@@ -24,6 +24,7 @@ function openPropPanel(rowIdx, colIdx) {
   document.getElementById("propIconCaption").value = cell.iconCaption || "";
   document.getElementById("propMaxLine").value     = cell.maxLine || 1;
   document.getElementById("propColSpan").value     = cell.colSpan || 1;   // Phase 1
+  document.getElementById("propCellVariant").value = cell.cellVariant || "text";  // Phase 2
   document.getElementById("propFontSize").value    = cell.style.fontSize || "";
   document.getElementById("propFontFamily").value  = cell.style.fontFamily || "";
   document.getElementById("propIsExpandedRow").checked = !!state.rows[rowIdx].isExpandedRow;
@@ -68,6 +69,10 @@ function openRowStylePanel(rowIdx) {
   document.getElementById("propDelete").style.display       = "none";
 
   document.getElementById("propPanelTitle").textContent = `Row ${rowIdx + 1} — Style`;
+
+  // Phase 2: variant + rhythm
+  document.getElementById("rsVariant").value = row.rowVariant || "default";
+  document.getElementById("rsRhythm").value  = row.rhythm     || "normal";
 
   const rs = row.rowStyle || {};
   document.getElementById("rsBgEnable").checked    = !!rs.background;
@@ -288,6 +293,12 @@ function bindPropPanel() {
     document.getElementById("rsDividerOptions").style.display = e.target.checked ? "" : "none";
   });
 
+  // Phase 2: preset buttons
+  document.getElementById("presetGrid").addEventListener("click", e => {
+    const btn = e.target.closest("[data-preset]");
+    if (btn) applyPreset(btn.dataset.preset);
+  });
+
   document.getElementById("propApply").addEventListener("click", applyPropPanel);
 
   document.getElementById("propDelete").addEventListener("click", () => {
@@ -310,11 +321,12 @@ function applyPropPanel() {
   const cell = state.rows[rowIdx].cols[colIdx];
   if (!cell) return;
 
-  cell.caption     = document.getElementById("propCaption").value.trim();
-  cell.iconCaption = document.getElementById("propIconCaption").value;
-  cell.maxLine     = Math.max(1, Math.min(5, parseInt(document.getElementById("propMaxLine").value) || 1));
-  cell.colSpan     = Math.max(1, Math.min(MAX_COLS, parseInt(document.getElementById("propColSpan").value) || 1));  // Phase 1
-  cell.textAlign   = document.querySelector(".align-btn[data-align].active")?.dataset.align || "left";
+  cell.caption      = document.getElementById("propCaption").value.trim();
+  cell.iconCaption  = document.getElementById("propIconCaption").value;
+  cell.maxLine      = Math.max(1, Math.min(5, parseInt(document.getElementById("propMaxLine").value) || 1));
+  cell.colSpan      = Math.max(1, Math.min(MAX_COLS, parseInt(document.getElementById("propColSpan").value) || 1));  // Phase 1
+  cell.cellVariant  = document.getElementById("propCellVariant").value || "text";  // Phase 2
+  cell.textAlign    = document.querySelector(".align-btn[data-align].active")?.dataset.align || "left";
   state.rows[rowIdx].isExpandedRow = document.getElementById("propIsExpandedRow").checked;
 
   const fw = document.querySelector(".align-btn[data-fw].active")?.dataset.fw || "normal";
@@ -372,6 +384,10 @@ function applyRowStyle() {
   const row = state.rows[rowIdx];
   if (!row) return;
 
+  // Phase 2: variant + rhythm
+  row.rowVariant = document.getElementById("rsVariant").value || "default";
+  row.rhythm     = document.getElementById("rsRhythm").value  || "normal";
+
   const rs = {};
 
   // Background — only if the enable checkbox is ticked
@@ -409,4 +425,66 @@ function applyRowStyle() {
   row.rowStyle = rs;
   closePropPanel();
   renderAll();
+}
+
+// ── Phase 2: Quick Presets ───────────────────────────────────
+/**
+ * Applies a named preset to the current row being edited.
+ * Writes rowVariant, rhythm, rowStyle, and updates the form fields
+ * so the user sees the applied values before hitting Apply.
+ */
+const PRESETS = {
+  compactLedger: {
+    rowVariant: "default",
+    rhythm:     "compact",
+    rowStyle:   { showDivider: true },
+  },
+  stripHeader: {
+    rowVariant: "stripHeader",
+    rhythm:     "normal",
+    rowStyle:   { background: "#e3f0fb", paddingVertical: 6, paddingHorizontal: 8, cornerRadius: 6 },
+  },
+  alertSummary: {
+    rowVariant: "summary",
+    rhythm:     "spacious",
+    rowStyle:   { background: "#fff3e0", borderColor: "#fb8c00", borderWidth: 1, cornerRadius: 6, paddingVertical: 8, paddingHorizontal: 10 },
+  },
+  footerActions: {
+    rowVariant: "footerActions",
+    rhythm:     "compact",
+    rowStyle:   { background: "#f5f7fa", showDivider: false, paddingVertical: 4, paddingHorizontal: 8 },
+  },
+  softDetailCard: {
+    rowVariant: "softPanel",
+    rhythm:     "normal",
+    rowStyle:   { background: "#f0f4ff", cornerRadius: 8, paddingVertical: 6, paddingHorizontal: 10 },
+  },
+};
+
+function applyPreset(presetName) {
+  if (!_editTarget || _editTarget.colIdx !== -1) return;
+  const preset = PRESETS[presetName];
+  if (!preset) return;
+
+  // Write to form fields so user can see + tweak before Apply
+  document.getElementById("rsVariant").value  = preset.rowVariant;
+  document.getElementById("rsRhythm").value   = preset.rhythm;
+
+  const rs = preset.rowStyle || {};
+  document.getElementById("rsBgEnable").checked    = !!rs.background;
+  document.getElementById("rsBgColor").value       = rs.background    || "#f0f4ff";
+  document.getElementById("rsBorderColor").value   = rs.borderColor   || "#cccccc";
+  document.getElementById("rsBorderWidth").value   = rs.borderWidth   != null ? rs.borderWidth : 0;
+  document.getElementById("rsCornerRadius").value  = rs.cornerRadius  != null ? rs.cornerRadius : 0;
+  document.getElementById("rsPaddingV").value      = rs.paddingVertical   != null ? rs.paddingVertical   : 0;
+  document.getElementById("rsPaddingH").value      = rs.paddingHorizontal != null ? rs.paddingHorizontal : 0;
+  document.getElementById("rsShowDivider").checked = !!rs.showDivider;
+  document.getElementById("rsDividerOptions").style.display = rs.showDivider ? "" : "none";
+
+  // Highlight active preset button
+  document.querySelectorAll("#presetGrid .preset-btn").forEach(b => {
+    b.classList.toggle("preset-btn-active", b.dataset.preset === presetName);
+  });
+
+  showToast(`Preset "${presetName}" loaded — click Apply to save.`, "info");
 }

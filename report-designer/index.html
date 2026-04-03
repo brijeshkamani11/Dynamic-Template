@@ -159,6 +159,10 @@
           <option value="person">👤 person</option>
           <option value="invoice">🧾 invoice</option>
           <option value="stock">📦 stock</option>
+          <option value="print">🖨 print</option>
+          <option value="share">📤 share</option>
+          <option value="whatsapp">💬 whatsapp</option>
+          <option value="copy">⎘ copy</option>
         </select>
       </div>
       <div class="prop-row">
@@ -176,6 +180,17 @@
       <div class="prop-row">
         <label>Column Span</label>
         <input type="number" id="propColSpan" class="prop-input prop-input-sm" min="1" max="5" value="1" title="1 = normal, 2+ = span across columns" />
+      </div>
+      <div class="prop-row">
+        <label>Cell Variant</label>
+        <select id="propCellVariant" class="prop-input" title="Controls rendering style in preview">
+          <option value="text">text — standard label + value</option>
+          <option value="iconText">iconText — icon prefix + text</option>
+          <option value="metric">metric — large numeric value</option>
+          <option value="metaPair">metaPair — caption above, value below</option>
+          <option value="emphasis">emphasis — bold highlighted value</option>
+          <option value="muted">muted — secondary / de-emphasised</option>
+        </select>
       </div>
       <div class="prop-section">STYLE</div>
       <div class="prop-row">
@@ -226,6 +241,33 @@
 
     <!-- ── Row style section (shown only in row-style mode) ── -->
     <div id="rowStyleSection" style="display:none">
+      <div class="prop-section">ROW VARIANT</div>
+      <div class="prop-row">
+        <label>Variant</label>
+        <select id="rsVariant" class="prop-input" title="Visual layout variant for this row">
+          <option value="default">default — standard card row</option>
+          <option value="stripHeader">stripHeader — tinted header strip</option>
+          <option value="softPanel">softPanel — soft background panel</option>
+          <option value="summary">summary — summary / total band</option>
+          <option value="footerActions">footerActions — icon action row</option>
+        </select>
+      </div>
+      <div class="prop-row">
+        <label>Rhythm</label>
+        <select id="rsRhythm" class="prop-input" title="Vertical spacing density">
+          <option value="compact">compact — tight spacing</option>
+          <option value="normal">normal — default spacing</option>
+          <option value="spacious">spacious — generous spacing</option>
+        </select>
+      </div>
+      <div class="prop-section">QUICK PRESETS</div>
+      <div class="preset-grid" id="presetGrid">
+        <button class="preset-btn" data-preset="compactLedger">Compact Ledger</button>
+        <button class="preset-btn" data-preset="stripHeader">Strip Header</button>
+        <button class="preset-btn" data-preset="alertSummary">Alert Summary</button>
+        <button class="preset-btn" data-preset="footerActions">Footer Actions</button>
+        <button class="preset-btn" data-preset="softDetailCard">Soft Detail Card</button>
+      </div>
       <div class="prop-section">ROW STYLE</div>
       <div class="prop-row">
         <label>Background</label>

@@ -1335,6 +1335,313 @@ const DUMMY_FORMAT_LIBRARY = {
       }
 
     }
+  },
+
+  // ── R0006 — Phase 2 Variant Showcase (demonstrates all 5 row variants + key cell variants)
+  R0006: {
+    templateName: "Variant Showcase",
+    formats: {
+
+      // F0001 — Compact Ledger (stripHeader + compact rhythm + metaPair cells)
+      F0001: {
+        formatName: "Compact Ledger",
+        json: {
+          layoutType: "grid", gridSize: { rows: 3 },
+          indicator: { isShow: true, dataField: "R0001F0006" },
+          mOnTap: "expand", mOnDoubleTap: "",
+          templateId: "R0006", formatId: "F0001",
+          reportDisplayName: "Compact Ledger",
+          fieldConfigs: [
+            {
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "stripHeader",
+              rhythm: "compact",
+              rowStyle: { background: "#e3f0fb", paddingVertical: 6, paddingHorizontal: 8 },
+              columnConfig: [
+                { dataField: "R0001F0001", col: 1, caption: "Party", cellVariant: "emphasis",
+                  style: { fontWeight: "bold" } },
+                { dataField: "R0001F0009", col: 2, caption: "Date", textAlign: "right",
+                  iconCaption: "date", cellVariant: "muted" }
+              ]
+            },
+            {
+              isExpandedRow: false,
+              columnCount: 3,
+              rowVariant: "default",
+              rhythm: "compact",
+              rowStyle: { showDivider: true },
+              columnConfig: [
+                { dataField: "R0001F0003", col: 1, caption: "Bill No", cellVariant: "metaPair" },
+                { dataField: "R0001F0011", col: 2, caption: "Debit",   cellVariant: "metric", textAlign: "right" },
+                { dataField: "R0001F0012", col: 3, caption: "Credit",  cellVariant: "metric", textAlign: "right" }
+              ]
+            },
+            {
+              isExpandedRow: true,
+              columnCount: 1,
+              rowVariant: "softPanel",
+              rhythm: "compact",
+              rowStyle: { background: "#f0f4ff", paddingVertical: 4, paddingHorizontal: 10 },
+              columnConfig: [
+                { dataField: "R0001F0010", col: 1, caption: "Narration", cellVariant: "muted", maxLine: 2 }
+              ]
+            }
+          ]
+        }
+      },
+
+      // F0002 — Strip Header Card (clear header row + detail rows + footer actions)
+      F0002: {
+        formatName: "Strip Header Card",
+        json: {
+          layoutType: "grid", gridSize: { rows: 4 },
+          indicator: { isShow: false, dataField: "" },
+          mOnTap: "expand", mOnDoubleTap: "",
+          templateId: "R0006", formatId: "F0002",
+          reportDisplayName: "Strip Header Card",
+          fieldConfigs: [
+            {
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "stripHeader",
+              rhythm: "normal",
+              rowStyle: { background: "#e3f0fb", paddingVertical: 6, paddingHorizontal: 8, cornerRadius: 6 },
+              columnConfig: [
+                { dataField: "R0001F0001", col: 1, caption: "Party", style: { fontWeight: "bold" } },
+                { dataField: "R0001F0009", col: 2, caption: "Date",  textAlign: "right", iconCaption: "date",
+                  cellVariant: "muted" }
+              ]
+            },
+            {
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "default",
+              rhythm: "normal",
+              rowStyle: {},
+              columnConfig: [
+                { dataField: "R0001F0002", col: 1, caption: "City",  iconCaption: "location",
+                  cellVariant: "iconText" },
+                { dataField: "R0001F0006", col: 2, caption: "Balance", textAlign: "right",
+                  cellVariant: "metric" }
+              ]
+            },
+            {
+              isExpandedRow: false,
+              columnCount: 3,
+              rowVariant: "default",
+              rhythm: "compact",
+              rowStyle: { showDivider: true },
+              columnConfig: [
+                { dataField: "R0001F0013", col: 1, caption: "GST Ass.", cellVariant: "metaPair" },
+                { dataField: "R0001F0014", col: 2, caption: "SGST",    cellVariant: "metaPair", textAlign: "right" },
+                { dataField: "R0001F0015", col: 3, caption: "CGST",    cellVariant: "metaPair", textAlign: "right" }
+              ]
+            },
+            {
+              isExpandedRow: false,
+              columnCount: 4,
+              rowVariant: "footerActions",
+              rhythm: "compact",
+              rowStyle: { background: "#f5f7fa", paddingVertical: 4, paddingHorizontal: 8 },
+              columnConfig: [
+                { dataField: "R0001F0001", col: 1, caption: "Print",    iconCaption: "print" },
+                { dataField: "R0001F0001", col: 2, caption: "WhatsApp", iconCaption: "whatsapp" },
+                { dataField: "R0001F0001", col: 3, caption: "Share",    iconCaption: "share" },
+                { dataField: "R0001F0001", col: 4, caption: "Copy",     iconCaption: "copy" }
+              ]
+            }
+          ]
+        }
+      },
+
+      // F0003 — Alert Summary (summary band + emphasis cells for overdue amounts)
+      F0003: {
+        formatName: "Alert Summary",
+        json: {
+          layoutType: "grid", gridSize: { rows: 3 },
+          indicator: { isShow: true, dataField: "R0001F0032" },
+          mOnTap: "expand", mOnDoubleTap: "",
+          templateId: "R0006", formatId: "F0003",
+          reportDisplayName: "Alert Summary",
+          fieldConfigs: [
+            {
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "default",
+              rhythm: "normal",
+              rowStyle: {},
+              columnConfig: [
+                { dataField: "R0001F0001", col: 1, caption: "Party",   style: { fontWeight: "bold" } },
+                { dataField: "R0001F0002", col: 2, caption: "City",    iconCaption: "location",
+                  cellVariant: "iconText", textAlign: "right" }
+              ]
+            },
+            {
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "summary",
+              rhythm: "spacious",
+              rowStyle: { background: "#fff3e0", borderColor: "#fb8c00", borderWidth: 1,
+                          cornerRadius: 6, paddingVertical: 8, paddingHorizontal: 10 },
+              columnConfig: [
+                { dataField: "R0001F0030", col: 1, caption: "Due Days",     cellVariant: "emphasis",
+                  style: { color: "0xFFE65100", fontWeight: "bold" } },
+                { dataField: "R0001F0032", col: 2, caption: "Pending Amt",  cellVariant: "metric",
+                  textAlign: "right" }
+              ]
+            },
+            {
+              isExpandedRow: true,
+              columnCount: 2,
+              rowVariant: "softPanel",
+              rhythm: "compact",
+              rowStyle: { background: "#f0f4ff", paddingVertical: 4, paddingHorizontal: 10 },
+              columnConfig: [
+                { dataField: "R0001F0031", col: 1, caption: "Bill Amt", cellVariant: "metaPair" },
+                { dataField: "R0001F0003", col: 2, caption: "Bill No",  cellVariant: "metaPair",
+                  textAlign: "right" }
+              ]
+            }
+          ]
+        }
+      },
+
+      // F0004 — Soft Detail Card (softPanel rows + metaPair throughout)
+      F0004: {
+        formatName: "Soft Detail Card",
+        json: {
+          layoutType: "grid", gridSize: { rows: 3 },
+          indicator: { isShow: false, dataField: "" },
+          mOnTap: "expand", mOnDoubleTap: "",
+          templateId: "R0006", formatId: "F0004",
+          reportDisplayName: "Soft Detail Card",
+          fieldConfigs: [
+            {
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "softPanel",
+              rhythm: "normal",
+              rowStyle: { background: "#f0f4ff", cornerRadius: 8, paddingVertical: 6, paddingHorizontal: 10 },
+              columnConfig: [
+                { dataField: "R0001F0001", col: 1, caption: "Party", cellVariant: "emphasis",
+                  style: { fontWeight: "bold" } },
+                { dataField: "R0001F0004", col: 2, caption: "Group", cellVariant: "muted",
+                  textAlign: "right" }
+              ]
+            },
+            {
+              isExpandedRow: false,
+              columnCount: 3,
+              rowVariant: "softPanel",
+              rhythm: "compact",
+              rowStyle: { background: "#f0f4ff", paddingVertical: 4, paddingHorizontal: 10,
+                          showDivider: true },
+              columnConfig: [
+                { dataField: "R0001F0007", col: 1, caption: "Vou No",  cellVariant: "metaPair" },
+                { dataField: "R0001F0008", col: 2, caption: "Type",    cellVariant: "metaPair" },
+                { dataField: "R0001F0005", col: 3, caption: "Amount",  cellVariant: "metric",
+                  textAlign: "right" }
+              ]
+            },
+            {
+              isExpandedRow: false,
+              columnCount: 4,
+              rowVariant: "footerActions",
+              rhythm: "compact",
+              rowStyle: { background: "#eef2f8", paddingVertical: 4, paddingHorizontal: 8 },
+              columnConfig: [
+                { dataField: "R0001F0001", col: 1, caption: "Print",    iconCaption: "print" },
+                { dataField: "R0001F0001", col: 2, caption: "WhatsApp", iconCaption: "whatsapp" },
+                { dataField: "R0001F0001", col: 3, caption: "Share",    iconCaption: "share" },
+                { dataField: "R0001F0001", col: 4, caption: "Copy",     iconCaption: "copy" }
+              ]
+            }
+          ]
+        }
+      },
+
+      // F0005 — All Variants Demo (one row per variant type for reference)
+      F0005: {
+        formatName: "All Variants Demo",
+        json: {
+          layoutType: "grid", gridSize: { rows: 5 },
+          indicator: { isShow: true, dataField: "R0001F0006" },
+          mOnTap: "expand", mOnDoubleTap: "",
+          templateId: "R0006", formatId: "F0005",
+          reportDisplayName: "All Variants Demo",
+          fieldConfigs: [
+            {
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "stripHeader",
+              rhythm: "normal",
+              rowStyle: { background: "#e3f0fb", paddingVertical: 6, paddingHorizontal: 8 },
+              columnConfig: [
+                { dataField: "R0001F0001", col: 1, caption: "Party (stripHeader)",
+                  style: { fontWeight: "bold" } },
+                { dataField: "R0001F0009", col: 2, caption: "Date", textAlign: "right",
+                  iconCaption: "date" }
+              ]
+            },
+            {
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "default",
+              rhythm: "normal",
+              rowStyle: {},
+              columnConfig: [
+                { dataField: "R0001F0007", col: 1, caption: "Vou No (default)",
+                  cellVariant: "iconText", iconCaption: "invoice" },
+                { dataField: "R0001F0005", col: 2, caption: "Amount",
+                  cellVariant: "metric", textAlign: "right" }
+              ]
+            },
+            {
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "softPanel",
+              rhythm: "compact",
+              rowStyle: { background: "#f0f4ff", paddingVertical: 4, paddingHorizontal: 8 },
+              columnConfig: [
+                { dataField: "R0001F0002", col: 1, caption: "City (softPanel)",
+                  cellVariant: "metaPair", iconCaption: "location" },
+                { dataField: "R0001F0006", col: 2, caption: "Balance",
+                  cellVariant: "metaPair", textAlign: "right" }
+              ]
+            },
+            {
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "summary",
+              rhythm: "spacious",
+              rowStyle: { background: "#fff3e0", borderColor: "#fb8c00", borderWidth: 1,
+                          cornerRadius: 6, paddingVertical: 8, paddingHorizontal: 10 },
+              columnConfig: [
+                { dataField: "R0001F0030", col: 1, caption: "Due Days (summary)",
+                  cellVariant: "emphasis", style: { color: "0xFFE65100", fontWeight: "bold" } },
+                { dataField: "R0001F0032", col: 2, caption: "Pending",
+                  cellVariant: "metric", textAlign: "right" }
+              ]
+            },
+            {
+              isExpandedRow: false,
+              columnCount: 4,
+              rowVariant: "footerActions",
+              rhythm: "compact",
+              rowStyle: { background: "#f5f7fa", paddingVertical: 4, paddingHorizontal: 8 },
+              columnConfig: [
+                { dataField: "R0001F0001", col: 1, caption: "Print",    iconCaption: "print" },
+                { dataField: "R0001F0001", col: 2, caption: "WhatsApp", iconCaption: "whatsapp" },
+                { dataField: "R0001F0001", col: 3, caption: "Share",    iconCaption: "share" },
+                { dataField: "R0001F0001", col: 4, caption: "Copy",     iconCaption: "copy" }
+              ]
+            }
+          ]
+        }
+      }
+
+    }
   }
 
 };

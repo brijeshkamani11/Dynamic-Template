@@ -185,3 +185,98 @@
   border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE 2 — ROW VARIANTS
+═══════════════════════════════════════════════════════════ */
+
+/* strip header — tinted bg, slightly bolder text */
+.pv-row--stripHeader {
+  background: #e3f0fb !important;
+  border-bottom: 1px solid #b0cfe8;
+}
+.pv-row--stripHeader .preview-val,
+.pv-row--stripHeader .pv-meta-val,
+.pv-row--stripHeader .pv-icon-val {
+  font-weight: 600;
+  color: #1565C0;
+  font-size: 10.5px;
+}
+
+/* soft panel — gentle background, slight radius */
+.pv-row--softPanel {
+  background: #f0f4ff;
+  border-radius: 6px;
+  margin: 1px 0;
+}
+
+/* summary band — amber/warning emphasis */
+.pv-row--summary {
+  background: #fff8e1;
+  border-top: 1px solid #ffe082;
+  border-bottom: 1px solid #ffe082;
+}
+.pv-row--summary .preview-val,
+.pv-row--summary .pv-metric-val,
+.pv-row--summary .pv-emphasis {
+  font-weight: 700;
+  color: #e65100;
+}
+
+/* footer actions — centred icon row, no text overflow */
+.pv-row--footerActions {
+  background: #f5f7fa;
+  border-top: 1px solid #e8edf4;
+  padding: 4px 6px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE 2 — CELL VARIANTS
+═══════════════════════════════════════════════════════════ */
+
+/* metric — large number, small caption below */
+.pv-cell--metric { flex-direction: column; align-items: flex-start; gap: 0; }
+.pv-metric { display: flex; flex-direction: column; gap: 0; min-width: 0; }
+.pv-metric-val { font-size: 13px; font-weight: 700; color: #1a1a2e; line-height: 1.2; }
+.pv-metric-cap { font-size: 9px; color: #888; font-weight: 400; text-transform: uppercase; letter-spacing: 0.4px; }
+
+/* metaPair — caption label on top, value underneath */
+.pv-cell--metaPair { flex-direction: column; align-items: flex-start; gap: 0; }
+.pv-meta-pair { display: flex; flex-direction: column; gap: 0; min-width: 0; }
+.pv-meta-cap { font-size: 9px; color: #999; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
+.pv-meta-val { font-size: 11px; color: #1a1a2e; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* iconText — icon + text side by side, icon slightly larger */
+.pv-cell--iconText { align-items: center; gap: 4px; }
+.pv-cell--iconText .preview-icon { font-size: 12px; }
+.pv-icon-val { font-size: 11px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* emphasis — bold, accent color */
+.pv-cell--emphasis { align-items: center; }
+.pv-emphasis { font-size: 12px; font-weight: 700; color: #1976D2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* muted — lighter secondary text */
+.pv-cell--muted { align-items: center; }
+.pv-muted { font-size: 10px; color: #999; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE 2 — FOOTER ACTION ROW
+═══════════════════════════════════════════════════════════ */
+.pv-footer-actions {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  gap: 2px;
+}
+.pv-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  cursor: default;
+  opacity: 0.7;
+}
+.pv-action-icon { font-size: 14px; line-height: 1; }
+.pv-action-label { font-size: 8px; color: #555; letter-spacing: 0.2px; }
