@@ -11,7 +11,7 @@
 // ═══════════════════════════════════════════════════════════
 function addRow() {
   state.rows.push({
-    id           : "row_" + Date.now(),
+    id           : "row_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
     isExpandedRow: false,
     cols         : [null],  // start with 1 column; user adds more
     rowStyle     : {},      // Phase 1: row visual style (empty = all defaults)
@@ -33,7 +33,7 @@ function deleteRow(rowIdx) {
 function duplicateRow(rowIdx) {
   const src = state.rows[rowIdx];
   const clone = JSON.parse(JSON.stringify(src));  // deep clone
-  clone.id = "row_" + Date.now();
+  clone.id = "row_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6);
   // Give each cloned cell a fresh uid so nothing shares identity
   clone.cols = clone.cols.map(cell => {
     if (!cell) return null;

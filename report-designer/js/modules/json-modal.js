@@ -197,6 +197,18 @@ function hydrateFromJSON(json) {
     return false;
   }
 
+  // ── Import validation helpers ────────────────────────────────
+  const VALID_TEXT_ALIGN    = ["left", "center", "right"];
+  const VALID_CELL_VARIANT  = ["text", "amount", "badge", "icon", "date", "link"];
+  const VALID_ROW_TYPE      = ["normal", "repeater"];
+
+  function clampTextAlign(v)   { return VALID_TEXT_ALIGN.includes(v)   ? v : "left"; }
+  function clampCellVariant(v) { return VALID_CELL_VARIANT.includes(v) ? v : "text"; }
+  function clampRowType(v)     { return VALID_ROW_TYPE.includes(v)     ? v : "normal"; }
+  function clampColSpan(v)     { const n = parseInt(v, 10); return (!isNaN(n) && n >= 1 && n <= MAX_COLS) ? n : 1; }
+  function clampLevelVis(v)    { return (v === "all" || Array.isArray(v)) ? v : "all"; }
+  // ────────────────────────────────────────────────────────────
+
   const newRows = [];
   json.fieldConfigs.forEach(fc => {
     const colCount = fc.columnCount || fc.columnConfig.length;
@@ -213,11 +225,11 @@ function hydrateFromJSON(json) {
         dataField      : cfg.dataField,
         caption        : cfg.caption || (field ? field.defaultCaption : ""),
         iconCaption    : cfg.iconCaption || "",
-        textAlign      : cfg.textAlign || "left",
+        textAlign      : clampTextAlign(cfg.textAlign),
         maxLine        : cfg.maxLine || 1,
-        colSpan        : cfg.colSpan     || 1,        // Phase 1
-        cellVariant    : cfg.cellVariant  || "text",  // Phase 2
-        levelVisibility: cfg.levelVisibility || "all",
+        colSpan        : clampColSpan(cfg.colSpan),        // Phase 1
+        cellVariant    : clampCellVariant(cfg.cellVariant), // Phase 2
+        levelVisibility: clampLevelVis(cfg.levelVisibility),
         style          : {
           color      : (cfg.style && cfg.style.color)      || "",
           fontSize   : (cfg.style && cfg.style.fontSize)   || "",
@@ -240,7 +252,7 @@ function hydrateFromJSON(json) {
       rowStyle     : fc.rowStyle   || {},           // Phase 1
       rowVariant   : fc.rowVariant || "default",    // Phase 2
       rhythm       : fc.rhythm     || "normal",     // Phase 2
-      rowType      : fc.rowType    || "normal",     // Phase 3
+      rowType      : clampRowType(fc.rowType),       // Phase 3
       cols         : cols,
     };
     // Phase 3: repeaterConfig — only copy when present

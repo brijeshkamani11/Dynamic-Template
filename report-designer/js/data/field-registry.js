@@ -153,7 +153,8 @@ const MOCK_GROUPED_DATA = {
  * Filters base records by each level's selected group value.
  */
 function getMockRecordsForDrill(drillPath) {
-  let records = MOCK_GROUPED_DATA["R0001F0002"].records; // base set
+  const _baseEntry = MOCK_GROUPED_DATA["R0001F0002"];
+  let records = (_baseEntry && _baseEntry.records) ? _baseEntry.records : []; // base set
   drillPath.forEach(step => {
     records = records.filter(r => r[step.dataField] === step.groupValue);
   });

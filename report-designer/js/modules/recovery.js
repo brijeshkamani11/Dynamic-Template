@@ -43,11 +43,19 @@ function buildDraftPayload() {
       formatId: state.formatId,
       reportDisplayName: state.reportDisplayName,
       groupFields: state.groupFields.map(gf => ({ ...gf })),
-      rows: state.rows.map(row => ({
-        id: row.id,
-        isExpandedRow: row.isExpandedRow,
-        cols: row.cols.map(cell => cell ? { ...cell, style: { ...cell.style } } : null)
-      }))
+      rows: state.rows.map(row => {
+        const r = {
+          id           : row.id,
+          isExpandedRow: row.isExpandedRow,
+          rowStyle     : row.rowStyle    ? { ...row.rowStyle }    : {},
+          rowVariant   : row.rowVariant  || "default",
+          rhythm       : row.rhythm      || "normal",
+          rowType      : row.rowType     || "normal",
+          cols: row.cols.map(cell => cell ? { ...cell, style: { ...cell.style } } : null)
+        };
+        if (row.repeaterConfig) r.repeaterConfig = { ...row.repeaterConfig };
+        return r;
+      })
     }
   };
 }
