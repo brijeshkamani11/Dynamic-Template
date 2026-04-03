@@ -57,8 +57,18 @@ function generateFullJSON() {
 
       // Phase 1: colSpan — omit if default (1)
       if (cell.colSpan && cell.colSpan > 1) cfg.colSpan = cell.colSpan;
-      // Phase 2: cellVariant — omit if default ("text")
-      if (cell.cellVariant && cell.cellVariant !== "text") cfg.cellVariant = cell.cellVariant;
+
+      // Variant system: emit expanded display config instead of cellVariant key.
+      // Internal state keeps cellVariant for editor/preview; JSON gets display only.
+      const cvKey = cell.cellVariant || "text";
+      const displayCfg = cell.display
+        ? Object.assign({}, cell.display)
+        : buildCellDisplayConfig(cvKey, {});
+      // Only emit display if it adds info beyond the inline default
+      if (displayCfg && Object.keys(displayCfg).length > 0
+          && !(Object.keys(displayCfg).length === 1 && displayCfg.layout === "inline")) {
+        cfg.display = displayCfg;
+      }
 
       if (cell.includeTotal) {
         cfg.totalConfig = {
@@ -78,33 +88,57 @@ function generateFullJSON() {
       columnConfig,
     };
 
-    // Phase 2: rowVariant + rhythm — omit if defaults
-    if (row.rowVariant && row.rowVariant !== "default") fc.rowVariant = row.rowVariant;
-    if (row.rhythm     && row.rhythm     !== "normal")  fc.rhythm     = row.rhythm;
-
-    // Phase 3: rowType + repeaterConfig — omit if default (normal)
+    // Variant system: strip rowVariant + rhythm from JSON output.
+    // Their effects are fully expanded into rowStyle below.
+    // rowType + repeaterConfig are structural (not variant styling), so kept as-is.
     if (row.rowType && row.rowType !== "normal") {
       fc.rowType = row.rowType;
       if (row.repeaterConfig) fc.repeaterConfig = row.repeaterConfig;
     }
 
-    // Phase 1: rowStyle — omit entirely if empty (defaults used)
+    // Build expanded rowStyle: merge general style + variant defaults + rhythm padding.
+    // This captures everything that rowVariant/rhythm used to encode.
     const rs = row.rowStyle || {};
-    if (Object.keys(rs).length > 0) {
-      const rsOut = {};
-      if (rs.background)            rsOut.background        = rs.background;
-      if (rs.borderColor)           rsOut.borderColor       = rs.borderColor;
-      if (rs.borderWidth > 0)       rsOut.borderWidth       = rs.borderWidth;
-      if (rs.cornerRadius > 0)      rsOut.cornerRadius      = rs.cornerRadius;
-      if (rs.paddingVertical > 0)   rsOut.paddingVertical   = rs.paddingVertical;
-      if (rs.paddingHorizontal > 0) rsOut.paddingHorizontal = rs.paddingHorizontal;
-      if (rs.showDivider) {
-        rsOut.showDivider = true;
-        if (rs.dividerColor) rsOut.dividerColor = rs.dividerColor;
-        if (rs.dividerStyle && rs.dividerStyle !== "solid") rsOut.dividerStyle = rs.dividerStyle;
-      }
-      if (Object.keys(rsOut).length > 0) fc.rowStyle = rsOut;
+    const variantKey = row.rowVariant || "default";
+    const rhythmKey  = row.rhythm     || "normal";
+    const varDef     = ROW_VARIANT_DEFS[variantKey];
+    const rhythmDef  = RHYTHM_DEFS[rhythmKey];
+
+    const rsOut = {};
+
+    // Start with variant prefill defaults (lowest priority)
+    if (varDef && varDef.prefill) {
+      Object.entries(varDef.prefill).forEach(([k, v]) => { if (v != null) rsOut[k] = v; });
     }
+    // Layer variant control defaults
+    if (varDef && varDef.controls) {
+      varDef.controls.forEach(c => { if (rsOut[c.key] == null) rsOut[c.key] = c.default; });
+    }
+    // Layer rhythm padding (if not already set by user rowStyle)
+    if (rhythmDef) {
+      if (rsOut.paddingVertical == null)   rsOut.paddingVertical   = rhythmDef.paddingVertical;
+      if (rsOut.paddingHorizontal == null) rsOut.paddingHorizontal = rhythmDef.paddingHorizontal;
+    }
+    // Layer actual user rowStyle (highest priority — overwrites variant/rhythm defaults)
+    if (rs.background)            rsOut.background        = rs.background;
+    if (rs.borderColor)           rsOut.borderColor       = rs.borderColor;
+    if (rs.borderWidth > 0)       rsOut.borderWidth       = rs.borderWidth;
+    if (rs.cornerRadius > 0)      rsOut.cornerRadius      = rs.cornerRadius;
+    if (rs.paddingVertical > 0)   rsOut.paddingVertical   = rs.paddingVertical;
+    if (rs.paddingHorizontal > 0) rsOut.paddingHorizontal = rs.paddingHorizontal;
+    if (rs.showDivider) {
+      rsOut.showDivider = true;
+      if (rs.dividerColor) rsOut.dividerColor = rs.dividerColor;
+      if (rs.dividerStyle && rs.dividerStyle !== "solid") rsOut.dividerStyle = rs.dividerStyle;
+    }
+    // Variant extras already in rs (merged by applyRowStyle)
+    if (rs.textColor)       rsOut.textColor       = rs.textColor;
+    if (rs.textFontWeight)  rsOut.textFontWeight  = rs.textFontWeight;
+    if (rs.textFontSize)    rsOut.textFontSize    = rs.textFontSize;
+    if (rs.borderTopColor)  rsOut.borderTopColor  = rs.borderTopColor;
+    if (rs.borderBottomColor) rsOut.borderBottomColor = rs.borderBottomColor;
+
+    if (Object.keys(rsOut).length > 0) fc.rowStyle = rsOut;
 
     fieldConfigs.push(fc);
   });
@@ -169,7 +203,16 @@ function generateLayoutJSON() {
       if (cell.maxLine && cell.maxLine !== 1) cfg.maxLine = cell.maxLine;
       if (cell.textAlign && cell.textAlign !== "left") cfg.textAlign = cell.textAlign;
       if (cell.colSpan && cell.colSpan > 1)    cfg.colSpan    = cell.colSpan;
-      if (cell.cellVariant && cell.cellVariant !== "text") cfg.cellVariant = cell.cellVariant;
+
+      // Variant system: emit display config, not cellVariant key
+      const cvKey = cell.cellVariant || "text";
+      const displayCfg = cell.display
+        ? Object.assign({}, cell.display)
+        : buildCellDisplayConfig(cvKey, {});
+      if (displayCfg && Object.keys(displayCfg).length > 0
+          && !(Object.keys(displayCfg).length === 1 && displayCfg.layout === "inline")) {
+        cfg.display = displayCfg;
+      }
 
       const styleObj = {};
       if (cell.style.color && cell.style.color !== "0xFF000000") styleObj.color = cell.style.color;
@@ -189,29 +232,46 @@ function generateLayoutJSON() {
       columnConfig,
     };
 
-    // Include all Phase 1–3 visual properties (rowStyle, variants, rhythm, repeater)
-    if (row.rowVariant && row.rowVariant !== "default") fc.rowVariant = row.rowVariant;
-    if (row.rhythm     && row.rhythm     !== "normal")  fc.rhythm     = row.rhythm;
-    if (row.rowType    && row.rowType    !== "normal") {
+    // Variant system: strip rowVariant/rhythm, expand into rowStyle
+    if (row.rowType && row.rowType !== "normal") {
       fc.rowType = row.rowType;
       if (row.repeaterConfig) fc.repeaterConfig = row.repeaterConfig;
     }
+
     const rs = row.rowStyle || {};
-    if (Object.keys(rs).length > 0) {
-      const rsOut = {};
-      if (rs.background)            rsOut.background        = rs.background;
-      if (rs.borderColor)           rsOut.borderColor       = rs.borderColor;
-      if (rs.borderWidth > 0)       rsOut.borderWidth       = rs.borderWidth;
-      if (rs.cornerRadius > 0)      rsOut.cornerRadius      = rs.cornerRadius;
-      if (rs.paddingVertical > 0)   rsOut.paddingVertical   = rs.paddingVertical;
-      if (rs.paddingHorizontal > 0) rsOut.paddingHorizontal = rs.paddingHorizontal;
-      if (rs.showDivider) {
-        rsOut.showDivider = true;
-        if (rs.dividerColor) rsOut.dividerColor = rs.dividerColor;
-        if (rs.dividerStyle && rs.dividerStyle !== "solid") rsOut.dividerStyle = rs.dividerStyle;
-      }
-      if (Object.keys(rsOut).length > 0) fc.rowStyle = rsOut;
+    const variantKey = row.rowVariant || "default";
+    const rhythmKey  = row.rhythm     || "normal";
+    const varDef     = ROW_VARIANT_DEFS[variantKey];
+    const rhythmDef  = RHYTHM_DEFS[rhythmKey];
+    const rsOut = {};
+
+    if (varDef && varDef.prefill) {
+      Object.entries(varDef.prefill).forEach(([k, v]) => { if (v != null) rsOut[k] = v; });
     }
+    if (varDef && varDef.controls) {
+      varDef.controls.forEach(c => { if (rsOut[c.key] == null) rsOut[c.key] = c.default; });
+    }
+    if (rhythmDef) {
+      if (rsOut.paddingVertical == null)   rsOut.paddingVertical   = rhythmDef.paddingVertical;
+      if (rsOut.paddingHorizontal == null) rsOut.paddingHorizontal = rhythmDef.paddingHorizontal;
+    }
+    if (rs.background)            rsOut.background        = rs.background;
+    if (rs.borderColor)           rsOut.borderColor       = rs.borderColor;
+    if (rs.borderWidth > 0)       rsOut.borderWidth       = rs.borderWidth;
+    if (rs.cornerRadius > 0)      rsOut.cornerRadius      = rs.cornerRadius;
+    if (rs.paddingVertical > 0)   rsOut.paddingVertical   = rs.paddingVertical;
+    if (rs.paddingHorizontal > 0) rsOut.paddingHorizontal = rs.paddingHorizontal;
+    if (rs.showDivider) {
+      rsOut.showDivider = true;
+      if (rs.dividerColor) rsOut.dividerColor = rs.dividerColor;
+      if (rs.dividerStyle && rs.dividerStyle !== "solid") rsOut.dividerStyle = rs.dividerStyle;
+    }
+    if (rs.textColor)       rsOut.textColor       = rs.textColor;
+    if (rs.textFontWeight)  rsOut.textFontWeight  = rs.textFontWeight;
+    if (rs.textFontSize)    rsOut.textFontSize    = rs.textFontSize;
+    if (rs.borderTopColor)  rsOut.borderTopColor  = rs.borderTopColor;
+    if (rs.borderBottomColor) rsOut.borderBottomColor = rs.borderBottomColor;
+    if (Object.keys(rsOut).length > 0) fc.rowStyle = rsOut;
 
     fieldConfigs.push(fc);
   });
@@ -277,7 +337,7 @@ function validateImportJSON(obj) {
     }
     for (let j = 0; j < fc.columnConfig.length; j++) {
       const col = fc.columnConfig[j];
-      if (!col.dataField) {
+      if (!col.dataField && !col.display) {
         return { valid: false, error: `Row ${i + 1}, column ${j + 1} is missing a dataField. The JSON may be from an older or incompatible source.` };
       }
     }
@@ -336,12 +396,33 @@ function hydrateFromLayoutJSON(json) {
   }
 
   const VALID_TEXT_ALIGN   = ["left", "center", "right"];
-  const VALID_CELL_VARIANT = ["text", "amount", "badge", "icon", "date", "link"];
+  const VALID_CELL_VARIANT = ["text", "iconText", "metric", "metaPair", "emphasis", "muted"];
+  const VALID_ROW_VARIANT  = Object.keys(ROW_VARIANT_DEFS);
   const VALID_ROW_TYPE     = ["normal", "repeater"];
   function clampTextAlign(v)   { return VALID_TEXT_ALIGN.includes(v)   ? v : "left"; }
   function clampCellVariant(v) { return VALID_CELL_VARIANT.includes(v) ? v : "text"; }
+  function clampRowVariant(v)  { return VALID_ROW_VARIANT.includes(v)  ? v : "default"; }
   function clampRowType(v)     { return VALID_ROW_TYPE.includes(v)     ? v : "normal"; }
   function clampColSpan(v)     { const n = parseInt(v, 10); return (!isNaN(n) && n >= 1 && n <= MAX_COLS) ? n : 1; }
+
+  function detectCellVariantFromDisplay(display) {
+    if (!display || typeof display !== "object") return "text";
+    if (display.layout === "stacked" && display.captionPosition === "below") return "metric";
+    if (display.layout === "stacked" && display.captionPosition === "above") return "metaPair";
+    if (display.fontStyle === "italic") return "muted";
+    if (display.accentColor) return "emphasis";
+    if (display.iconSize != null) return "iconText";
+    return "text";
+  }
+
+  function detectRowVariantFromStyle(rs) {
+    if (!rs || typeof rs !== "object") return "default";
+    if (rs.textColor === "#1565C0" || rs.borderBottomColor) return "stripHeader";
+    if (rs.textColor === "#e65100") return "summary";
+    if (rs.borderTopColor) return "footerActions";
+    if (rs.background === "#f0f4ff" && !rs.textColor) return "softPanel";
+    return "default";
+  }
 
   const newRows = [];
   json.fieldConfigs.forEach(fc => {
@@ -352,6 +433,19 @@ function hydrateFromLayoutJSON(json) {
       const colIdx = (cfg.col || 1) - 1;
       if (colIdx < 0 || colIdx >= cols.length) return;
 
+      // Backward compat: old layout JSON may have cellVariant; new has display
+      let cellVariant;
+      let displayObj = null;
+      if (cfg.cellVariant) {
+        cellVariant = clampCellVariant(cfg.cellVariant);
+        displayObj  = buildCellDisplayConfig(cellVariant, {});
+      } else if (cfg.display) {
+        cellVariant = detectCellVariantFromDisplay(cfg.display);
+        displayObj  = cfg.display;
+      } else {
+        cellVariant = "text";
+      }
+
       cols[colIdx] = {
         uid             : uid(),
         placeholderId   : cfg.placeholderId   || nextPlaceholderId(),
@@ -361,8 +455,9 @@ function hydrateFromLayoutJSON(json) {
         textAlign       : clampTextAlign(cfg.textAlign),
         maxLine         : cfg.maxLine   || 1,
         colSpan         : clampColSpan(cfg.colSpan),
-        cellVariant     : clampCellVariant(cfg.cellVariant),
-        levelVisibility : "all",   // layout mode always uses "all"
+        cellVariant     : cellVariant,
+        display         : displayObj || {},
+        levelVisibility : "all",
         style: {
           color      : (cfg.style && cfg.style.color)      || "",
           fontSize   : (cfg.style && cfg.style.fontSize)   || "",
@@ -372,12 +467,25 @@ function hydrateFromLayoutJSON(json) {
       };
     });
 
+    // Backward compat: detect row variant from rowStyle if no rowVariant key
+    let rowVariant, rhythm;
+    if (fc.rowVariant) {
+      rowVariant = clampRowVariant(fc.rowVariant);
+      rhythm     = fc.rhythm || "normal";
+    } else {
+      rowVariant = detectRowVariantFromStyle(fc.rowStyle);
+      const rs = fc.rowStyle || {};
+      if (rs.paddingVertical <= 2)       rhythm = "compact";
+      else if (rs.paddingVertical >= 8)  rhythm = "spacious";
+      else                               rhythm = "normal";
+    }
+
     const newRow = {
       id           : "row_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
       isExpandedRow: !!fc.isExpandedRow,
       rowStyle     : fc.rowStyle   || {},
-      rowVariant   : fc.rowVariant || "default",
-      rhythm       : fc.rhythm     || "normal",
+      rowVariant   : rowVariant,
+      rhythm       : rhythm,
       rowType      : clampRowType(fc.rowType),
       cols,
     };
@@ -423,14 +531,45 @@ function hydrateFromJSON(json) {
 
   // ── Import validation helpers ────────────────────────────────
   const VALID_TEXT_ALIGN    = ["left", "center", "right"];
-  const VALID_CELL_VARIANT  = ["text", "amount", "badge", "icon", "date", "link"];
+  // Fixed: cell variant list now matches actual UI options
+  const VALID_CELL_VARIANT  = ["text", "iconText", "metric", "metaPair", "emphasis", "muted"];
+  const VALID_ROW_VARIANT   = Object.keys(ROW_VARIANT_DEFS);
   const VALID_ROW_TYPE      = ["normal", "repeater"];
 
   function clampTextAlign(v)   { return VALID_TEXT_ALIGN.includes(v)   ? v : "left"; }
   function clampCellVariant(v) { return VALID_CELL_VARIANT.includes(v) ? v : "text"; }
+  function clampRowVariant(v)  { return VALID_ROW_VARIANT.includes(v)  ? v : "default"; }
   function clampRowType(v)     { return VALID_ROW_TYPE.includes(v)     ? v : "normal"; }
   function clampColSpan(v)     { const n = parseInt(v, 10); return (!isNaN(n) && n >= 1 && n <= MAX_COLS) ? n : 1; }
   function clampLevelVis(v)    { return (v === "all" || Array.isArray(v)) ? v : "all"; }
+
+  /**
+   * Detects cell variant from a display config object (for new-format JSON).
+   * Matches baseDisplay patterns from CELL_VARIANT_DEFS.
+   */
+  function detectCellVariantFromDisplay(display) {
+    if (!display || typeof display !== "object") return "text";
+    // Match by structural layout cues
+    if (display.layout === "stacked" && display.captionPosition === "below") return "metric";
+    if (display.layout === "stacked" && display.captionPosition === "above") return "metaPair";
+    if (display.fontStyle === "italic" || display.valueColor === "#999999") return "muted";
+    if (display.accentColor) return "emphasis";
+    if (display.iconSize != null) return "iconText";
+    return "text";
+  }
+
+  /**
+   * Detects row variant from an expanded rowStyle (for new-format JSON without rowVariant key).
+   * Matches prefill patterns from ROW_VARIANT_DEFS.
+   */
+  function detectRowVariantFromStyle(rs) {
+    if (!rs || typeof rs !== "object") return "default";
+    if (rs.textColor === "#1565C0" || rs.borderBottomColor) return "stripHeader";
+    if (rs.textColor === "#e65100")  return "summary";
+    if (rs.borderTopColor)           return "footerActions";
+    if (rs.background === "#f0f4ff" && !rs.textColor) return "softPanel";
+    return "default";
+  }
   // ────────────────────────────────────────────────────────────
 
   const newRows = [];
@@ -443,6 +582,22 @@ function hydrateFromJSON(json) {
       if (colIdx < 0 || colIdx >= cols.length) return;
 
       const field = FIELD_REGISTRY.find(f => f.dataField === cfg.dataField);
+
+      // Backward compat: old JSON has cellVariant; new JSON has display object
+      let cellVariant;
+      let displayObj = null;
+      if (cfg.cellVariant) {
+        // Old format: use cellVariant directly
+        cellVariant = clampCellVariant(cfg.cellVariant);
+        displayObj  = buildCellDisplayConfig(cellVariant, {});
+      } else if (cfg.display) {
+        // New format: detect variant from display, keep display as-is
+        cellVariant = detectCellVariantFromDisplay(cfg.display);
+        displayObj  = cfg.display;
+      } else {
+        cellVariant = "text";
+      }
+
       const cellObj = {
         uid            : uid(),
         fieldId        : field ? field.id : "unknown",
@@ -451,8 +606,9 @@ function hydrateFromJSON(json) {
         iconCaption    : cfg.iconCaption || "",
         textAlign      : clampTextAlign(cfg.textAlign),
         maxLine        : cfg.maxLine || 1,
-        colSpan        : clampColSpan(cfg.colSpan),        // Phase 1
-        cellVariant    : clampCellVariant(cfg.cellVariant), // Phase 2
+        colSpan        : clampColSpan(cfg.colSpan),
+        cellVariant    : cellVariant,
+        display        : displayObj || {},
         levelVisibility: clampLevelVis(cfg.levelVisibility),
         style          : {
           color      : (cfg.style && cfg.style.color)      || "",
@@ -470,16 +626,31 @@ function hydrateFromJSON(json) {
       cols[colIdx] = cellObj;
     });
 
+    // Backward compat: old JSON has rowVariant/rhythm; new JSON has expanded rowStyle only
+    let rowVariant, rhythm;
+    if (fc.rowVariant) {
+      // Old format: variant key present
+      rowVariant = clampRowVariant(fc.rowVariant);
+      rhythm     = fc.rhythm || "normal";
+    } else {
+      // New format: detect variant from expanded rowStyle
+      rowVariant = detectRowVariantFromStyle(fc.rowStyle);
+      // Detect rhythm from padding
+      const rs = fc.rowStyle || {};
+      if (rs.paddingVertical <= 2)       rhythm = "compact";
+      else if (rs.paddingVertical >= 8)  rhythm = "spacious";
+      else                               rhythm = "normal";
+    }
+
     const newRow = {
       id           : "row_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
       isExpandedRow: !!fc.isExpandedRow,
-      rowStyle     : fc.rowStyle   || {},           // Phase 1
-      rowVariant   : fc.rowVariant || "default",    // Phase 2
-      rhythm       : fc.rhythm     || "normal",     // Phase 2
-      rowType      : clampRowType(fc.rowType),       // Phase 3
+      rowStyle     : fc.rowStyle   || {},
+      rowVariant   : rowVariant,
+      rhythm       : rhythm,
+      rowType      : clampRowType(fc.rowType),
       cols         : cols,
     };
-    // Phase 3: repeaterConfig — only copy when present
     if (fc.repeaterConfig) newRow.repeaterConfig = fc.repeaterConfig;
     newRows.push(newRow);
   });

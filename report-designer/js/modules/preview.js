@@ -263,7 +263,8 @@ function buildDetailCard(record, level, showExpanded, cardIdx) {
       showItems.forEach((item, itemIdx) => {
         // Merge: card record provides party-level fields; item provides row-level fields
         const mergedRecord = Object.assign({}, record, item);
-        const subRowEl = buildRepeaterSubRowEl(row, visibleCols, mergedRecord, rhythm, rs, rowVariant);
+        const rtoRepeater = { color: rs.textColor || null, fontWeight: rs.textFontWeight || null, fontSize: rs.textFontSize || null };
+        const subRowEl = buildRepeaterSubRowEl(row, visibleCols, mergedRecord, rhythm, rs, rowVariant, rtoRepeater);
         if (rc.showDivider && itemIdx > 0) {
           subRowEl.style.borderTop = "1px solid #e8edf4";
         }
@@ -293,8 +294,16 @@ function buildDetailCard(record, level, showExpanded, cardIdx) {
 
     if (visibleCols.length === 0) return;
 
+    // Row-level text overrides from expanded variant controls in rowStyle.
+    // These apply to all child cells (lowest priority — cell.style overrides).
+    const rowTextOverrides = {
+      color:      rs.textColor      || null,
+      fontWeight: rs.textFontWeight || null,
+      fontSize:   rs.textFontSize   || null,
+    };
+
     visibleCols.forEach(cell => {
-      rowEl.appendChild(buildPreviewCellEl(cell, record));
+      rowEl.appendChild(buildPreviewCellEl(cell, record, rowTextOverrides));
     });
 
     card.appendChild(rowEl);
@@ -311,19 +320,20 @@ function buildDetailCard(record, level, showExpanded, cardIdx) {
 }
 
 // ── Phase 2: per-cell rendering routed by cellVariant ────────
-function buildPreviewCellEl(cell, record) {
+/**
+ * @param {object} cell    — cell state object
+ * @param {object} record  — mock data record
+ * @param {object} [rowTextOverrides] — row-level text overrides { color, fontWeight, fontSize }
+ */
+function buildPreviewCellEl(cell, record, rowTextOverrides) {
   const variant = cell.cellVariant || "text";
   const span    = cell.colSpan || 1;
   const icon    = cell.iconCaption ? (ICON_MAP[cell.iconCaption] || "") : "";
 
   // ── Layout mode: no dataField — show placeholder label as the preview value ──
-  // In layout mode cells only have placeholderId/placeholderLabel, no dataField.
-  // Display the placeholder label (or caption) in italic to distinguish from real data.
   let val;
   if (isLayoutMode() || !cell.dataField) {
     val = cell.placeholderLabel || cell.caption || "—";
-    // Wrap in an italic indicator so designers know this is placeholder, not real data
-    // This is only visual — it does not affect the exported JSON.
     val = `[${val}]`;
   } else {
     let rawVal = record[cell.dataField];
@@ -333,11 +343,20 @@ function buildPreviewCellEl(cell, record) {
     val = rawVal !== undefined ? String(rawVal) : cell.caption;
   }
 
+  // Build inline style: cell.style takes priority, then row-level text overrides
+  const rto = rowTextOverrides || {};
   let inlineStyle = "";
-  if (cell.style.fontWeight === "bold") inlineStyle += "font-weight:700;";
-  if (cell.style.fontSize)  inlineStyle += `font-size:${cell.style.fontSize}px;`;
+  const fwVal = cell.style.fontWeight !== "normal" ? cell.style.fontWeight : (rto.fontWeight || "normal");
+  if (fwVal === "bold" || fwVal === "700") inlineStyle += "font-weight:700;";
+  else if (fwVal === "600") inlineStyle += "font-weight:600;";
+
+  const fsVal = cell.style.fontSize || rto.fontSize;
+  if (fsVal) inlineStyle += `font-size:${fsVal}px;`;
+
   if (cell.style.color && cell.style.color !== "0xFF000000") {
     inlineStyle += `color:${argbToHex(cell.style.color)};`;
+  } else if (rto.color) {
+    inlineStyle += `color:${rto.color};`;
   }
   if (cell.maxLine > 1) {
     inlineStyle += `-webkit-line-clamp:${cell.maxLine};display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;`;
@@ -427,7 +446,7 @@ function buildFooterActionRow(cells) {
  * Reuses the same rhythm/rowStyle/rowVariant as the parent row definition,
  * but renders with item-specific merged record data.
  */
-function buildRepeaterSubRowEl(row, visibleCols, mergedRecord, rhythm, rs, rowVariant) {
+function buildRepeaterSubRowEl(row, visibleCols, mergedRecord, rhythm, rs, rowVariant, rowTextOverrides) {
   const subRowEl = document.createElement("div");
   subRowEl.className = [
     "preview-row",
@@ -450,7 +469,7 @@ function buildRepeaterSubRowEl(row, visibleCols, mergedRecord, rhythm, rs, rowVa
   }
 
   visibleCols.forEach(cell => {
-    subRowEl.appendChild(buildPreviewCellEl(cell, mergedRecord));
+    subRowEl.appendChild(buildPreviewCellEl(cell, mergedRecord, rowTextOverrides));
   });
 
   return subRowEl;

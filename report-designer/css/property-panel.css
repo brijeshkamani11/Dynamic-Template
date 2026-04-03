@@ -201,3 +201,90 @@
 }
 .preset-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(59,130,246,0.06); }
 .preset-btn-active { border-color: var(--accent) !important; color: var(--accent) !important; background: rgba(59,130,246,0.12) !important; }
+
+/* ── VARIANT CONTROLS — dynamic sub-panel ────────────────── */
+.variant-controls-section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(59,130,246,0.03);
+  padding: 8px 10px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+.variant-controls-section:empty { display: none; }
+
+.variant-controls-heading {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.vc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.vc-row:last-child { margin-bottom: 0; }
+
+.vc-row label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+.vc-input {
+  background: var(--bg-cell);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  outline: none;
+  flex: 1;
+  max-width: 120px;
+  transition: border-color var(--transition);
+}
+.vc-input:focus { border-color: var(--accent); }
+
+.vc-color {
+  width: 32px; height: 26px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 1px;
+  background: var(--bg-cell);
+}
+
+.vc-range-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  max-width: 120px;
+}
+.vc-range {
+  flex: 1;
+  accent-color: var(--accent);
+  height: 4px;
+}
+.vc-range-val {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  min-width: 20px;
+  text-align: right;
+}
+
+/* Visual hint: modified-from-default indicator */
+.vc-input.vc-modified,
+.vc-color.vc-modified {
+  border-color: var(--accent);
+}

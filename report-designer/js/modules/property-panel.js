@@ -49,6 +49,10 @@ function openPropPanel(rowIdx, colIdx) {
   document.getElementById("propMaxLine").value     = cell.maxLine || 1;
   document.getElementById("propColSpan").value     = cell.colSpan || 1;   // Phase 1
   document.getElementById("propCellVariant").value = cell.cellVariant || "text";  // Phase 2
+
+  // Build cell variant-specific controls from registry
+  buildVariantControls("cellVariantControls", CELL_VARIANT_DEFS, cell.cellVariant || "text", cell.display || {});
+
   document.getElementById("propFontSize").value    = cell.style.fontSize || "";
   document.getElementById("propFontFamily").value  = cell.style.fontFamily || "";
   document.getElementById("propIsExpandedRow").checked = !!state.rows[rowIdx].isExpandedRow;
@@ -108,6 +112,9 @@ function openRowStylePanel(rowIdx) {
   // Phase 2: variant + rhythm
   document.getElementById("rsVariant").value = row.rowVariant || "default";
   document.getElementById("rsRhythm").value  = row.rhythm     || "normal";
+
+  // Build variant-specific controls from registry (populated with current state values)
+  buildVariantControls("rowVariantControls", ROW_VARIANT_DEFS, row.rowVariant || "default", row.rowStyle || {});
 
   const rs = row.rowStyle || {};
   document.getElementById("rsBgEnable").checked    = !!rs.background;
@@ -291,6 +298,117 @@ function buildAmountTotalUI(cell) {
   });
 }
 
+// ═══════════════════════════════════════════════════════════
+// VARIANT CONTROLS — dynamic sub-panels
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * Builds a variant-specific control panel into a container element.
+ * @param {string}  containerId — DOM id of the target container div
+ * @param {object}  defs        — ROW_VARIANT_DEFS or CELL_VARIANT_DEFS
+ * @param {string}  variantKey  — e.g. "stripHeader", "metric"
+ * @param {object}  currentVals — current values for controls (from state); defaults used if missing
+ */
+function buildVariantControls(containerId, defs, variantKey, currentVals) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = "";
+
+  const def = defs[variantKey];
+  if (!def || !def.controls || def.controls.length === 0) return;
+
+  const heading = document.createElement("div");
+  heading.className = "variant-controls-heading";
+  heading.textContent = "Variant Settings";
+  container.appendChild(heading);
+
+  const vals = currentVals || {};
+
+  def.controls.forEach(ctrl => {
+    const row = document.createElement("div");
+    row.className = "vc-row";
+
+    const label = document.createElement("label");
+    label.textContent = ctrl.label;
+    row.appendChild(label);
+
+    const currentVal = vals[ctrl.key] != null ? vals[ctrl.key] : ctrl.default;
+    const isModified = vals[ctrl.key] != null && vals[ctrl.key] !== ctrl.default;
+
+    if (ctrl.type === "color") {
+      const input = document.createElement("input");
+      input.type = "color";
+      input.className = "vc-color" + (isModified ? " vc-modified" : "");
+      input.dataset.vcKey = ctrl.key;
+      input.dataset.vcDefault = ctrl.default;
+      input.value = currentVal;
+      input.addEventListener("input", () => {
+        input.classList.toggle("vc-modified", input.value !== ctrl.default);
+      });
+      row.appendChild(input);
+
+    } else if (ctrl.type === "select") {
+      const select = document.createElement("select");
+      select.className = "vc-input" + (isModified ? " vc-modified" : "");
+      select.dataset.vcKey = ctrl.key;
+      select.dataset.vcDefault = ctrl.default;
+      (ctrl.options || []).forEach(([val, text]) => {
+        const opt = document.createElement("option");
+        opt.value = val;
+        opt.textContent = text;
+        if (val === String(currentVal)) opt.selected = true;
+        select.appendChild(opt);
+      });
+      select.addEventListener("change", () => {
+        select.classList.toggle("vc-modified", select.value !== ctrl.default);
+      });
+      row.appendChild(select);
+
+    } else if (ctrl.type === "range") {
+      const wrap = document.createElement("div");
+      wrap.className = "vc-range-wrap";
+      const range = document.createElement("input");
+      range.type = "range";
+      range.className = "vc-range";
+      range.dataset.vcKey = ctrl.key;
+      range.dataset.vcDefault = String(ctrl.default);
+      range.min = ctrl.min || 0;
+      range.max = ctrl.max || 100;
+      range.value = currentVal;
+      const valSpan = document.createElement("span");
+      valSpan.className = "vc-range-val";
+      valSpan.textContent = currentVal;
+      range.addEventListener("input", () => {
+        valSpan.textContent = range.value;
+      });
+      wrap.appendChild(range);
+      wrap.appendChild(valSpan);
+      row.appendChild(wrap);
+    }
+
+    container.appendChild(row);
+  });
+}
+
+/**
+ * Reads all variant control values from a container.
+ * Returns a flat object { key: value, ... }.
+ */
+function readVariantControls(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return {};
+  const result = {};
+  container.querySelectorAll("[data-vc-key]").forEach(el => {
+    const key = el.dataset.vcKey;
+    if (el.type === "range" || el.type === "number") {
+      result[key] = parseFloat(el.value);
+    } else {
+      result[key] = el.value;
+    }
+  });
+  return result;
+}
+
 function closePropPanel() {
   document.getElementById("propPanel").classList.remove("open");
   document.getElementById("propOverlay").classList.remove("show");
@@ -304,6 +422,11 @@ function closePropPanel() {
   if (phRow) phRow.style.display = "none";
   const fullModeFields = document.getElementById("propFullModeFields");
   if (fullModeFields) fullModeFields.style.display = "";
+  // Clear variant control containers
+  const rvc = document.getElementById("rowVariantControls");
+  if (rvc) rvc.innerHTML = "";
+  const cvc = document.getElementById("cellVariantControls");
+  if (cvc) cvc.innerHTML = "";
   _editTarget = null;
 }
 
@@ -338,6 +461,41 @@ function bindPropPanel() {
   document.getElementById("rsRowType").addEventListener("change", e => {
     document.getElementById("rsRepeaterSection").style.display =
       e.target.value === "repeater" ? "" : "none";
+  });
+
+  // Variant dropdown change → rebuild variant controls + pre-fill general controls
+  document.getElementById("rsVariant").addEventListener("change", e => {
+    const variantKey = e.target.value;
+    const def = ROW_VARIANT_DEFS[variantKey];
+
+    // Pre-fill general row-style controls from variant prefill
+    if (def && def.prefill) {
+      const pf = def.prefill;
+      if (pf.background != null) {
+        document.getElementById("rsBgEnable").checked = true;
+        document.getElementById("rsBgColor").value    = pf.background;
+      }
+      if (pf.cornerRadius != null) document.getElementById("rsCornerRadius").value = pf.cornerRadius;
+      if (pf.paddingVertical != null)   document.getElementById("rsPaddingV").value = pf.paddingVertical;
+      if (pf.paddingHorizontal != null) document.getElementById("rsPaddingH").value = pf.paddingHorizontal;
+    }
+
+    // Build variant-specific extra controls with defaults
+    buildVariantControls("rowVariantControls", ROW_VARIANT_DEFS, variantKey, {});
+  });
+
+  // Rhythm dropdown change → pre-fill padding controls from rhythm defaults
+  document.getElementById("rsRhythm").addEventListener("change", e => {
+    const rhythmDef = RHYTHM_DEFS[e.target.value];
+    if (rhythmDef) {
+      document.getElementById("rsPaddingV").value = rhythmDef.paddingVertical;
+      document.getElementById("rsPaddingH").value = rhythmDef.paddingHorizontal;
+    }
+  });
+
+  // Cell variant dropdown change → rebuild cell variant controls
+  document.getElementById("propCellVariant").addEventListener("change", e => {
+    buildVariantControls("cellVariantControls", CELL_VARIANT_DEFS, e.target.value, {});
   });
 
   // Phase 2: preset buttons
@@ -392,6 +550,18 @@ function applyPropPanel() {
   cell.maxLine      = Math.max(1, Math.min(5, parseInt(document.getElementById("propMaxLine").value) || 1));
   cell.colSpan      = Math.max(1, Math.min(MAX_COLS, parseInt(document.getElementById("propColSpan").value) || 1));  // Phase 1
   cell.cellVariant  = document.getElementById("propCellVariant").value || "text";  // Phase 2
+
+  // Write cell variant controls into cell.display (expanded config for JSON)
+  const cvKey = cell.cellVariant;
+  const cvDef = CELL_VARIANT_DEFS[cvKey];
+  if (cvDef && cvDef.controls && cvDef.controls.length > 0) {
+    const userVals = readVariantControls("cellVariantControls");
+    cell.display = buildCellDisplayConfig(cvKey, userVals);
+  } else {
+    // text or unknown — clear display (inline default)
+    cell.display = cvDef ? Object.assign({}, cvDef.baseDisplay || {}) : {};
+  }
+
   cell.textAlign    = document.querySelector(".align-btn[data-align].active")?.dataset.align || "left";
   state.rows[rowIdx].isExpandedRow = document.getElementById("propIsExpandedRow").checked;
 
@@ -501,6 +671,10 @@ function applyRowStyle() {
     if (dc && dc !== "#e0e0e0") rs.dividerColor = dc;
     if (ds && ds !== "solid")   rs.dividerStyle = ds;
   }
+
+  // Merge variant-specific control values into rowStyle
+  const variantExtras = readVariantControls("rowVariantControls");
+  Object.assign(rs, variantExtras);
 
   row.rowStyle = rs;
   closePropPanel();

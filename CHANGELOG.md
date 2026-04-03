@@ -7,6 +7,44 @@
 
 ---
 
+### [2026-04-04] — Variant System Refactor: Customizable Controls + JSON Expansion
+
+**Branch:** `feature/integrate-all-design`
+
+**What changed:**
+
+Refactored the row and cell variant system so variants are no longer just fixed picks. Selecting a variant now reveals variant-specific customization controls, and JSON output contains only expanded style/control values (no variant key metadata).
+
+**Centralized variant registries (`state.js`):**
+- `ROW_VARIANT_DEFS` — each row variant defines `label`, `prefill` (general control defaults), and `controls` (extra variant-specific controls with type, label, default, min/max/options).
+- `CELL_VARIANT_DEFS` — each cell variant defines `label`, `baseDisplay` (structural layout properties), and `controls` (tweakable visual properties).
+- `RHYTHM_DEFS` — rhythm presets with default padding values.
+- Helper: `getVariantControlDefaults()`, `buildCellDisplayConfig()`.
+
+**Variant-specific controls in property panel (`property-panel.js`, `index.html`):**
+- Row style panel: selecting a variant shows a "Variant Settings" sub-section with variant-specific controls (e.g., stripHeader → Bottom Border, Text Color, Text Weight). Variant selection pre-fills general controls (background, padding, etc.).
+- Cell panel: selecting a cell variant shows variant-specific controls (e.g., metric → Value Size, Value Weight, Caption Size, Caption Color).
+- Rhythm dropdown change pre-fills padding controls from `RHYTHM_DEFS`.
+- Controls visually highlight values modified from defaults (`.vc-modified` border accent).
+
+**JSON output — no variant keys (`json-modal.js`):**
+- `rowVariant` and `rhythm` are **stripped** from generated JSON. Their effects are fully expanded into `rowStyle` (including new keys: `textColor`, `textFontWeight`, `textFontSize`, `borderTopColor`, `borderBottomColor`).
+- `cellVariant` is **stripped**. A new `display` object is emitted per cell with expanded layout/visual config (e.g., `{ layout: "stacked", captionPosition: "below", valueFontSize: 13, ... }`).
+- Internal state retains variant keys for editor UI and preview rendering.
+
+**Backward-compatible import:**
+- Old JSON with `rowVariant`/`cellVariant` keys imports correctly (used directly for internal state).
+- New JSON without variant keys: row variant and rhythm are auto-detected from expanded `rowStyle`; cell variant is detected from `display` config.
+- Fixed cell variant validator: was `["text","amount","badge","icon","date","link"]` → now `["text","iconText","metric","metaPair","emphasis","muted"]`.
+
+**Preview rendering (`preview.js`):**
+- `buildPreviewCellEl()` now accepts optional `rowTextOverrides` for row-level text styling from expanded `rowStyle` (textColor, textFontWeight, textFontSize).
+- Row text overrides apply as baseline; cell-level style takes precedence.
+
+**Files changed:** `state.js`, `index.html`, `property-panel.css`, `property-panel.js`, `json-modal.js`, `preview.js`, `CHANGELOG.md`.
+
+---
+
 ### [2026-04-03] — Dual-Mode Designer: Full Template + Layout Only
 
 **Branch:** `feature/integrate-all-design`
