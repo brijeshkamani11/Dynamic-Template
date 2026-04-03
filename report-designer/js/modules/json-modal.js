@@ -155,19 +155,35 @@ function bindJSONModal() {
 // IMPORT JSON — validate + hydrate state
 // ═══════════════════════════════════════════════════════════
 function validateImportJSON(obj) {
-  if (!obj || typeof obj !== "object") return { valid: false, error: "Not a valid JSON object." };
-  if (obj.layoutType !== "grid")       return { valid: false, error: "Missing or invalid layoutType (expected 'grid')." };
-  if (!Array.isArray(obj.fieldConfigs)) return { valid: false, error: "Missing fieldConfigs array." };
+  // Phase 4: plain-language error messages for non-technical users
+  if (!obj || typeof obj !== "object") return { valid: false, error: "The pasted content is not valid JSON. Please copy the full JSON output and try again." };
+  if (obj.layoutType !== "grid")       return { valid: false, error: "This JSON doesn't look like a card layout file (missing layoutType: \"grid\"). Make sure you copied the entire JSON." };
+  if (!Array.isArray(obj.fieldConfigs) || obj.fieldConfigs.length === 0)
+    return { valid: false, error: "The layout has no row definitions (fieldConfigs is missing or empty). The JSON may be incomplete." };
 
   for (let i = 0; i < obj.fieldConfigs.length; i++) {
     const fc = obj.fieldConfigs[i];
     if (!Array.isArray(fc.columnConfig)) {
-      return { valid: false, error: `fieldConfigs[${i}] missing columnConfig array.` };
+      return { valid: false, error: `Row ${i + 1} is missing its column list. The JSON may be truncated.` };
+    }
+    if (fc.columnConfig.length === 0) {
+      return { valid: false, error: `Row ${i + 1} has no columns defined. Remove it or add at least one field.` };
     }
     for (let j = 0; j < fc.columnConfig.length; j++) {
       const col = fc.columnConfig[j];
       if (!col.dataField) {
-        return { valid: false, error: `fieldConfigs[${i}].columnConfig[${j}] missing dataField.` };
+        return { valid: false, error: `Row ${i + 1}, column ${j + 1} is missing a dataField. The JSON may be from an older or incompatible source.` };
+      }
+    }
+    // Phase 4: repeater config validation
+    if (fc.rowType === "repeater" && fc.repeaterConfig) {
+      const rc = fc.repeaterConfig;
+      const validKeys = ["transactions", "lineItems", "bills"];
+      if (rc.mockKey && !validKeys.includes(rc.mockKey)) {
+        return { valid: false, error: `Row ${i + 1} has an unknown repeater data source "${rc.mockKey}". Valid options are: transactions, lineItems, bills.` };
+      }
+      if (rc.maxItems != null && (typeof rc.maxItems !== "number" || rc.maxItems < 1)) {
+        return { valid: false, error: `Row ${i + 1}: "Items to Show" must be a number between 1 and 10.` };
       }
     }
   }
@@ -311,7 +327,8 @@ function handleImportSubmit() {
   try {
     parsed = JSON.parse(raw);
   } catch (e) {
-    errEl.textContent = "Invalid JSON syntax: " + e.message;
+    // Phase 4: friendly syntax error message
+    errEl.textContent = "The text you pasted isn't valid JSON. Check for missing quotes, brackets, or commas. (Detail: " + e.message + ")";
     return;
   }
 

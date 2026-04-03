@@ -85,10 +85,10 @@
 }
 
 .phone-list {
-  background: #f5f7fa;
+  background: #f0f3f8;
   min-height: 200px;
   padding: 8px;
-  display: flex; flex-direction: column; gap: 6px;
+  display: flex; flex-direction: column; gap: 7px;
 }
 .phone-empty { text-align: center; padding: 24px 0; color: #aaa; font-size: 11px; }
 
@@ -105,13 +105,17 @@
 /* ── PHONE CARD ───────────────────────────────────────────── */
 .phone-card {
   background: white;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 10px rgba(0,0,0,0.05);
   position: relative;
+  transition: box-shadow 0.15s ease;
 }
+.phone-card:active { box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
 .phone-card.has-indicator { padding-left: 5px; }
-.phone-card-expanded { box-shadow: 0 2px 8px rgba(59,130,246,0.18); border: 1px solid #b3d4fc; }
+.phone-card-expanded {
+  box-shadow: 0 2px 8px rgba(59,130,246,0.15), 0 0 0 1.5px #b3d4fc;
+}
 
 .phone-card-indicator {
   position: absolute;
@@ -162,11 +166,12 @@
 
 .preview-row {
   display: flex;
-  padding: 4px 8px;
-  gap: 4px;
+  padding: 5px 10px;
+  gap: 6px;
+  align-items: center;
 }
-.preview-row:first-child { padding-top: 8px; }
-.preview-row:last-child  { padding-bottom: 8px; }
+.preview-row:first-child { padding-top: 9px; }
+.preview-row:last-child  { padding-bottom: 9px; }
 .preview-row-expanded {
   background: #f0f4ff;
   border-top: 1px solid #e0e8ff;
@@ -176,8 +181,15 @@
   flex: 1; display: flex; align-items: center; gap: 3px;
   min-width: 0;
 }
-.preview-icon { font-size: 10px; flex-shrink: 0; }
-.preview-val  { font-size: 11px; color: #1a1a2e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.preview-icon { font-size: 11px; flex-shrink: 0; opacity: 0.75; }
+.preview-val  {
+  font-size: 11.5px;
+  color: #1a1a2e;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.35;
+}
 
 .preview-note {
   font-size: 10px; color: var(--text-muted);

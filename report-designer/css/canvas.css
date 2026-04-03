@@ -247,6 +247,10 @@
   color: #06b6d4;
 }
 
+/* ── Phase 4: Duplicate + Reset buttons ─────────────────── */
+.row-btn-dup:hover  { background: rgba(16,185,129,0.12); color: #10b981; border-color: #10b981; }
+.row-btn-reset:hover{ background: rgba(245,158,11,0.12);  color: #f59e0b; border-color: #f59e0b; }
+
 /* ── Phase 3: Repeater badge ─────────────────────────────── */
 .row-repeater-badge {
   display: inline-flex; align-items: center;

@@ -166,6 +166,16 @@
   flex-shrink: 0;
 }
 
+/* ── Phase 4: section subtitle hint ─────────────────────── */
+.prop-section-hint {
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 6px;
+}
+
 /* ── Phase 2: Preset button grid ─────────────────────────── */
 .preset-grid {
   display: grid;

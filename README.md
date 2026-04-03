@@ -475,8 +475,171 @@ Phone preview uses light theme (white cards, #1976D2 app bar — Material Design
 
 ---
 
+## QUICK-START GUIDE (Non-Technical Users)
+
+> **Goal:** Create a card layout like the example screenshots in 5 minutes.
+
+### Step 1 — Load an example
+Click **⬇ Import** → **Copy Existing Format** → pick a Template and Format → click **Load into Designer**.
+This gives you a working card to start from. You can then tweak it.
+
+### Step 2 — Add or remove rows
+Each row is one horizontal line in the card. Click **+ Add Row** at the top of the canvas to add a new line.
+Delete rows with the **✕** button, or move them up/down with **↑ ↓**.
+
+### Step 3 — Add fields to cells
+Fields (Party Name, Date, Amount, etc.) appear in the left panel.
+Drag a field into an empty cell, or click a field to place it automatically.
+
+### Step 4 — Style a row
+Click the **⬡** button on any row to open the style panel.
+For the fastest results, click one of the **Quick Presets** buttons — they instantly apply a common design style.
+Click **Apply** when done.
+
+### Step 5 — Duplicate a row
+Already styled a row? Click **⧉** to duplicate it — saves repeating the same style setup.
+
+### Step 6 — Preview
+The **📱 Live Preview** panel on the right updates in real time. Tap the cards in the preview to see how expanded rows look.
+
+### Step 7 — Save / Export
+Click **⬆ Save Template** to save. Click **{ } JSON** to see the generated layout code.
+
+---
+
+## PRESET USAGE GUIDE
+
+Presets are applied per-row via the **⬡ Row Style** button → **Quick Presets** section.
+
+| Preset | Best used for |
+|---|---|
+| **Compact Ledger** | Dense transaction rows with thin dividers |
+| **Header Strip** | Top row of a card — tinted blue strip with party/date |
+| **Alert Card** | Overdue or warning rows — amber background |
+| **Summary Band** | Total/balance rows — green highlight |
+| **Line-Item List** | Product or order line item repeating rows |
+| **Footer Actions** | Print / WhatsApp / Share icon row at card bottom |
+| **Contact Compact** | Compact party + location/phone info row |
+| **Detail Expanded** | Narration or extra detail row (shows on tap) |
+| **Transaction List** | Repeating date + vou + DR/CR rows |
+| **Soft Panel** | Subtle background panel for grouping related rows |
+
+After clicking a preset, all form fields are updated — you can tweak before clicking **Apply**.
+If the row already has a style, you'll be asked to confirm before overwriting.
+Use **↺ Reset** in the panel footer to clear all style back to plain defaults.
+
+---
+
+## FEATURE MATRIX
+
+| Feature | Phase | Status |
+|---|---|---|
+| Row/column grid canvas | Core | ✓ |
+| Drag-and-drop field placement | Core | ✓ |
+| Cell properties (caption, align, color, font) | Core | ✓ |
+| Column span (merge cells) | Phase 1 | ✓ |
+| Row visual style (background, border, radius, padding, divider) | Phase 1 | ✓ |
+| Advanced format library (19 built-in formats) | Phase 1 | ✓ |
+| Row variants (stripHeader, softPanel, summary, footerActions) | Phase 2 | ✓ |
+| Cell variants (metric, metaPair, iconText, emphasis, muted) | Phase 2 | ✓ |
+| Vertical rhythm (compact / normal / spacious) | Phase 2 | ✓ |
+| Quick presets (10) | Phase 2/4 | ✓ |
+| Repeater row blocks (line-item lists, transaction lists) | Phase 3 | ✓ |
+| Mock data sources (transactions, lineItems, bills) | Phase 3 | ✓ |
+| "+N more" footer on repeater rows | Phase 3 | ✓ |
+| Duplicate row (one click) | Phase 4 | ✓ |
+| Reset style (one click) | Phase 4 | ✓ |
+| Plain-language import error messages | Phase 4 | ✓ |
+| Confirm-before-preset-overwrite | Phase 4 | ✓ |
+| Group / drill-down navigation | Core | ✓ |
+| Tap-to-expand terminal cards | Core | ✓ |
+| Copy existing format (tabbed import) | Core | ✓ |
+| Autosave + draft recovery | Core | ✓ |
+| JSON import/export (backward compatible) | All phases | ✓ |
+| Real backend data binding | Future | — |
+| Template version management | Future | — |
+| Conditional styling (value-based colors) | Future | — |
+
+---
+
 ## CHANGELOG
 > Append new entries here. Never delete old entries. Format: `## [DATE] — CHANGE TITLE`
+
+---
+
+### [2026-04-03] — Phase 4: UX Simplification, Visual Polish, Quality Hardening
+
+**Branch:** `feature/integrate-all-design`
+
+**What changed (Phase 4 — non-technical UX, polish, safety):**
+
+**A) Preset expansion (5 → 10 presets)**
+- Added: **Header Strip**, **Alert Card**, **Summary Band**, **Line-Item List**, **Contact Compact**, **Detail Expanded**, **Transaction List**
+- Renamed "stripHeader" → "Header Strip", "alertSummary" → "Alert Card" for plain-language display
+- Repeater presets (Line-Item List, Transaction List) now also set `rowType`/`repeaterConfig` via the preset
+- `applyPreset()` now confirms before overwriting a row that already has a non-default style
+
+**B) Duplicate row (⧉ button)**
+- Every canvas row header now has a ⧉ button that deep-clones the row (including all column/field config) and inserts it directly below
+- New row gets fresh IDs/UIDs — no shared references
+- One-click — no dialog needed
+
+**C) Reset style (↺)**
+- Canvas row header shows ↺ when the row has any non-default style/variant/rhythm/type
+- Row-style panel footer shows a ↺ Reset button
+- Both clear `rowStyle`, `rowVariant`, `rhythm`, `rowType`, `repeaterConfig` back to defaults without touching field data
+
+**D) Visual polish**
+- Card `border-radius` increased to `12px`
+- Card `box-shadow` improved: `0 1px 3px rgba(0,0,0,0.07), 0 4px 10px rgba(0,0,0,0.05)` (softer and more layered)
+- Expanded card uses ring shadow instead of flat border
+- `preview-row` padding increased slightly (`5px 10px`), gap `6px` for better visual breathing
+- `preview-val` font size bumped to `11.5px`, `line-height: 1.35`
+- `phone-list` background changed to `#f0f3f8` (matches image tone)
+- `preview-icon` opacity lowered to `0.75` for secondary visual weight
+
+**E) Import error messages — plain language**
+- All validation errors now use plain English, not technical keys
+- "Not a valid JSON object" → "The pasted content is not valid JSON…"
+- "fieldConfigs missing" → "The layout has no row definitions…"
+- Repeater `mockKey` validated; invalid values report which keys are valid
+- JSON syntax error includes both friendly message + original parser detail
+
+**F) Sample library — R0008 Image-Inspired Cards (3 formats)**
+- **F0001 Full Party Ledger Card**: header → city strip → transaction repeater (3) → summary band → narration expanded
+- **F0002 Product Order Card**: green header strip → line-item repeater (4, +more) → total band → footer actions
+- **F0003 Outstanding with Bill List**: party header → alert strip → bill repeater (3) → pending summary
+
+**G) Documentation**
+- Added **Quick-Start Guide** (7 steps, non-technical)
+- Added **Preset Usage Guide** (table of all 10 presets with intent description)
+- Added **Feature Matrix** (all features by phase)
+
+**Files changed:**
+- `js/modules/canvas.js` — `duplicateRow()`, `resetRowStyle()`, ⧉ + ↺ buttons in row header, routing
+- `js/modules/property-panel.js` — PRESETS expanded to 10; `applyPreset()` overwrite guard + repeater preset support; `propResetStyle` button show/hide + handler; `closePropPanel()` resets reset button
+- `report-designer/index.html` — 10 preset buttons with `title` tooltips; `#propResetStyle` button
+- `js/modules/json-modal.js` — plain-language validation messages; repeater config validation; friendly syntax error
+- `js/data/format-library.js` — R0008 with 3 image-inspired complex formats
+- `css/preview.css` — card radius, shadow, padding, typography, list background
+- `css/canvas.css` — `.row-btn-dup`, `.row-btn-reset` hover styles
+- `css/property-panel.css` — `.prop-section-hint` style
+- `README.md` — Quick-Start Guide, Preset Usage Guide, Feature Matrix added
+
+**Regression checklist (all pass):**
+- [x] All Phase 1/2/3 layouts render identically — no style regressions
+- [x] Duplicate row creates independent deep clone — no shared state
+- [x] Reset style clears only visual properties — field data preserved
+- [x] Preset confirmation fires correctly when row already has style
+- [x] Old JSON (no Phase 4 fields) loads without error
+- [x] Import error messages never cause state corruption (errors happen before hydration)
+- [x] Drill/back/expand/recovery still work
+- [x] 10 presets all populate form fields correctly; apply saves correct state
+
+**Remaining known limitations:**
+- `⧉` duplicate and `↺` reset are not undoable (no undo stack yet — Phase 5 candidate)
+- Preset overwrite confirmation is a native `confirm()` dialog — could be a custom modal in future
+- `propResetStyle` button style is `.btn-ghost` (red hover) — could have a dedicated neutral style
 
 ---
 

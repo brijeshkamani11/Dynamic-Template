@@ -299,13 +299,18 @@
           <option value="spacious">spacious — generous spacing</option>
         </select>
       </div>
-      <div class="prop-section">QUICK PRESETS</div>
+      <div class="prop-section">QUICK PRESETS <span class="prop-section-hint">click to load, then Apply</span></div>
       <div class="preset-grid" id="presetGrid">
-        <button class="preset-btn" data-preset="compactLedger">Compact Ledger</button>
-        <button class="preset-btn" data-preset="stripHeader">Strip Header</button>
-        <button class="preset-btn" data-preset="alertSummary">Alert Summary</button>
-        <button class="preset-btn" data-preset="footerActions">Footer Actions</button>
-        <button class="preset-btn" data-preset="softDetailCard">Soft Detail Card</button>
+        <button class="preset-btn" data-preset="compactLedger"  title="Compact rows with divider lines">Compact Ledger</button>
+        <button class="preset-btn" data-preset="headerStrip"    title="Tinted blue header strip">Header Strip</button>
+        <button class="preset-btn" data-preset="alertCard"      title="Amber warning band">Alert Card</button>
+        <button class="preset-btn" data-preset="summaryBand"    title="Bold total/summary row">Summary Band</button>
+        <button class="preset-btn" data-preset="lineItemList"   title="Repeating product/line items">Line-Item List</button>
+        <button class="preset-btn" data-preset="footerActions"  title="Print / Share / WhatsApp icons">Footer Actions</button>
+        <button class="preset-btn" data-preset="contactCompact" title="Name + location icon row">Contact Compact</button>
+        <button class="preset-btn" data-preset="detailExpanded" title="Expanded detail / narration row">Detail Expanded</button>
+        <button class="preset-btn" data-preset="transactionList" title="Repeating date/vou/DR/CR rows">Transaction List</button>
+        <button class="preset-btn" data-preset="softDetailCard" title="Soft blue panel row">Soft Panel</button>
       </div>
       <div class="prop-section">ROW STYLE</div>
       <div class="prop-row">
@@ -361,6 +366,8 @@
   </div>
   <div class="prop-panel-footer">
     <button class="btn btn-danger-ghost" id="propDelete">🗑 Remove Field</button>
+    <!-- Phase 4: reset style — only visible in row-style mode -->
+    <button class="btn btn-ghost" id="propResetStyle" style="display:none" title="Clear all style, variant, and rhythm back to plain defaults">↺ Reset</button>
     <button class="btn btn-primary" id="propApply">✓ Apply</button>
   </div>
 </div>

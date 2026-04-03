@@ -29,6 +29,33 @@ function deleteRow(rowIdx) {
   renderAll();
 }
 
+// Phase 4: deep-clone a row and insert it directly after the source row
+function duplicateRow(rowIdx) {
+  const src = state.rows[rowIdx];
+  const clone = JSON.parse(JSON.stringify(src));  // deep clone
+  clone.id = "row_" + Date.now();
+  // Give each cloned cell a fresh uid so nothing shares identity
+  clone.cols = clone.cols.map(cell => {
+    if (!cell) return null;
+    return Object.assign({}, cell, { uid: uid() });
+  });
+  state.rows.splice(rowIdx + 1, 0, clone);
+  renderAll();
+  showToast("Row duplicated.", "success");
+}
+
+// Phase 4: resets only visual style on a row; keeps field data intact
+function resetRowStyle(rowIdx) {
+  const row = state.rows[rowIdx];
+  row.rowStyle   = {};
+  row.rowVariant = "default";
+  row.rhythm     = "normal";
+  row.rowType    = "normal";
+  delete row.repeaterConfig;
+  renderAll();
+  showToast("Row style reset to defaults.", "info");
+}
+
 function toggleExpandedRow(rowIdx) {
   state.rows[rowIdx].isExpandedRow = !state.rows[rowIdx].isExpandedRow;
   renderAll();
@@ -191,7 +218,11 @@ function renderCanvas() {
         <button class="row-btn row-btn-col" title="Add column" data-action="addcol" data-row="${rIdx}"${colCount >= MAX_COLS ? " disabled" : ""}>+</button>
       </div>
       <div class="row-actions">
-        <button class="row-btn row-btn-style${hasRowStyle ? " row-btn-style-active" : ""}" title="Row style" data-action="style" data-row="${rIdx}">⬡</button>
+        <button class="row-btn row-btn-style${hasRowStyle ? " row-btn-style-active" : ""}" title="Row style &amp; variant" data-action="style" data-row="${rIdx}">⬡</button>
+        <button class="row-btn row-btn-dup"   title="Duplicate row" data-action="dup"   data-row="${rIdx}">⧉</button>
+        ${hasRowStyle || rowVariant !== "default" || rhythm !== "normal" || rowType !== "normal"
+          ? `<button class="row-btn row-btn-reset" title="Reset style" data-action="reset" data-row="${rIdx}">↺</button>`
+          : ""}
         <button class="row-btn" title="Move up"   data-action="up"  data-row="${rIdx}">↑</button>
         <button class="row-btn" title="Move down" data-action="down" data-row="${rIdx}">↓</button>
         <button class="row-btn row-btn-toggle" title="Toggle expanded" data-action="toggle" data-row="${rIdx}">⤵</button>
@@ -210,6 +241,8 @@ function renderCanvas() {
         if (a === "addcol")  addColToRow(r);
         if (a === "remcol")  removeColFromRow(r);
         if (a === "style")   openRowStylePanel(r);
+        if (a === "dup")     duplicateRow(r);
+        if (a === "reset")   resetRowStyle(r);
       });
     });
 

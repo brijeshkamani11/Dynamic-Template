@@ -67,6 +67,7 @@ function openRowStylePanel(rowIdx) {
   document.getElementById("cellPropSections").style.display = "none";
   document.getElementById("rowStyleSection").style.display  = "";
   document.getElementById("propDelete").style.display       = "none";
+  document.getElementById("propResetStyle").style.display   = "";   // Phase 4
 
   document.getElementById("propPanelTitle").textContent = `Row ${rowIdx + 1} — Style`;
 
@@ -273,6 +274,7 @@ function closePropPanel() {
   document.getElementById("cellPropSections").style.display = "";
   document.getElementById("rowStyleSection").style.display  = "none";
   document.getElementById("propDelete").style.display       = "";
+  document.getElementById("propResetStyle").style.display   = "none";  // Phase 4
   _editTarget = null;
 }
 
@@ -320,6 +322,13 @@ function bindPropPanel() {
   document.getElementById("propDelete").addEventListener("click", () => {
     if (!_editTarget) return;
     removeFieldFromCell(_editTarget.rowIdx, _editTarget.colIdx);
+    closePropPanel();
+  });
+
+  // Phase 4: Reset Style — clears rowStyle/variant/rhythm in the open panel without closing
+  document.getElementById("propResetStyle").addEventListener("click", () => {
+    if (!_editTarget || _editTarget.colIdx !== -1) return;
+    resetRowStyle(_editTarget.rowIdx);
     closePropPanel();
   });
 }
@@ -456,34 +465,75 @@ function applyRowStyle() {
   renderAll();
 }
 
-// ── Phase 2: Quick Presets ───────────────────────────────────
+// ── Phase 2/4: Quick Presets ─────────────────────────────────
 /**
- * Applies a named preset to the current row being edited.
- * Writes rowVariant, rhythm, rowStyle, and updates the form fields
- * so the user sees the applied values before hitting Apply.
+ * Named presets. Each preset sets rowType, rowVariant, rhythm, rowStyle
+ * (and optionally repeaterConfig). Form fields are populated for review
+ * before the user hits Apply — no data is destroyed without interaction.
  */
 const PRESETS = {
+  // ── original 5 (Phase 2) ──────────────────────────────────
   compactLedger: {
+    label: "Compact Ledger",
     rowVariant: "default",
     rhythm:     "compact",
     rowStyle:   { showDivider: true },
   },
-  stripHeader: {
+  headerStrip: {
+    label: "Header Strip",
     rowVariant: "stripHeader",
     rhythm:     "normal",
     rowStyle:   { background: "#e3f0fb", paddingVertical: 6, paddingHorizontal: 8, cornerRadius: 6 },
   },
-  alertSummary: {
+  alertCard: {
+    label: "Alert Card",
     rowVariant: "summary",
     rhythm:     "spacious",
     rowStyle:   { background: "#fff3e0", borderColor: "#fb8c00", borderWidth: 1, cornerRadius: 6, paddingVertical: 8, paddingHorizontal: 10 },
   },
+  summaryBand: {
+    label: "Summary Band",
+    rowVariant: "summary",
+    rhythm:     "normal",
+    rowStyle:   { background: "#e8f5e9", borderColor: "#43a047", borderWidth: 1, cornerRadius: 4, paddingVertical: 6, paddingHorizontal: 8 },
+  },
   footerActions: {
+    label: "Footer Actions",
     rowVariant: "footerActions",
     rhythm:     "compact",
-    rowStyle:   { background: "#f5f7fa", showDivider: false, paddingVertical: 4, paddingHorizontal: 8 },
+    rowStyle:   { background: "#f5f7fa", paddingVertical: 4, paddingHorizontal: 8 },
+  },
+  // ── new 5 (Phase 4) ───────────────────────────────────────
+  lineItemList: {
+    label: "Line-Item List",
+    rowType:    "repeater",
+    rowVariant: "default",
+    rhythm:     "compact",
+    rowStyle:   { showDivider: false },
+    repeaterConfig: { mockKey: "lineItems", maxItems: 4, showDivider: true, showMoreFooter: true },
+  },
+  contactCompact: {
+    label: "Contact Compact",
+    rowVariant: "default",
+    rhythm:     "compact",
+    rowStyle:   { paddingVertical: 4, paddingHorizontal: 8 },
+  },
+  detailExpanded: {
+    label: "Detail Expanded",
+    rowVariant: "softPanel",
+    rhythm:     "spacious",
+    rowStyle:   { background: "#f0f4ff", cornerRadius: 8, paddingVertical: 8, paddingHorizontal: 12 },
+  },
+  transactionList: {
+    label: "Transaction List",
+    rowType:    "repeater",
+    rowVariant: "default",
+    rhythm:     "compact",
+    rowStyle:   {},
+    repeaterConfig: { mockKey: "transactions", maxItems: 3, showDivider: true, showMoreFooter: true },
   },
   softDetailCard: {
+    label: "Soft Panel",
     rowVariant: "softPanel",
     rhythm:     "normal",
     rowStyle:   { background: "#f0f4ff", cornerRadius: 8, paddingVertical: 6, paddingHorizontal: 10 },
@@ -495,9 +545,30 @@ function applyPreset(presetName) {
   const preset = PRESETS[presetName];
   if (!preset) return;
 
-  // Write to form fields so user can see + tweak before Apply
-  document.getElementById("rsVariant").value  = preset.rowVariant;
-  document.getElementById("rsRhythm").value   = preset.rhythm;
+  // Phase 4: confirm before overwriting a row that already has non-default style
+  const row = state.rows[_editTarget.rowIdx];
+  const hasExistingStyle = Object.keys(row.rowStyle || {}).length > 0
+    || (row.rowVariant && row.rowVariant !== "default")
+    || (row.rowType    && row.rowType    !== "normal");
+  if (hasExistingStyle) {
+    if (!confirm(`This row already has a style applied.\nApply preset "${preset.label || presetName}" and replace it?`)) return;
+  }
+
+  // Write all preset fields to form so user can review + tweak before clicking Apply
+  document.getElementById("rsRowType").value  = preset.rowType    || "normal";
+  document.getElementById("rsVariant").value  = preset.rowVariant || "default";
+  document.getElementById("rsRhythm").value   = preset.rhythm     || "normal";
+
+  // Show/hide repeater controls
+  const isRepeater = (preset.rowType === "repeater");
+  document.getElementById("rsRepeaterSection").style.display = isRepeater ? "" : "none";
+  if (isRepeater && preset.repeaterConfig) {
+    const rc = preset.repeaterConfig;
+    document.getElementById("rsRepeaterMockKey").value      = rc.mockKey    || "transactions";
+    document.getElementById("rsRepeaterMaxItems").value     = rc.maxItems   != null ? rc.maxItems : 3;
+    document.getElementById("rsRepeaterDivider").checked    = !!rc.showDivider;
+    document.getElementById("rsRepeaterMoreFooter").checked = rc.showMoreFooter !== false;
+  }
 
   const rs = preset.rowStyle || {};
   document.getElementById("rsBgEnable").checked    = !!rs.background;
@@ -515,5 +586,5 @@ function applyPreset(presetName) {
     b.classList.toggle("preset-btn-active", b.dataset.preset === presetName);
   });
 
-  showToast(`Preset "${presetName}" loaded — click Apply to save.`, "info");
+  showToast(`"${preset.label || presetName}" loaded — click Apply to save.`, "info");
 }
