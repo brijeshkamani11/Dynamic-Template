@@ -241,6 +241,45 @@
 
     <!-- ── Row style section (shown only in row-style mode) ── -->
     <div id="rowStyleSection" style="display:none">
+      <div class="prop-section">ROW TYPE</div>
+      <div class="prop-row">
+        <label>Row Type</label>
+        <select id="rsRowType" class="prop-input" title="Normal row or repeating list block">
+          <option value="normal">Normal — single row</option>
+          <option value="repeater">Repeating List — shows multiple items</option>
+        </select>
+      </div>
+      <!-- Repeater config controls (shown only when Row Type = Repeating List) -->
+      <div id="rsRepeaterSection" style="display:none">
+        <div class="prop-row">
+          <label>Mock Data</label>
+          <select id="rsRepeaterMockKey" class="prop-input" title="Which mock data list to show in preview">
+            <option value="transactions">Transactions (date · vou · DR / CR)</option>
+            <option value="lineItems">Line Items (product · qty · rate · amt)</option>
+            <option value="bills">Bills (bill no · date · amount · due days)</option>
+          </select>
+        </div>
+        <div class="prop-row">
+          <label>Items to Show</label>
+          <input type="number" id="rsRepeaterMaxItems" class="prop-input prop-input-sm" min="1" max="10" value="3" title="Max items visible in preview" />
+        </div>
+        <div class="prop-row">
+          <label>Item Divider</label>
+          <div class="toggle-wrap">
+            <input type="checkbox" id="rsRepeaterDivider" class="prop-toggle" />
+            <label for="rsRepeaterDivider" class="toggle-switch"></label>
+            <span class="toggle-desc">Line between each item</span>
+          </div>
+        </div>
+        <div class="prop-row">
+          <label>Show "+N more"</label>
+          <div class="toggle-wrap">
+            <input type="checkbox" id="rsRepeaterMoreFooter" class="prop-toggle" checked />
+            <label for="rsRepeaterMoreFooter" class="toggle-switch"></label>
+            <span class="toggle-desc">Footer when items overflow</span>
+          </div>
+        </div>
+      </div><!-- /rsRepeaterSection -->
       <div class="prop-section">ROW VARIANT</div>
       <div class="prop-row">
         <label>Variant</label>

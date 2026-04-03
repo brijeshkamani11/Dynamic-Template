@@ -70,6 +70,16 @@ function openRowStylePanel(rowIdx) {
 
   document.getElementById("propPanelTitle").textContent = `Row ${rowIdx + 1} — Style`;
 
+  // Phase 3: row type + repeater config
+  const rowType = row.rowType || "normal";
+  document.getElementById("rsRowType").value = rowType;
+  const rc = row.repeaterConfig || {};
+  document.getElementById("rsRepeaterMockKey").value    = rc.mockKey        || "transactions";
+  document.getElementById("rsRepeaterMaxItems").value   = rc.maxItems       != null ? rc.maxItems : 3;
+  document.getElementById("rsRepeaterDivider").checked  = !!rc.showDivider;
+  document.getElementById("rsRepeaterMoreFooter").checked = rc.showMoreFooter !== false;
+  document.getElementById("rsRepeaterSection").style.display = rowType === "repeater" ? "" : "none";
+
   // Phase 2: variant + rhythm
   document.getElementById("rsVariant").value = row.rowVariant || "default";
   document.getElementById("rsRhythm").value  = row.rhythm     || "normal";
@@ -293,6 +303,12 @@ function bindPropPanel() {
     document.getElementById("rsDividerOptions").style.display = e.target.checked ? "" : "none";
   });
 
+  // Phase 3: row type toggle shows/hides repeater controls
+  document.getElementById("rsRowType").addEventListener("change", e => {
+    document.getElementById("rsRepeaterSection").style.display =
+      e.target.value === "repeater" ? "" : "none";
+  });
+
   // Phase 2: preset buttons
   document.getElementById("presetGrid").addEventListener("click", e => {
     const btn = e.target.closest("[data-preset]");
@@ -383,6 +399,19 @@ function applyRowStyle() {
   const { rowIdx } = _editTarget;
   const row = state.rows[rowIdx];
   if (!row) return;
+
+  // Phase 3: row type + repeater config
+  row.rowType = document.getElementById("rsRowType").value || "normal";
+  if (row.rowType === "repeater") {
+    row.repeaterConfig = {
+      mockKey        : document.getElementById("rsRepeaterMockKey").value || "transactions",
+      maxItems       : Math.max(1, Math.min(10, parseInt(document.getElementById("rsRepeaterMaxItems").value) || 3)),
+      showDivider    : document.getElementById("rsRepeaterDivider").checked,
+      showMoreFooter : document.getElementById("rsRepeaterMoreFooter").checked,
+    };
+  } else {
+    delete row.repeaterConfig;
+  }
 
   // Phase 2: variant + rhythm
   row.rowVariant = document.getElementById("rsVariant").value || "default";

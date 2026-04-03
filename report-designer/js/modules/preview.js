@@ -240,6 +240,47 @@ function buildDetailCard(record, level, showExpanded, cardIdx) {
       return;
     }
 
+    // Phase 3: repeater row — renders N sub-rows from mock list data
+    if ((row.rowType || "normal") === "repeater") {
+      const rc       = row.repeaterConfig || {};
+      const listKey  = rc.mockKey || "transactions";
+      const items    = (MOCK_REPEATER_DATA[listKey] || []);
+      const maxItems = rc.maxItems != null ? rc.maxItems : 3;
+      const showItems = items.slice(0, maxItems);
+
+      const activeCols = row.cols.filter(c => c !== null);
+      const visibleCols = activeCols.filter(cell => {
+        if (cell.levelVisibility === "all") return true;
+        if (Array.isArray(cell.levelVisibility)) return cell.levelVisibility.includes(level);
+        return true;
+      });
+
+      if (visibleCols.length === 0) {
+        card.appendChild(rowEl); // append placeholder row
+        return;
+      }
+
+      showItems.forEach((item, itemIdx) => {
+        // Merge: card record provides party-level fields; item provides row-level fields
+        const mergedRecord = Object.assign({}, record, item);
+        const subRowEl = buildRepeaterSubRowEl(row, visibleCols, mergedRecord, rhythm, rs, rowVariant);
+        if (rc.showDivider && itemIdx > 0) {
+          subRowEl.style.borderTop = "1px solid #e8edf4";
+        }
+        card.appendChild(subRowEl);
+      });
+
+      // "+N more" footer
+      if (rc.showMoreFooter !== false && items.length > maxItems) {
+        const moreEl = document.createElement("div");
+        moreEl.className = "pv-repeater-more";
+        moreEl.textContent = `+${items.length - maxItems} more`;
+        card.appendChild(moreEl);
+      }
+
+      return; // skip normal single-row append
+    }
+
     const activeCols = row.cols.filter(c => c !== null);
     if (activeCols.length === 0) return;
 
@@ -367,6 +408,41 @@ function buildFooterActionRow(cells) {
   });
 
   return wrap;
+}
+
+// ── Phase 3: repeater sub-row builder ────────────────────────
+/**
+ * Builds a single item sub-row for a repeater row.
+ * Reuses the same rhythm/rowStyle/rowVariant as the parent row definition,
+ * but renders with item-specific merged record data.
+ */
+function buildRepeaterSubRowEl(row, visibleCols, mergedRecord, rhythm, rs, rowVariant) {
+  const subRowEl = document.createElement("div");
+  subRowEl.className = [
+    "preview-row",
+    "pv-repeater-item",
+    `pv-row--${rowVariant}`,
+  ].join(" ");
+
+  // Apply rhythm padding
+  subRowEl.style.padding = RHYTHM_PAD[rhythm] || RHYTHM_PAD.normal;
+
+  // Apply rowStyle background/padding overrides
+  if (rs.background)        subRowEl.style.background    = rs.background;
+  if (rs.paddingVertical) {
+    subRowEl.style.paddingTop    = rs.paddingVertical + "px";
+    subRowEl.style.paddingBottom = rs.paddingVertical + "px";
+  }
+  if (rs.paddingHorizontal) {
+    subRowEl.style.paddingLeft  = rs.paddingHorizontal + "px";
+    subRowEl.style.paddingRight = rs.paddingHorizontal + "px";
+  }
+
+  visibleCols.forEach(cell => {
+    subRowEl.appendChild(buildPreviewCellEl(cell, mergedRecord));
+  });
+
+  return subRowEl;
 }
 
 // ═══════════════════════════════════════════════════════════

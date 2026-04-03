@@ -280,3 +280,24 @@
 }
 .pv-action-icon { font-size: 14px; line-height: 1; }
 .pv-action-label { font-size: 8px; color: #555; letter-spacing: 0.2px; }
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE 3 — REPEATER ROW STYLES
+═══════════════════════════════════════════════════════════ */
+
+/* Each rendered sub-row within a repeater block */
+.pv-repeater-item {
+  flex-shrink: 0;
+}
+
+/* "+N more" footer below the last repeater item */
+.pv-repeater-more {
+  text-align: center;
+  font-size: 9px;
+  font-weight: 600;
+  color: #1976D2;
+  padding: 4px 8px 5px;
+  background: #f0f6ff;
+  border-top: 1px solid #dce8f8;
+  letter-spacing: 0.3px;
+}

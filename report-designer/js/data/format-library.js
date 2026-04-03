@@ -1642,6 +1642,225 @@ const DUMMY_FORMAT_LIBRARY = {
       }
 
     }
+  },
+
+  // ── R0007 — Phase 3 Repeater Showcase (demonstrates repeater row blocks)
+  R0007: {
+    templateName: "Repeater Showcase",
+    formats: {
+
+      // F0001 — Ledger with Transaction List
+      // Pattern: party header + date/vou type header + repeating transactions + balance footer
+      F0001: {
+        formatName: "Ledger — Transaction List",
+        json: {
+          layoutType: "grid", gridSize: { rows: 4 },
+          indicator: { isShow: true, dataField: "R0001F0006" },
+          mOnTap: "expand", mOnDoubleTap: "",
+          templateId: "R0007", formatId: "F0001",
+          reportDisplayName: "Ledger — Transaction List",
+          fieldConfigs: [
+            {
+              // Row 1: Party name + balance (normal header row)
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "default",
+              rhythm: "normal",
+              rowStyle: {},
+              columnConfig: [
+                { dataField: "R0001F0001", col: 1, caption: "Party",
+                  style: { fontWeight: "bold" } },
+                { dataField: "R0001F0006", col: 2, caption: "Balance",
+                  textAlign: "right", cellVariant: "metric" }
+              ]
+            },
+            {
+              // Row 2: Strip header — date range / city context
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "stripHeader",
+              rhythm: "compact",
+              rowStyle: { background: "#e3f0fb", paddingVertical: 5, paddingHorizontal: 8 },
+              columnConfig: [
+                { dataField: "R0001F0002", col: 1, caption: "City",
+                  iconCaption: "location", cellVariant: "iconText" },
+                { dataField: "R0001F0004", col: 2, caption: "Group",
+                  textAlign: "right", cellVariant: "muted" }
+              ]
+            },
+            {
+              // Row 3: REPEATER — transaction rows (date | vou | DR | CR)
+              isExpandedRow: false,
+              columnCount: 4,
+              rowVariant: "default",
+              rhythm: "compact",
+              rowType: "repeater",
+              repeaterConfig: { mockKey: "transactions", maxItems: 3, showDivider: true, showMoreFooter: true },
+              rowStyle: { showDivider: false },
+              columnConfig: [
+                { dataField: "R0001F0009", col: 1, caption: "Date",    cellVariant: "muted" },
+                { dataField: "R0001F0007", col: 2, caption: "Vou No",  cellVariant: "muted" },
+                { dataField: "R0001F0011", col: 3, caption: "Debit",   textAlign: "right",
+                  style: { color: "0xFF1565C0" } },
+                { dataField: "R0001F0012", col: 4, caption: "Credit",  textAlign: "right",
+                  style: { color: "0xFFE53935" } }
+              ]
+            },
+            {
+              // Row 4: Summary footer — totals
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "summary",
+              rhythm: "normal",
+              rowStyle: { background: "#fff3e0", borderColor: "#fb8c00", borderWidth: 1,
+                          cornerRadius: 4, paddingVertical: 6, paddingHorizontal: 8 },
+              columnConfig: [
+                { dataField: "R0001F0005", col: 1, caption: "Net Amount",
+                  style: { fontWeight: "bold" } },
+                { dataField: "R0001F0006", col: 2, caption: "Closing Bal",
+                  textAlign: "right", cellVariant: "metric" }
+              ]
+            }
+          ]
+        }
+      },
+
+      // F0002 — Product Line-Item Card
+      // Pattern: company/party header + repeating product line items + action footer
+      F0002: {
+        formatName: "Stock — Line Item Card",
+        json: {
+          layoutType: "grid", gridSize: { rows: 3 },
+          indicator: { isShow: false, dataField: "" },
+          mOnTap: "expand", mOnDoubleTap: "",
+          templateId: "R0007", formatId: "F0002",
+          reportDisplayName: "Stock — Line Item Card",
+          fieldConfigs: [
+            {
+              // Row 1: Party name + date (header)
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "stripHeader",
+              rhythm: "normal",
+              rowStyle: { background: "#e8f5e9", paddingVertical: 6, paddingHorizontal: 8 },
+              columnConfig: [
+                { dataField: "R0001F0001", col: 1, caption: "Company",
+                  style: { fontWeight: "bold" } },
+                { dataField: "R0001F0009", col: 2, caption: "Order Date",
+                  textAlign: "right", iconCaption: "date", cellVariant: "muted" }
+              ]
+            },
+            {
+              // Row 2: REPEATER — product line items (product | qty | rate | amount)
+              isExpandedRow: false,
+              columnCount: 4,
+              rowVariant: "default",
+              rhythm: "compact",
+              rowType: "repeater",
+              repeaterConfig: { mockKey: "lineItems", maxItems: 4, showDivider: true, showMoreFooter: true },
+              rowStyle: {},
+              columnConfig: [
+                { dataField: "R0001F0019", col: 1, caption: "Product",  colSpan: 2 },
+                { dataField: "R0001F0021", col: 3, caption: "Qty",      textAlign: "right",
+                  cellVariant: "muted" },
+                { dataField: "R0001F0023", col: 4, caption: "Amount",   textAlign: "right",
+                  cellVariant: "metric" }
+              ]
+            },
+            {
+              // Row 3: footer actions
+              isExpandedRow: false,
+              columnCount: 4,
+              rowVariant: "footerActions",
+              rhythm: "compact",
+              rowStyle: { background: "#f5f7fa", paddingVertical: 4, paddingHorizontal: 8 },
+              columnConfig: [
+                { dataField: "R0001F0001", col: 1, caption: "Print",    iconCaption: "print" },
+                { dataField: "R0001F0001", col: 2, caption: "WhatsApp", iconCaption: "whatsapp" },
+                { dataField: "R0001F0001", col: 3, caption: "Share",    iconCaption: "share" },
+                { dataField: "R0001F0001", col: 4, caption: "Copy",     iconCaption: "copy" }
+              ]
+            }
+          ]
+        }
+      },
+
+      // F0003 — Outstanding Multi-Bill Card
+      // Pattern: party header + city/group strip + repeating bill rows + pending summary
+      F0003: {
+        formatName: "Outstanding — Multi-Bill Card",
+        json: {
+          layoutType: "grid", gridSize: { rows: 4 },
+          indicator: { isShow: true, dataField: "R0001F0032" },
+          mOnTap: "expand", mOnDoubleTap: "",
+          templateId: "R0007", formatId: "F0003",
+          reportDisplayName: "Outstanding — Multi-Bill Card",
+          fieldConfigs: [
+            {
+              // Row 1: Party + total balance
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "default",
+              rhythm: "normal",
+              rowStyle: {},
+              columnConfig: [
+                { dataField: "R0001F0001", col: 1, caption: "Party",
+                  style: { fontWeight: "bold" } },
+                { dataField: "R0001F0032", col: 2, caption: "Pending",
+                  textAlign: "right", cellVariant: "metric" }
+              ]
+            },
+            {
+              // Row 2: City + Group (context strip)
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "stripHeader",
+              rhythm: "compact",
+              rowStyle: { background: "#fce4ec", paddingVertical: 4, paddingHorizontal: 8 },
+              columnConfig: [
+                { dataField: "R0001F0002", col: 1, caption: "City",
+                  iconCaption: "location", cellVariant: "iconText" },
+                { dataField: "R0001F0004", col: 2, caption: "Group",
+                  textAlign: "right", cellVariant: "muted" }
+              ]
+            },
+            {
+              // Row 3: REPEATER — bill rows (bill no | date | amount | due days)
+              isExpandedRow: false,
+              columnCount: 4,
+              rowVariant: "default",
+              rhythm: "compact",
+              rowType: "repeater",
+              repeaterConfig: { mockKey: "bills", maxItems: 3, showDivider: true, showMoreFooter: true },
+              rowStyle: {},
+              columnConfig: [
+                { dataField: "R0001F0003", col: 1, caption: "Bill No",  cellVariant: "muted" },
+                { dataField: "R0001F0009", col: 2, caption: "Date",     cellVariant: "muted" },
+                { dataField: "R0001F0031", col: 3, caption: "Bill Amt", textAlign: "right" },
+                { dataField: "R0001F0030", col: 4, caption: "D.Days",   textAlign: "right",
+                  cellVariant: "emphasis", style: { color: "0xFFE53935" } }
+              ]
+            },
+            {
+              // Row 4: summary — total pending with warning bg
+              isExpandedRow: false,
+              columnCount: 2,
+              rowVariant: "summary",
+              rhythm: "spacious",
+              rowStyle: { background: "#fff3e0", borderColor: "#fb8c00", borderWidth: 1,
+                          cornerRadius: 4, paddingVertical: 8, paddingHorizontal: 10 },
+              columnConfig: [
+                { dataField: "R0001F0030", col: 1, caption: "Max Due Days",
+                  cellVariant: "emphasis", style: { color: "0xFFE65100", fontWeight: "bold" } },
+                { dataField: "R0001F0032", col: 2, caption: "Total Pending",
+                  textAlign: "right", cellVariant: "metric" }
+              ]
+            }
+          ]
+        }
+      }
+
+    }
   }
 
 };

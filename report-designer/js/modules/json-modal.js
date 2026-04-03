@@ -66,6 +66,12 @@ function generateJSON() {
     if (row.rowVariant && row.rowVariant !== "default") fc.rowVariant = row.rowVariant;
     if (row.rhythm     && row.rhythm     !== "normal")  fc.rhythm     = row.rhythm;
 
+    // Phase 3: rowType + repeaterConfig — omit if default (normal)
+    if (row.rowType && row.rowType !== "normal") {
+      fc.rowType = row.rowType;
+      if (row.repeaterConfig) fc.repeaterConfig = row.repeaterConfig;
+    }
+
     // Phase 1: rowStyle — omit entirely if empty (defaults used)
     const rs = row.rowStyle || {};
     if (Object.keys(rs).length > 0) {
@@ -212,14 +218,18 @@ function hydrateFromJSON(json) {
       cols[colIdx] = cellObj;
     });
 
-    newRows.push({
+    const newRow = {
       id           : "row_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
       isExpandedRow: !!fc.isExpandedRow,
       rowStyle     : fc.rowStyle   || {},           // Phase 1
       rowVariant   : fc.rowVariant || "default",    // Phase 2
       rhythm       : fc.rhythm     || "normal",     // Phase 2
+      rowType      : fc.rowType    || "normal",     // Phase 3
       cols         : cols,
-    });
+    };
+    // Phase 3: repeaterConfig — only copy when present
+    if (fc.repeaterConfig) newRow.repeaterConfig = fc.repeaterConfig;
+    newRows.push(newRow);
   });
 
   state.rows         = newRows;

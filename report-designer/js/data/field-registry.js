@@ -191,3 +191,38 @@ const ICON_MAP = {
   whatsapp  : "💬",
   copy      : "⎘",
 };
+
+/**
+ * MOCK REPEATER DATA — Phase 3
+ * Provides small lists for repeater row preview rendering.
+ * mockKey on repeaterConfig references one of these arrays.
+ * Each item uses standard dataField keys so existing column configs resolve naturally.
+ */
+const MOCK_REPEATER_DATA = {
+  // Transaction entries (date, voucher, debit, credit, narration)
+  transactions: [
+    { "R0001F0009": "01/04/2026", "R0001F0007": "GT/10", "R0001F0008": "Sale",     "R0001F0011": 5000,  "R0001F0012": 0,    "R0001F0010": "Being goods sold" },
+    { "R0001F0009": "02/04/2026", "R0001F0007": "GT/11", "R0001F0008": "Sale",     "R0001F0011": 3000,  "R0001F0012": 0,    "R0001F0010": "Regular sale entry" },
+    { "R0001F0009": "03/04/2026", "R0001F0007": "GT/12", "R0001F0008": "Purchase", "R0001F0011": 0,     "R0001F0012": 2500, "R0001F0010": "Steel purchased" },
+    { "R0001F0009": "04/04/2026", "R0001F0007": "GT/13", "R0001F0008": "Sale",     "R0001F0011": 8900,  "R0001F0012": 0,    "R0001F0010": "Silk fabric sold" },
+    { "R0001F0009": "05/04/2026", "R0001F0007": "GT/14", "R0001F0008": "Payment",  "R0001F0011": 0,     "R0001F0012": 1200, "R0001F0010": "Payment received" },
+    { "R0001F0009": "06/04/2026", "R0001F0007": "GT/15", "R0001F0008": "Receipt",  "R0001F0011": 4500,  "R0001F0012": 0,    "R0001F0010": "Cash receipt" },
+  ],
+  // Product / stock line items (product, qty, rate, amount, uom)
+  lineItems: [
+    { "R0001F0019": "EQ Prd 5%",        "R0001F0021": "10.00", "R0001F0024": "KG",  "R0001F0022": "50.00",  "R0001F0023": 500  },
+    { "R0001F0019": "GST Prd 12%",      "R0001F0021": "5.00",  "R0001F0024": "PCS", "R0001F0022": "120.00", "R0001F0023": 600  },
+    { "R0001F0019": "Zero Rated Item",  "R0001F0021": "2.00",  "R0001F0024": "BOX", "R0001F0022": "250.00", "R0001F0023": 500  },
+    { "R0001F0019": "Premium Steel Prd","R0001F0021": "15.00", "R0001F0024": "KG",  "R0001F0022": "80.00",  "R0001F0023": 1200 },
+    { "R0001F0019": "Fabric Sample A",  "R0001F0021": "8.00",  "R0001F0024": "MTR", "R0001F0022": "350.00", "R0001F0023": 2800 },
+    { "R0001F0019": "Standard Wire",    "R0001F0021": "30.00", "R0001F0024": "MTR", "R0001F0022": "25.00",  "R0001F0023": 750  },
+  ],
+  // Outstanding bill entries (bill no, date, bill amount, due days, pending)
+  bills: [
+    { "R0001F0003": "A/1",  "R0001F0009": "01/04/2026", "R0001F0031": 4725,  "R0001F0030": "2",   "R0001F0032": 4725  },
+    { "R0001F0003": "A/2",  "R0001F0009": "15/03/2026", "R0001F0031": 12000, "R0001F0030": "19",  "R0001F0032": 8400  },
+    { "R0001F0003": "A/3",  "R0001F0009": "01/02/2026", "R0001F0031": 8500,  "R0001F0030": "61",  "R0001F0032": 8500  },
+    { "R0001F0003": "A/4",  "R0001F0009": "10/01/2026", "R0001F0031": 3200,  "R0001F0030": "82",  "R0001F0032": 3200  },
+    { "R0001F0003": "A/5",  "R0001F0009": "05/12/2025", "R0001F0031": 15750, "R0001F0030": "118", "R0001F0032": 15750 },
+  ],
+};

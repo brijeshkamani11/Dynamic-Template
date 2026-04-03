@@ -246,3 +246,16 @@
   border-color: rgba(6,182,212,0.30);
   color: #06b6d4;
 }
+
+/* ── Phase 3: Repeater badge ─────────────────────────────── */
+.row-repeater-badge {
+  display: inline-flex; align-items: center;
+  padding: 1px 6px; border-radius: 3px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.3px;
+  text-transform: uppercase;
+  border: 1px solid;
+  flex-shrink: 0;
+  background: rgba(124,58,237,0.10);
+  border-color: rgba(124,58,237,0.30);
+  color: #7c3aed;
+}

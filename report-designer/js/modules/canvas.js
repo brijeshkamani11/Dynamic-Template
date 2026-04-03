@@ -17,6 +17,9 @@ function addRow() {
     rowStyle     : {},      // Phase 1: row visual style (empty = all defaults)
     rowVariant   : "default",  // Phase 2: default | stripHeader | softPanel | summary | footerActions
     rhythm       : "normal",   // Phase 2: compact | normal | spacious
+    rowType      : "normal",   // Phase 3: normal | repeater
+    // repeaterConfig (Phase 3) — only present when rowType === "repeater"
+    // { mockKey: "transactions"|"lineItems"|"bills", maxItems: 3, showDivider: true, showMoreFooter: true }
   });
   renderAll();
 }
@@ -166,18 +169,22 @@ function renderCanvas() {
     const hasRowStyle  = Object.keys(rs).length > 0;
     const rowVariant   = row.rowVariant || "default";
     const rhythm       = row.rhythm     || "normal";
+    const rowType      = row.rowType    || "normal";
     const variantBadge = rowVariant !== "default"
       ? `<span class="row-variant-badge rv-${rowVariant}" title="Row variant">${rowVariant}</span>`
       : "";
     const rhythmBadge  = rhythm !== "normal"
       ? `<span class="row-rhythm-badge rr-${rhythm}" title="Rhythm">${rhythm}</span>`
       : "";
+    const repeaterBadge = rowType === "repeater"
+      ? `<span class="row-repeater-badge" title="Repeating list row">⟳ Repeater</span>`
+      : "";
     header.innerHTML = `
       <div class="row-badge">Row ${rIdx + 1}</div>
       <div class="row-badge-exp ${row.isExpandedRow ? "active" : ""}" title="Toggle expanded row">
         ${row.isExpandedRow ? "⤵ Expanded" : "⊞ Normal"}
       </div>
-      ${variantBadge}${rhythmBadge}
+      ${variantBadge}${rhythmBadge}${repeaterBadge}
       <div class="row-col-controls">
         <button class="row-btn row-btn-col" title="Remove column" data-action="remcol" data-row="${rIdx}"${colCount <= 1 ? " disabled" : ""}>−</button>
         <span class="row-col-count">${colCount} col${colCount > 1 ? "s" : ""}</span>

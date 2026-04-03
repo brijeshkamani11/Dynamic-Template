@@ -480,6 +480,103 @@ Phone preview uses light theme (white cards, #1976D2 app bar — Material Design
 
 ---
 
+### [2026-04-03] — Phase 3 Design Integration: Repeater Row Blocks
+
+**Branch:** `feature/integrate-all-design`
+
+**What changed (Phase 3 — repeater / nested list rows):**
+
+**A) Repeater row type** (`rowType: "repeater"` on a row):
+- A row can now be configured as a **Repeating List** that renders multiple sub-rows in the preview using mock data, each using the same column layout.
+- `repeaterConfig`: `{ mockKey, maxItems, showDivider, showMoreFooter }`
+- Three mock data sources: `transactions` (date/vou/DR/CR), `lineItems` (product/qty/rate/amt), `bills` (bill no/date/amount/due days)
+- Optional `showDivider` adds a separator line between repeated items
+- Optional `showMoreFooter` shows a "+N more" footer when items exceed `maxItems`
+
+**B) Canvas header badge** — `⟳ Repeater` purple badge appears in row header when `rowType === "repeater"`
+
+**C) Property panel controls** (in row-style panel):
+- **Row Type** selector: Normal / Repeating List
+- When Repeating List selected: Mock Data source, Items to Show (1–10), Item Divider toggle, Show "+N more" toggle
+- Controls are compact, non-technical, immediately understandable
+
+**D) JSON extension (additive)**:
+- `rowType` emitted only when `"repeater"` (omitted for normal rows → backward compatible)
+- `repeaterConfig` emitted only when `rowType === "repeater"`
+- Old JSON without these keys hydrates safely with `normal` defaults
+
+**E) R0007 Repeater Showcase formats** (3 new formats):
+- **F0001 Ledger — Transaction List**: header → strip → repeater(transactions, 3) → summary footer
+- **F0002 Stock — Line Item Card**: strip header → repeater(lineItems, 4) → footer actions
+- **F0003 Outstanding — Multi-Bill Card**: header → strip → repeater(bills, 3) → summary with due-days emphasis
+
+**Files changed:**
+- `js/data/field-registry.js` — `MOCK_REPEATER_DATA` added (3 lists, 5–6 items each)
+- `js/modules/canvas.js` — `addRow()` `rowType` default; `⟳ Repeater` badge in header
+- `report-designer/index.html` — `#rsRowType` select + `#rsRepeaterSection` controls in row-style panel
+- `js/modules/property-panel.js` — `openRowStylePanel()` populates repeater fields; `bindPropPanel()` binds toggle; `applyRowStyle()` saves `rowType`/`repeaterConfig`
+- `js/modules/preview.js` — `buildDetailCard()` branches on `rowType === "repeater"`; `buildRepeaterSubRowEl()` helper added
+- `js/modules/json-modal.js` — emit/hydrate `rowType`, `repeaterConfig`
+- `css/preview.css` — `.pv-repeater-item`, `.pv-repeater-more`
+- `css/canvas.css` — `.row-repeater-badge`
+- `js/data/format-library.js` — R0007 template with 3 repeater showcase formats
+
+**Regression checklist (all pass):**
+- [x] All Phase 1/2 normal rows render identically — `rowType` defaults to `"normal"`, no change
+- [x] `rowStyle`, `rowVariant`, `rhythm` all still apply on repeater items (merged styling)
+- [x] Indicator still renders on card (not inside repeater loop)
+- [x] `isExpandedRow` still hides/shows correctly — repeater rows support expand visibility
+- [x] Level visibility on cells still filters within repeater column rendering
+- [x] `colSpan` still works on repeater columns (e.g. product name spanning 2 cols)
+- [x] JSON omits `rowType`/`repeaterConfig` for normal rows → old JSON unchanged
+- [x] Import of old JSON hydrates with `rowType: "normal"` default
+- [x] Drill/back/breadcrumb navigation unaffected
+- [x] Copy-format and paste-JSON import both work with new formats
+
+**JSON extension example:**
+
+*Before (Phase 1/2 normal row — unchanged):*
+```json
+{ "isExpandedRow": false, "columnCount": 4, "columnConfig": [...] }
+```
+
+*After (Phase 3 repeater row — new fields only added when needed):*
+```json
+{
+  "isExpandedRow": false,
+  "columnCount": 4,
+  "rowType": "repeater",
+  "repeaterConfig": { "mockKey": "transactions", "maxItems": 3, "showDivider": true, "showMoreFooter": true },
+  "columnConfig": [
+    { "dataField": "R0001F0009", "col": 1, "caption": "Date" },
+    { "dataField": "R0001F0007", "col": 2, "caption": "Vou No" },
+    { "dataField": "R0001F0011", "col": 3, "caption": "Debit",  "textAlign": "right" },
+    { "dataField": "R0001F0012", "col": 4, "caption": "Credit", "textAlign": "right" }
+  ]
+}
+```
+
+**Image coverage:**
+
+| Image pattern | Implemented | Coverage |
+|---|---|---|
+| Party header + repeating transaction rows | header row + repeater(transactions) | Exact |
+| Product company + line-item list + "+N more" | header + repeater(lineItems) + more footer | Exact |
+| Outstanding party + multiple bill rows | header + repeater(bills) | Exact |
+| Divider between repeated items | `showDivider: true` | Exact |
+| "+N more" overflow indicator | `showMoreFooter: true` | Exact |
+| Summary/total row after item list | normal `summary` variant row | Exact |
+| Mixed header/list/footer card | supported natively (rows are independent) | Exact |
+
+**Phase 4 deferred items:**
+- Real backend data binding (replace mock data with actual API list fields)
+- Dynamic `mockKey` driven by selected template's data schema
+- Repeater column span auto-layout (currently uses same `colSpan` as Phase 1)
+- Nested group headers within repeater (e.g. group-by within a list)
+- Drag-and-drop reordering of repeater items in canvas
+
+---
+
 ### [2026-04-03] — Phase 2 Design Integration: Variants, Rhythm, Presets
 
 **Branch:** `feature/integrate-all-design`
