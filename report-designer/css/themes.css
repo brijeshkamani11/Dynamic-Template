@@ -1,0 +1,308 @@
+/* ═══════════════════════════════════════════════════════════
+   THEME SYSTEM — Centralized Design Tokens
+   ═══════════════════════════════════════════════════════════
+   Architecture:
+   - :root defines the semantic token CONTRACT (default = classic-blue)
+   - [data-theme="modern-dark"] overrides tokens for the dark theme
+   - All component CSS references these tokens — never raw hex values
+   - To add a new theme: add a new [data-theme="..."] block here
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── CLASSIC BLUE (default) ─────────────────────────────────
+   Replicates the Miracle Cloud ERP look:
+   light-cyan surfaces, blue sidebar, compact ERP typography,
+   thin bordered tables, subdued inputs/buttons.
+   ──────────────────────────────────────────────────────── */
+:root,
+[data-theme="classic-blue"] {
+  /* ── Surface / Background ── */
+  --bg-app           : #dceef8;
+  --bg-panel         : #c8e6f5;
+  --bg-panel2        : #b8ddf0;
+  --bg-card          : #d0eaf6;
+  --bg-cell          : #e8f4fb;
+  --bg-cell-empty    : #dff0f9;
+  --bg-surface       : #ffffff;
+
+  /* ── Borders ── */
+  --border           : #9ecbdf;
+  --border-light     : #78b8d4;
+
+  /* ── Accent / Brand ── */
+  --accent           : #1976D2;
+  --accent-glow      : rgba(25,118,210,0.15);
+  --accent-hover     : #1565C0;
+
+  /* ── Status colors ── */
+  --green            : #2e7d32;
+  --red              : #c62828;
+  --amber            : #e65100;
+
+  /* ── Text ── */
+  --text-primary     : #1a2b3c;
+  --text-secondary   : #456175;
+  --text-muted       : #7a9bb5;
+
+  /* ── Typography ── */
+  --font-ui          : 'Segoe UI', 'DM Sans', Tahoma, sans-serif;
+  --font-mono        : 'Consolas', 'JetBrains Mono', monospace;
+
+  /* ── Shape & Depth ── */
+  --radius-sm        : 4px;
+  --radius-md        : 6px;
+  --radius-lg        : 8px;
+  --shadow-card      : 0 1px 4px rgba(0,0,0,0.10);
+  --shadow-pop       : 0 4px 16px rgba(0,0,0,0.15);
+
+  /* ── Layout sizing ── */
+  --topbar-h         : 48px;
+  --panel-w          : 260px;
+  --preview-w        : 280px;
+  --transition       : 0.15s ease;
+
+  /* ── Sidebar / Nav (classic-blue specific) ── */
+  --sidebar-bg       : #003f5f;
+  --sidebar-text     : #ffffff;
+  --sidebar-icon-bg  : transparent;
+  --sidebar-active-bg: rgba(255,255,255,0.12);
+
+  /* ── Table / Grid ── */
+  --table-header-bg  : #b8ddf0;
+  --table-header-text: #1a2b3c;
+  --table-row-alt    : #e4f2fb;
+  --table-border     : #a0c8de;
+
+  /* ── Inputs ── */
+  --input-bg         : #ffffff;
+  --input-border     : #90c4da;
+  --input-focus      : #1976D2;
+  --input-text       : #1a2b3c;
+
+  /* ── Buttons ── */
+  --btn-primary-bg   : #1976D2;
+  --btn-primary-text : #ffffff;
+  --btn-secondary-bg : #e0f0f8;
+  --btn-secondary-text: #1a2b3c;
+  --btn-ghost-hover  : rgba(25,118,210,0.08);
+
+  /* ── Modal / Overlay ── */
+  --overlay-bg       : rgba(0,30,60,0.5);
+  --modal-bg         : #d4ecf6;
+
+  /* ── Tabs ── */
+  --tab-bg           : #d0eaf6;
+  --tab-active-bg    : #ffffff;
+  --tab-active-border: #1976D2;
+
+  /* ── Code / JSON ── */
+  --code-bg          : #1a2b3c;
+  --code-text        : #7dd3fc;
+
+  /* ── Phone preview (always light — these stay consistent) ── */
+  --phone-statusbar  : #1565C0;
+  --phone-appbar     : #1976D2;
+  --phone-list-bg    : #f0f3f8;
+  --phone-card-bg    : #ffffff;
+  --phone-text       : #1a1a2e;
+  --phone-text-muted : #888888;
+
+  /* ── Variant badge semantic colors ── */
+  --variant-blue-bg  : rgba(25,118,210,0.12);
+  --variant-blue-border: rgba(25,118,210,0.35);
+  --variant-blue     : #1976D2;
+  --variant-soft-bg  : rgba(99,179,237,0.12);
+  --variant-soft-border: rgba(99,179,237,0.35);
+  --variant-soft     : #3b82f6;
+  --variant-amber-bg : rgba(230,81,0,0.10);
+  --variant-amber-border: rgba(230,81,0,0.30);
+  --variant-amber    : #e65100;
+  --variant-slate-bg : rgba(100,116,139,0.12);
+  --variant-slate-border: rgba(100,116,139,0.3);
+  --variant-slate    : #64748b;
+  --variant-green-bg : rgba(16,185,129,0.10);
+  --variant-green-border: rgba(16,185,129,0.30);
+  --variant-green    : #10b981;
+  --variant-cyan-bg  : rgba(6,182,212,0.10);
+  --variant-cyan-border: rgba(6,182,212,0.30);
+  --variant-cyan     : #06b6d4;
+  --variant-purple-bg: rgba(124,58,237,0.10);
+  --variant-purple-border: rgba(124,58,237,0.30);
+  --variant-purple   : #7c3aed;
+  --variant-purple-light: #a78bfa;
+  --variant-purple-soft: rgba(139,92,246,0.12);
+  --variant-purple-soft-border: rgba(139,92,246,0.3);
+
+  /* ── Section header accent (red labels like reference) ── */
+  --section-accent   : #c62828;
+
+  /* ── Scrollbar ── */
+  --scrollbar-thumb  : #90b8cc;
+
+  /* ── Preview row variant backgrounds (light theme) ── */
+  --pv-stripHeader-bg : #e3f0fb;
+  --pv-stripHeader-border: #b0cfe8;
+  --pv-stripHeader-text: #1565C0;
+  --pv-softPanel-bg  : #f0f4ff;
+  --pv-summary-bg    : #fff8e1;
+  --pv-summary-border: #ffe082;
+  --pv-summary-text  : #e65100;
+  --pv-footerActions-bg: #f5f7fa;
+  --pv-footerActions-border: #e8edf4;
+  --pv-emphasis-color: #1976D2;
+  --pv-muted-color   : #999999;
+  --pv-action-label  : #555555;
+  --pv-repeater-more-bg: #f0f6ff;
+  --pv-repeater-more-border: #dce8f8;
+  --pv-repeater-more-text: #1976D2;
+  --pv-expanded-bg   : #f0f4ff;
+  --pv-expanded-border: #e0e8ff;
+}
+
+
+/* ── MODERN DARK (legacy/original theme) ────────────────────
+   The original dark navy + electric blue theme from the
+   initial project build. Preserved as a selectable option.
+   ──────────────────────────────────────────────────────── */
+[data-theme="modern-dark"] {
+  /* ── Surface / Background ── */
+  --bg-app           : #0f1117;
+  --bg-panel         : #161b27;
+  --bg-panel2        : #1c2336;
+  --bg-card          : #202840;
+  --bg-cell          : #242d45;
+  --bg-cell-empty    : #1a2235;
+  --bg-surface       : #1c2336;
+
+  /* ── Borders ── */
+  --border           : #2d3a54;
+  --border-light     : #38476a;
+
+  /* ── Accent / Brand ── */
+  --accent           : #3b82f6;
+  --accent-glow      : rgba(59,130,246,0.25);
+  --accent-hover     : #2563eb;
+
+  /* ── Status colors ── */
+  --green            : #22c55e;
+  --red              : #ef4444;
+  --amber            : #f59e0b;
+
+  /* ── Text ── */
+  --text-primary     : #e8edf8;
+  --text-secondary   : #8b9bbf;
+  --text-muted       : #4e5f85;
+
+  /* ── Typography ── */
+  --font-ui          : 'DM Sans', sans-serif;
+  --font-mono        : 'JetBrains Mono', monospace;
+
+  /* ── Shape & Depth ── */
+  --radius-sm        : 6px;
+  --radius-md        : 10px;
+  --radius-lg        : 16px;
+  --shadow-card      : 0 4px 20px rgba(0,0,0,0.4);
+  --shadow-pop       : 0 16px 48px rgba(0,0,0,0.6);
+
+  /* ── Layout sizing ── */
+  --topbar-h         : 56px;
+  --panel-w          : 260px;
+  --preview-w        : 280px;
+  --transition       : 0.18s ease;
+
+  /* ── Sidebar / Nav ── */
+  --sidebar-bg       : #161b27;
+  --sidebar-text     : #e8edf8;
+  --sidebar-icon-bg  : transparent;
+  --sidebar-active-bg: rgba(59,130,246,0.15);
+
+  /* ── Table / Grid ── */
+  --table-header-bg  : #1c2336;
+  --table-header-text: #e8edf8;
+  --table-row-alt    : #1a2235;
+  --table-border     : #2d3a54;
+
+  /* ── Inputs ── */
+  --input-bg         : #242d45;
+  --input-border     : #2d3a54;
+  --input-focus      : #3b82f6;
+  --input-text       : #e8edf8;
+
+  /* ── Buttons ── */
+  --btn-primary-bg   : #3b82f6;
+  --btn-primary-text : #ffffff;
+  --btn-secondary-bg : #202840;
+  --btn-secondary-text: #8b9bbf;
+  --btn-ghost-hover  : rgba(239,68,68,0.08);
+
+  /* ── Modal / Overlay ── */
+  --overlay-bg       : rgba(0,0,0,0.7);
+  --modal-bg         : #161b27;
+
+  /* ── Tabs ── */
+  --tab-bg           : #242d45;
+  --tab-active-bg    : rgba(59,130,246,0.25);
+  --tab-active-border: #3b82f6;
+
+  /* ── Code / JSON ── */
+  --code-bg          : #0f1117;
+  --code-text        : #7dd3fc;
+
+  /* ── Phone preview ── */
+  --phone-statusbar  : #1565C0;
+  --phone-appbar     : #1976D2;
+  --phone-list-bg    : #f0f3f8;
+  --phone-card-bg    : #ffffff;
+  --phone-text       : #1a1a2e;
+  --phone-text-muted : #888888;
+
+  /* ── Variant badge semantic colors ── */
+  --variant-blue-bg  : rgba(25,118,210,0.12);
+  --variant-blue-border: rgba(25,118,210,0.35);
+  --variant-blue     : #1976D2;
+  --variant-soft-bg  : rgba(99,179,237,0.12);
+  --variant-soft-border: rgba(99,179,237,0.35);
+  --variant-soft     : #3b82f6;
+  --variant-amber-bg : rgba(230,81,0,0.10);
+  --variant-amber-border: rgba(230,81,0,0.30);
+  --variant-amber    : #e65100;
+  --variant-slate-bg : rgba(100,116,139,0.12);
+  --variant-slate-border: rgba(100,116,139,0.3);
+  --variant-slate    : #64748b;
+  --variant-green-bg : rgba(16,185,129,0.10);
+  --variant-green-border: rgba(16,185,129,0.30);
+  --variant-green    : #10b981;
+  --variant-cyan-bg  : rgba(6,182,212,0.10);
+  --variant-cyan-border: rgba(6,182,212,0.30);
+  --variant-cyan     : #06b6d4;
+  --variant-purple-bg: rgba(124,58,237,0.10);
+  --variant-purple-border: rgba(124,58,237,0.30);
+  --variant-purple   : #7c3aed;
+  --variant-purple-light: #a78bfa;
+  --variant-purple-soft: rgba(139,92,246,0.12);
+  --variant-purple-soft-border: rgba(139,92,246,0.3);
+
+  /* ── Section header accent ── */
+  --section-accent   : #ef4444;
+
+  /* ── Scrollbar ── */
+  --scrollbar-thumb  : #38476a;
+
+  /* ── Preview row variant backgrounds ── */
+  --pv-stripHeader-bg : #e3f0fb;
+  --pv-stripHeader-border: #b0cfe8;
+  --pv-stripHeader-text: #1565C0;
+  --pv-softPanel-bg  : #f0f4ff;
+  --pv-summary-bg    : #fff8e1;
+  --pv-summary-border: #ffe082;
+  --pv-summary-text  : #e65100;
+  --pv-footerActions-bg: #f5f7fa;
+  --pv-footerActions-border: #e8edf4;
+  --pv-emphasis-color: #1976D2;
+  --pv-muted-color   : #999999;
+  --pv-action-label  : #555555;
+  --pv-repeater-more-bg: #f0f6ff;
+  --pv-repeater-more-border: #dce8f8;
+  --pv-repeater-more-text: #1976D2;
+  --pv-expanded-bg   : #f0f4ff;
+  --pv-expanded-border: #e0e8ff;
+}

@@ -8,7 +8,7 @@
 .preview-tab {
   padding: 3px 10px; font-size: 11px; font-weight: 600;
   border-radius: var(--radius-sm);
-  background: var(--bg-cell);
+  background: var(--tab-bg);
   border: 1px solid var(--border);
   color: var(--text-muted); cursor: pointer;
   transition: all var(--transition);
@@ -25,23 +25,23 @@
 
 .phone-screen {
   width: 220px;
-  background: #ffffff;
+  background: var(--phone-card-bg);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 0 0 8px #1a2235, 0 0 0 10px var(--border), var(--shadow-pop);
+  box-shadow: 0 0 0 8px var(--bg-panel2), 0 0 0 10px var(--border), var(--shadow-pop);
   font-family: 'DM Sans', sans-serif;
 }
 
 .phone-statusbar {
   display: flex; justify-content: space-between; align-items: center;
   padding: 6px 12px 4px;
-  background: #1565C0;
+  background: var(--phone-statusbar);
   color: white; font-size: 9px; font-weight: 600;
 }
 .phone-appbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 8px 12px;
-  background: #1976D2;
+  background: var(--phone-appbar);
   color: white; font-size: 11px; font-weight: 600;
 }
 .phone-back  { font-size: 14px; cursor: pointer; }
@@ -57,7 +57,7 @@
   background: #e8f0fe;
   border-bottom: 1px solid #d0ddf0;
   font-size: 10px;
-  color: #333;
+  color: var(--phone-text);
   flex-wrap: wrap;
   min-height: 24px;
 }
@@ -69,34 +69,34 @@
   text-overflow: ellipsis;
 }
 .breadcrumb-link {
-  color: #1976D2;
+  color: var(--phone-appbar);
   cursor: pointer;
   font-weight: 600;
 }
 .breadcrumb-link:hover { text-decoration: underline; }
 .breadcrumb-current {
-  color: #333;
+  color: var(--phone-text);
   font-weight: 700;
 }
 .breadcrumb-sep {
-  color: #999;
+  color: var(--phone-text-muted);
   font-size: 11px;
   flex-shrink: 0;
 }
 
 .phone-list {
-  background: #f0f3f8;
+  background: var(--phone-list-bg);
   min-height: 200px;
   padding: 8px;
   display: flex; flex-direction: column; gap: 7px;
 }
-.phone-empty { text-align: center; padding: 24px 0; color: #aaa; font-size: 11px; }
+.phone-empty { text-align: center; padding: 24px 0; color: var(--phone-text-muted); font-size: 11px; }
 
 /* ── LEVEL LABEL ─────────────────────────────────────────── */
 .phone-level-label {
   font-size: 9px;
   font-weight: 700;
-  color: #888;
+  color: var(--phone-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.8px;
   padding: 2px 4px 4px;
@@ -104,7 +104,7 @@
 
 /* ── PHONE CARD ───────────────────────────────────────────── */
 .phone-card {
-  background: white;
+  background: var(--phone-card-bg);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 10px rgba(0,0,0,0.05);
@@ -123,15 +123,15 @@
   width: 4px;
   border-radius: 4px 0 0 4px;
 }
-.ind-green { background: #22c55e; }
-.ind-red   { background: #ef4444; }
+.ind-green { background: var(--green); }
+.ind-red   { background: var(--red); }
 
 /* ── GROUP CARD ──────────────────────────────────────────── */
 .phone-card-group {
   cursor: pointer;
   transition: background 0.15s ease;
 }
-.phone-card-group:hover { background: #f0f4ff; }
+.phone-card-group:hover { background: var(--pv-expanded-bg); }
 .phone-card-group:active { background: #e4ecff; }
 
 .phone-group-body {
@@ -145,7 +145,7 @@
   flex: 1;
   font-size: 12px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: var(--phone-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -173,8 +173,8 @@
 .preview-row:first-child { padding-top: 9px; }
 .preview-row:last-child  { padding-bottom: 9px; }
 .preview-row-expanded {
-  background: #f0f4ff;
-  border-top: 1px solid #e0e8ff;
+  background: var(--pv-expanded-bg);
+  border-top: 1px solid var(--pv-expanded-border);
 }
 
 .preview-cell {
@@ -184,7 +184,7 @@
 .preview-icon { font-size: 11px; flex-shrink: 0; opacity: 0.75; }
 .preview-val  {
   font-size: 11.5px;
-  color: #1a1a2e;
+  color: var(--phone-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -199,77 +199,77 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PHASE 2 — ROW VARIANTS
+   PHASE 2 — ROW VARIANTS (preview rendering)
 ═══════════════════════════════════════════════════════════ */
 
 /* strip header — tinted bg, slightly bolder text */
 .pv-row--stripHeader {
-  background: #e3f0fb !important;
-  border-bottom: 1px solid #b0cfe8;
+  background: var(--pv-stripHeader-bg) !important;
+  border-bottom: 1px solid var(--pv-stripHeader-border);
 }
 .pv-row--stripHeader .preview-val,
 .pv-row--stripHeader .pv-meta-val,
 .pv-row--stripHeader .pv-icon-val {
   font-weight: 600;
-  color: #1565C0;
+  color: var(--pv-stripHeader-text);
   font-size: 10.5px;
 }
 
 /* soft panel — gentle background, slight radius */
 .pv-row--softPanel {
-  background: #f0f4ff;
+  background: var(--pv-softPanel-bg);
   border-radius: 6px;
   margin: 1px 0;
 }
 
 /* summary band — amber/warning emphasis */
 .pv-row--summary {
-  background: #fff8e1;
-  border-top: 1px solid #ffe082;
-  border-bottom: 1px solid #ffe082;
+  background: var(--pv-summary-bg);
+  border-top: 1px solid var(--pv-summary-border);
+  border-bottom: 1px solid var(--pv-summary-border);
 }
 .pv-row--summary .preview-val,
 .pv-row--summary .pv-metric-val,
 .pv-row--summary .pv-emphasis {
   font-weight: 700;
-  color: #e65100;
+  color: var(--pv-summary-text);
 }
 
 /* footer actions — centred icon row, no text overflow */
 .pv-row--footerActions {
-  background: #f5f7fa;
-  border-top: 1px solid #e8edf4;
+  background: var(--pv-footerActions-bg);
+  border-top: 1px solid var(--pv-footerActions-border);
   padding: 4px 6px !important;
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PHASE 2 — CELL VARIANTS
+   PHASE 2 — CELL VARIANTS (preview rendering)
 ═══════════════════════════════════════════════════════════ */
 
 /* metric — large number, small caption below */
 .pv-cell--metric { flex-direction: column; align-items: flex-start; gap: 0; }
 .pv-metric { display: flex; flex-direction: column; gap: 0; min-width: 0; }
-.pv-metric-val { font-size: 13px; font-weight: 700; color: #1a1a2e; line-height: 1.2; }
-.pv-metric-cap { font-size: 9px; color: #888; font-weight: 400; text-transform: uppercase; letter-spacing: 0.4px; }
+.pv-metric-val { font-size: 13px; font-weight: 700; color: var(--phone-text); line-height: 1.2; }
+.pv-metric-cap { font-size: 9px; color: var(--phone-text-muted); font-weight: 400; text-transform: uppercase; letter-spacing: 0.4px; }
 
 /* metaPair — caption label on top, value underneath */
 .pv-cell--metaPair { flex-direction: column; align-items: flex-start; gap: 0; }
 .pv-meta-pair { display: flex; flex-direction: column; gap: 0; min-width: 0; }
-.pv-meta-cap { font-size: 9px; color: #999; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
-.pv-meta-val { font-size: 11px; color: #1a1a2e; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pv-meta-cap { font-size: 9px; color: var(--pv-muted-color); font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
+.pv-meta-val { font-size: 11px; color: var(--phone-text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* iconText — icon + text side by side, icon slightly larger */
 .pv-cell--iconText { align-items: center; gap: 4px; }
 .pv-cell--iconText .preview-icon { font-size: 12px; }
-.pv-icon-val { font-size: 11px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pv-icon-val { font-size: 11px; color: var(--phone-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* emphasis — bold, accent color */
 .pv-cell--emphasis { align-items: center; }
-.pv-emphasis { font-size: 12px; font-weight: 700; color: #1976D2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pv-emphasis { font-size: 12px; font-weight: 700; color: var(--pv-emphasis-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* muted — lighter secondary text */
 .pv-cell--muted { align-items: center; }
-.pv-muted { font-size: 10px; color: #999; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pv-muted { font-size: 10px; color: var(--pv-muted-color); font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ═══════════════════════════════════════════════════════════
    PHASE 2 — FOOTER ACTION ROW
@@ -291,7 +291,7 @@
   opacity: 0.7;
 }
 .pv-action-icon { font-size: 14px; line-height: 1; }
-.pv-action-label { font-size: 8px; color: #555; letter-spacing: 0.2px; }
+.pv-action-label { font-size: 8px; color: var(--pv-action-label); letter-spacing: 0.2px; }
 
 /* ═══════════════════════════════════════════════════════════
    PHASE 3 — REPEATER ROW STYLES
@@ -307,9 +307,9 @@
   text-align: center;
   font-size: 9px;
   font-weight: 600;
-  color: #1976D2;
+  color: var(--pv-repeater-more-text);
   padding: 4px 8px 5px;
-  background: #f0f6ff;
-  border-top: 1px solid #dce8f8;
+  background: var(--pv-repeater-more-bg);
+  border-top: 1px solid var(--pv-repeater-more-border);
   letter-spacing: 0.3px;
 }

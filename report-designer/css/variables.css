@@ -1,48 +1,15 @@
 /* ═══════════════════════════════════════════════════════════
-   MCloud Report Template Designer — Variables & Reset
-   Color palette: dark navy + electric blue + clean whites
+   MCloud Report Template Designer — Base Reset & Buttons
+   ═══════════════════════════════════════════════════════════
+   NOTE: All color/shape/spacing tokens are defined in themes.css.
+   This file contains only resets, base element styles, and
+   button component classes that reference semantic tokens.
 ═══════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* ── RESET & BASE ─────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg-app      : #0f1117;
-  --bg-panel    : #161b27;
-  --bg-panel2   : #1c2336;
-  --bg-card     : #202840;
-  --bg-cell     : #242d45;
-  --bg-cell-empty:#1a2235;
-  --border      : #2d3a54;
-  --border-light: #38476a;
-
-  --accent      : #3b82f6;
-  --accent-glow : rgba(59,130,246,0.25);
-  --accent-hover: #2563eb;
-  --green       : #22c55e;
-  --red         : #ef4444;
-  --amber       : #f59e0b;
-
-  --text-primary  : #e8edf8;
-  --text-secondary: #8b9bbf;
-  --text-muted    : #4e5f85;
-
-  --font-ui    : 'DM Sans', sans-serif;
-  --font-mono  : 'JetBrains Mono', monospace;
-
-  --radius-sm  : 6px;
-  --radius-md  : 10px;
-  --radius-lg  : 16px;
-  --shadow-card: 0 4px 20px rgba(0,0,0,0.4);
-  --shadow-pop : 0 16px 48px rgba(0,0,0,0.6);
-
-  --topbar-h   : 56px;
-  --panel-w    : 260px;
-  --preview-w  : 280px;
-  --transition : 0.18s ease;
-}
 
 html, body {
   height: 100%;
@@ -57,7 +24,7 @@ html, body {
 /* ── SCROLLBAR ────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 99px; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 99px; }
 
 /* ── BUTTONS ──────────────────────────────────────────────── */
 .btn {
@@ -71,9 +38,9 @@ html, body {
   white-space: nowrap;
   letter-spacing: 0.2px;
 }
-.btn-primary   { background: var(--accent);  color: white; }
+.btn-primary   { background: var(--btn-primary-bg);  color: var(--btn-primary-text); }
 .btn-primary:hover { background: var(--accent-hover); }
-.btn-secondary { background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-secondary { background: var(--btn-secondary-bg); color: var(--btn-secondary-text); border: 1px solid var(--border); }
 .btn-secondary:hover { color: var(--text-primary); border-color: var(--border-light); }
 .btn-ghost     { background: transparent; color: var(--text-secondary); border: 1px solid transparent; }
 .btn-ghost:hover { color: var(--red); background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.2); }

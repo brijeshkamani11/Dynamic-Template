@@ -7,6 +7,80 @@
 
 ---
 
+### [2026-04-05] — Theme System: Classic Blue ERP + Centralized Design Tokens
+
+**Branch:** `ui-polish`
+
+**What changed:**
+
+Implemented a production-grade theming system with centralized CSS custom properties (design tokens). Added a new "Classic Blue" theme replicating the Miracle Cloud ERP visual language from reference images, while preserving the original dark theme as "Modern Dark".
+
+**Theme Architecture (`css/themes.css`):**
+- Centralized design token contract using CSS custom properties
+- Two complete theme definitions: `classic-blue` (default) and `modern-dark` (legacy)
+- ~70 semantic tokens per theme covering: surfaces, borders, accents, text, inputs, buttons, tables, modals, tabs, code blocks, phone preview, variant badges, and scrollbar
+- Theme applied via `data-theme` attribute on `<html>` root element
+- Adding a new theme requires only a new `[data-theme="..."]` block — zero component CSS edits
+
+**Token categories migrated:**
+- Surface/background (7 tokens): `--bg-app`, `--bg-panel`, `--bg-panel2`, `--bg-card`, `--bg-cell`, `--bg-cell-empty`, `--bg-surface`
+- Borders (2): `--border`, `--border-light`
+- Accent/brand (3): `--accent`, `--accent-glow`, `--accent-hover`
+- Status (3): `--green`, `--red`, `--amber`
+- Text (3): `--text-primary`, `--text-secondary`, `--text-muted`
+- Typography (2): `--font-ui`, `--font-mono`
+- Shape/depth (5): `--radius-sm/md/lg`, `--shadow-card/pop`
+- Inputs (4): `--input-bg`, `--input-border`, `--input-focus`, `--input-text`
+- Buttons (5): `--btn-primary-bg/text`, `--btn-secondary-bg/text`, `--btn-ghost-hover`
+- Tables (4): `--table-header-bg/text`, `--table-row-alt`, `--table-border`
+- Modals (2): `--overlay-bg`, `--modal-bg`
+- Tabs (3): `--tab-bg`, `--tab-active-bg`, `--tab-active-border`
+- Code/JSON (2): `--code-bg`, `--code-text`
+- Phone preview (6): statusbar, appbar, list-bg, card-bg, text, text-muted
+- Variant badges (14): blue, soft, amber, slate, green, cyan, purple families
+- Preview row variants (12): stripHeader, softPanel, summary, footerActions, emphasis, muted, repeater
+
+**Theme Manager (`js/theme-manager.js`):**
+- `THEMES` registry array — add new themes by appending `{ id, label, icon }`
+- `initTheme()` — restores saved theme from localStorage on boot
+- `setTheme(themeId)` — applies theme + persists + syncs UI
+- `toggleTheme()` — cycles through available themes (quick-toggle)
+- `buildThemeSwitcher()` — renders toggle button + dropdown in topbar
+
+**Theme switching UI:**
+- Quick-toggle button in topbar (cycles themes on click)
+- Dropdown selector with all available themes
+- Theme persists via `localStorage('mcloud_designer_theme')`
+- Restores on reload; defaults to `classic-blue` on first visit
+
+**CSS files refactored (hardcoded → semantic tokens):**
+- `variables.css` — stripped token definitions (moved to themes.css), kept reset + button classes
+- `topbar.css` — inputs, mode selector, layout mode tint → tokens
+- `panels.css` — field search, form selects, field chips → input tokens
+- `canvas.css` — cell grid, variant badges, layout-mode tints → variant tokens
+- `property-panel.css` — all inputs, preset buttons, variant controls → tokens
+- `preview.css` — phone shell, row variants, cell variants → phone/preview tokens
+- `modal.css` — overlay, modal bg, JSON output, import textarea, tabs → tokens
+
+**Classic Blue theme design mapping (from reference images):**
+| Image trait | Token group |
+|---|---|
+| Light cyan work area (#dceef8) | `--bg-app`, `--bg-panel` |
+| White inputs with thin borders | `--input-bg`, `--input-border` |
+| Dark navy sidebar (#003f5f) | `--sidebar-bg` |
+| Blue table headers (#b8ddf0) | `--table-header-bg` |
+| Compact 4-6px border radius | `--radius-sm/md/lg` |
+| Thin 1px borders (#9ecbdf) | `--border` |
+| Segoe UI / system font | `--font-ui` |
+| Smaller topbar (48px) | `--topbar-h` |
+| Subtle shadows | `--shadow-card`, `--shadow-pop` |
+
+**Files changed:** `index.html`, `css/themes.css` (new), `css/variables.css`, `css/topbar.css`, `css/panels.css`, `css/canvas.css`, `css/property-panel.css`, `css/preview.css`, `css/modal.css`, `js/theme-manager.js` (new), `js/app.js`, `CHANGELOG.md`.
+
+**No functional regressions:** All designer features (drag-and-drop, property panel, mode switching, JSON export/import, preview, presets, recovery) work identically under both themes.
+
+---
+
 ### [2026-04-04] — Variant System Refactor: Customizable Controls + JSON Expansion
 
 **Branch:** `feature/integrate-all-design`

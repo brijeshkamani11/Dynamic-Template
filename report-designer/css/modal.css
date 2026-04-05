@@ -3,14 +3,14 @@
 ═══════════════════════════════════════════════════════════ */
 .modal-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: var(--overlay-bg);
   z-index: 300;
   display: flex; align-items: center; justify-content: center;
   padding: 16px;
 }
 
 .modal {
-  background: var(--bg-panel);
+  background: var(--modal-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-pop);
@@ -45,8 +45,8 @@
   font-family: var(--font-mono);
   font-size: 11px;
   line-height: 1.7;
-  color: #7dd3fc;
-  background: var(--bg-app);
+  color: var(--code-text);
+  background: var(--code-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 14px;
@@ -75,10 +75,10 @@
 /* ── IMPORT MODAL ────────────────────────────────────────── */
 .import-textarea {
   width: 100%;
-  background: var(--bg-app);
+  background: var(--code-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  color: #7dd3fc;
+  color: var(--code-text);
   font-family: var(--font-mono);
   font-size: 11px;
   line-height: 1.6;
@@ -122,8 +122,8 @@
 .import-tab:hover { color: var(--text-primary); }
 .import-tab.active {
   color: var(--accent);
-  border-bottom-color: var(--accent);
-  background: var(--accent-glow);
+  border-bottom-color: var(--tab-active-border);
+  background: var(--tab-active-bg);
 }
 
 /* ── COPY FORMAT SECTION ─────────────────────────────────── */

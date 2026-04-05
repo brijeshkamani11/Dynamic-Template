@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="classic-blue">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MCloud — Mobile Template Card Designer</title>
 
   <!-- ── CSS Modules ─────────────────────────────────────── -->
+  <link rel="stylesheet" href="css/themes.css" />
   <link rel="stylesheet" href="css/variables.css" />
   <link rel="stylesheet" href="css/topbar.css" />
   <link rel="stylesheet" href="css/panels.css" />
@@ -40,6 +41,8 @@
         <option value="layout">Layout Only</option>
       </select>
     </div>
+    <!-- Theme switcher: quick toggle + dropdown -->
+    <div class="theme-switcher-wrap" id="themeSwitcherWrap"></div>
     <button class="btn btn-secondary" id="btnImportJSON" title="Import / Copy Format">⬇ Import</button>
     <button class="btn btn-ghost" id="btnClearAll" title="Clear canvas">✕ Clear</button>
     <button class="btn btn-secondary" id="btnPreviewJSON">{ } JSON</button>
@@ -539,7 +542,8 @@
 <div class="toast" id="toast"></div>
 
 <!-- ── JS Modules ──────────────────────────────────────── -->
-<!-- Load order: data → state → utils → modules → app -->
+<!-- Load order: theme → data → state → utils → modules → app -->
+<script src="js/theme-manager.js"></script>
 <script src="js/data/field-registry.js"></script>
 <script src="js/data/format-library.js"></script>
 <script src="js/state.js"></script>

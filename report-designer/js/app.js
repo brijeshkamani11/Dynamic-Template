@@ -6,6 +6,10 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+  // ── 0. Initialize theme (restore from localStorage or use default) ──
+  initTheme();
+  buildThemeSwitcher();
+
   // ── 1. Bind all UI modules ──
   buildFieldPalette();
   buildIndicatorFieldSelect();

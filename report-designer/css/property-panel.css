@@ -3,7 +3,7 @@
 ═══════════════════════════════════════════════════════════ */
 .prop-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: var(--overlay-bg);
   z-index: 200;
   opacity: 0; pointer-events: none;
   transition: opacity var(--transition);
@@ -58,10 +58,10 @@
 .prop-row label { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
 
 .prop-input {
-  background: var(--bg-cell);
-  border: 1px solid var(--border);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: var(--input-text);
   padding: 6px 10px;
   font-family: var(--font-ui);
   font-size: 12px;
@@ -69,7 +69,7 @@
   width: 100%;
   transition: border-color var(--transition);
 }
-.prop-input:focus { border-color: var(--accent); }
+.prop-input:focus { border-color: var(--input-focus); }
 .prop-input-sm { width: 80px; }
 
 .align-btns { display: flex; gap: 4px; }
@@ -199,14 +199,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.preset-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(59,130,246,0.06); }
-.preset-btn-active { border-color: var(--accent) !important; color: var(--accent) !important; background: rgba(59,130,246,0.12) !important; }
+.preset-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+.preset-btn-active { border-color: var(--accent) !important; color: var(--accent) !important; background: var(--accent-glow) !important; }
 
 /* ── VARIANT CONTROLS — dynamic sub-panel ────────────────── */
 .variant-controls-section {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: rgba(59,130,246,0.03);
+  background: var(--accent-glow);
   padding: 8px 10px;
   margin-top: 8px;
   margin-bottom: 4px;
@@ -240,10 +240,10 @@
 }
 
 .vc-input {
-  background: var(--bg-cell);
-  border: 1px solid var(--border);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: var(--input-text);
   padding: 4px 8px;
   font-family: var(--font-ui);
   font-size: 11px;
@@ -252,7 +252,7 @@
   max-width: 120px;
   transition: border-color var(--transition);
 }
-.vc-input:focus { border-color: var(--accent); }
+.vc-input:focus { border-color: var(--input-focus); }
 
 .vc-color {
   width: 32px; height: 26px;

@@ -128,7 +128,7 @@
 .cell-grid {
   display: grid;
   gap: 1px;
-  background: var(--border);
+  background: var(--table-border);
 }
 
 .cell {
@@ -217,9 +217,9 @@
 
 /* ── Phase 1: Column-span tag ────────────────────────────── */
 .tag-span {
-  background: rgba(139,92,246,0.12);
-  border-color: rgba(139,92,246,0.3);
-  color: #a78bfa;
+  background: var(--variant-purple-soft);
+  border-color: var(--variant-purple-soft-border);
+  color: var(--variant-purple-light);
 }
 
 /* ── Phase 2: Row variant + rhythm badges ─────────────────── */
@@ -231,43 +231,42 @@
   border: 1px solid;
   flex-shrink: 0;
 }
-/* row variant colours */
-.rv-stripHeader  { background: rgba(25,118,210,0.12); border-color: rgba(25,118,210,0.35); color: #1976D2; }
-.rv-softPanel    { background: rgba(99,179,237,0.12); border-color: rgba(99,179,237,0.35); color: #3b82f6; }
-.rv-summary      { background: rgba(230,81,0,0.10);   border-color: rgba(230,81,0,0.30);   color: #e65100; }
-.rv-footerActions{ background: rgba(100,116,139,0.12);border-color: rgba(100,116,139,0.3); color: #64748b; }
-/* rhythm colours */
-.rr-compact   { background: rgba(16,185,129,0.10); border-color: rgba(16,185,129,0.30); color: #10b981; }
-.rr-spacious  { background: rgba(245,158,11,0.10); border-color: rgba(245,158,11,0.30); color: #f59e0b; }
+/* row variant colours — semantic tokens */
+.rv-stripHeader  { background: var(--variant-blue-bg); border-color: var(--variant-blue-border); color: var(--variant-blue); }
+.rv-softPanel    { background: var(--variant-soft-bg); border-color: var(--variant-soft-border); color: var(--variant-soft); }
+.rv-summary      { background: var(--variant-amber-bg); border-color: var(--variant-amber-border); color: var(--variant-amber); }
+.rv-footerActions{ background: var(--variant-slate-bg); border-color: var(--variant-slate-border); color: var(--variant-slate); }
+/* rhythm colours — semantic tokens */
+.rr-compact   { background: var(--variant-green-bg); border-color: var(--variant-green-border); color: var(--variant-green); }
+.rr-spacious  { background: rgba(245,158,11,0.10); border-color: rgba(245,158,11,0.30); color: var(--amber); }
 
 /* ── Phase 2: Cell variant tag ───────────────────────────── */
 .tag-cell-variant {
-  background: rgba(6,182,212,0.10);
-  border-color: rgba(6,182,212,0.30);
-  color: #06b6d4;
+  background: var(--variant-cyan-bg);
+  border-color: var(--variant-cyan-border);
+  color: var(--variant-cyan);
 }
 
 /* ── Layout Mode: placeholder cells ─────────────────────── */
-/* Placeholder cells look like filled cells but with a distinct purple tint */
 .cell-placeholder {
   background: var(--bg-cell);
-  border-left: 2px solid rgba(124,58,237,0.4);
+  border-left: 2px solid var(--variant-purple-border);
   cursor: pointer;
   padding: 8px 10px;
 }
 .cell-placeholder:hover { background: var(--bg-card); }
-.cell-placeholder .cell-field-name { color: #a78bfa; }
+.cell-placeholder .cell-field-name { color: var(--variant-purple-light); }
 
 /* Empty cell in layout mode — click-to-add hint */
 .cell-empty.layout-drop {
   cursor: pointer;
 }
 .cell-empty.layout-drop:hover {
-  background: rgba(124,58,237,0.08);
-  border: 1px dashed rgba(124,58,237,0.4);
+  background: var(--variant-purple-bg);
+  border: 1px dashed var(--variant-purple-border);
 }
 .cell-empty.layout-drop .cell-drop-hint { opacity: 0.5; }
-.cell-empty.layout-drop:hover .cell-drop-hint { opacity: 0.9; color: #a78bfa; }
+.cell-empty.layout-drop:hover .cell-drop-hint { opacity: 0.9; color: var(--variant-purple-light); }
 
 /* Layout mode palette notice */
 .layout-mode-notice {
@@ -283,7 +282,7 @@
 .layout-mode-notice-title {
   font-size: 13px;
   font-weight: 600;
-  color: #a78bfa;
+  color: var(--variant-purple-light);
 }
 .layout-mode-notice-desc {
   font-size: 11px;
@@ -292,8 +291,8 @@
 }
 
 /* ── Phase 4: Duplicate + Reset buttons ─────────────────── */
-.row-btn-dup:hover  { background: rgba(16,185,129,0.12); color: #10b981; border-color: #10b981; }
-.row-btn-reset:hover{ background: rgba(245,158,11,0.12);  color: #f59e0b; border-color: #f59e0b; }
+.row-btn-dup:hover  { background: var(--variant-green-bg); color: var(--variant-green); border-color: var(--variant-green); }
+.row-btn-reset:hover{ background: rgba(245,158,11,0.12);  color: var(--amber); border-color: var(--amber); }
 
 /* ── Phase 3: Repeater badge ─────────────────────────────── */
 .row-repeater-badge {
@@ -303,7 +302,7 @@
   text-transform: uppercase;
   border: 1px solid;
   flex-shrink: 0;
-  background: rgba(124,58,237,0.10);
-  border-color: rgba(124,58,237,0.30);
-  color: #7c3aed;
+  background: var(--variant-purple-bg);
+  border-color: var(--variant-purple-border);
+  color: var(--variant-purple);
 }

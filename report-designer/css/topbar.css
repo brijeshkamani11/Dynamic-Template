@@ -7,17 +7,17 @@
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  gap: 12px;
+  padding: 0 12px;
+  gap: 10px;
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 100;
   box-shadow: 0 1px 0 var(--border);
 }
 
-.topbar-left  { display: flex; align-items: center; min-width: var(--panel-w); }
-.topbar-center{ flex: 1; display: flex; justify-content: center; }
-.topbar-right { display: flex; align-items: center; gap: 8px; min-width: var(--preview-w); justify-content: flex-end; }
+.topbar-left  { display: flex; align-items: center; flex-shrink: 0; }
+.topbar-center{ flex: 1; display: flex; justify-content: center; min-width: 0; }
+.topbar-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
 .logo { display: flex; align-items: center; gap: 8px; }
 .logo-icon {
@@ -35,10 +35,10 @@
 
 .template-name-input {
   width: 320px; max-width: 100%;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: var(--radius-md);
-  color: var(--text-primary);
+  color: var(--input-text);
   padding: 7px 14px;
   font-family: var(--font-ui);
   font-size: 13px;
@@ -46,7 +46,7 @@
   transition: border-color var(--transition);
   text-align: center;
 }
-.template-name-input:focus { border-color: var(--accent); }
+.template-name-input:focus { border-color: var(--input-focus); }
 .template-name-input::placeholder { color: var(--text-muted); }
 
 /* ── DESIGNER MODE SELECTOR ──────────────────────────────── */
@@ -68,15 +68,38 @@
   font-size: 11px;
   padding: 4px 8px;
   border-radius: var(--radius-sm);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   color: var(--text-primary);
   cursor: pointer;
   transition: border-color var(--transition);
 }
-.mode-select:focus { outline: none; border-color: var(--accent); }
+.mode-select:focus { outline: none; border-color: var(--input-focus); }
 /* Highlight the topbar when in layout mode to reinforce current mode */
-.topbar.mode-layout .mode-select { border-color: rgba(124,58,237,0.5); color: #a78bfa; }
+.topbar.mode-layout .mode-select { border-color: var(--variant-purple-border); color: var(--variant-purple); }
+
+/* ── THEME SWITCHER ─────────────────────────────────────── */
+.theme-switcher-wrap {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.theme-toggle-btn {
+  width: 26px; height: 26px;
+  padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+.theme-toggle-btn:hover {
+  color: var(--accent) !important;
+  background: var(--accent-glow) !important;
+  border-color: var(--accent) !important;
+}
 
 /* ── STATUS CHIP ─────────────────────────────────────────── */
 .status-chip {

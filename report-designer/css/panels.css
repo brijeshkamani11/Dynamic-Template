@@ -41,16 +41,16 @@
 .field-search-wrap { padding: 10px 10px 6px; flex-shrink: 0; }
 .field-search {
   width: 100%;
-  background: var(--bg-cell);
-  border: 1px solid var(--border);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: var(--input-text);
   padding: 6px 10px;
   font-family: var(--font-ui);
   font-size: 12px;
   outline: none;
 }
-.field-search:focus { border-color: var(--accent); }
+.field-search:focus { border-color: var(--input-focus); }
 
 /* ── FIELD LIST ──────────────────────────────────────────── */
 .field-list {
@@ -184,17 +184,17 @@
 .form-row label { font-size: 11px; color: var(--text-secondary); white-space: nowrap; min-width: 80px; }
 
 .form-select {
-  background: var(--bg-cell);
-  border: 1px solid var(--border);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: var(--input-text);
   padding: 4px 8px;
   font-family: var(--font-ui);
   font-size: 11px;
   outline: none;
   flex: 1;
 }
-.form-select:focus { border-color: var(--accent); }
+.form-select:focus { border-color: var(--input-focus); }
 
 .inline-check { display: flex; align-items: center; gap: 6px; }
 .inline-check input[type="checkbox"] { accent-color: var(--accent); }
