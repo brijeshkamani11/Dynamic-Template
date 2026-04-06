@@ -7,6 +7,80 @@
 
 ---
 
+### [2026-04-06] — User Guide: USER_GUIDE.md
+
+**Branch:** `ui-polish`
+
+**What changed:**
+
+Created `USER_GUIDE.md` — a complete non-technical product guide for business users and operators of the MCloud Template Card Designer.
+
+**Sections added:**
+1. **Quick Start** — what the tool does, how to open it, first template in 7 steps
+2. **Screen Tour** — top bar, left panel, canvas, preview panel, property panel, row style panel, import/export/recovery areas; each area explained with "what it is / why it matters / when to use"
+3. **Control Reference** — every visible control documented: name, location, behavior, when to use, example, and common mistakes to avoid. Covers all top bar buttons, canvas row/cell controls, property panel inputs (caption, icon, align, max lines, column span, cell variant, level visibility, total config, all style properties), and row style panel (quick presets, row variant, rhythm, row type, repeater settings, background/border/padding/divider controls)
+4. **Core Workflows** — step-by-step guides for: build from scratch, add/arrange rows and columns, edit cell properties, apply row styling, set up drill-down navigation, preview and verify, export JSON, import JSON / copy format / sample layouts, save and recover drafts, work in Layout Only mode
+5. **Feature Reference Table** — all 24 features: what each solves, required/optional, best practice, and related controls
+6. **"If You Want X, Do Y"** — 20 plain-language shortcuts covering the most common user goals
+7. **Troubleshooting** — import error messages with plain-language explanations and fixes, canvas/preview issues, saving/recovery issues (15 scenarios total)
+8. **Best Practices** — naming, starting from examples, readability limits (2–4 rows, max 3 cols), consistent styling, expanded row usage, save habits, avoiding accidental overwrites
+9. **Glossary** — 25 terms: row, column, cell, caption, expanded row, indicator, variant, rhythm, repeater, group fields, drill-down, level, level visibility, JSON, import, export, autosave, preset, template, full template mode, layout only mode, placeholder, column span, colSpan, ARGB color
+
+**Validation against implementation:**
+- All documented controls verified to exist in current UI (`index.html`)
+- All workflow steps traced against actual module functions (`canvas.js`, `property-panel.js`, `topbar.js`, `json-modal.js`, `recovery.js`, `preview.js`)
+- No undocumented or non-existent features referenced
+- Preset names match the 10 presets in `property-panel.js`
+- Icon list matches `ICON_MAP` in `field-registry.js` (12 icons)
+- Import tab names match `bindImportModal()` in `json-modal.js`
+- Error messages match `validateImportJSON()` plain-language output
+
+**Files changed:** `USER_GUIDE.md` (new), `CHANGELOG.md`.
+
+---
+
+### [2026-04-06] — Documentation Sync: ARCHITECTURE.md audit + JSON_REFERENCE.md
+
+**Branch:** `ui-polish`
+
+**What changed:**
+
+**A) `ARCHITECTURE.md` — synced with current implementation (mismatches corrected):**
+
+- **Section 3 — File structure:** Added missing files: `css/themes.css`, `js/theme-manager.js`, `js/data/format-library.js`, `js/modules/recovery.js`. Updated `variables.css` description (now reset/layout only; tokens moved to themes.css). Updated JS load order from 10 to 13 scripts with correct sequence. Updated file count to "9 CSS + 13 JS + 1 HTML".
+- **Section 4 — JSON structure:** Replaced the minimal Phase-1 example with a complete annotated example covering all current properties: `templateId`, `formatId`, `reportDisplayName`, `columnCount`, `colSpan`, `display`, `totalConfig`, `levelVisibility`, `rowStyle`, `rowType`, `repeaterConfig`, `groupFields`, `drillConfig`. Added separate layout-mode JSON example. Updated key rules to include all omission conditions and the variant-expansion rule.
+- **Section 5 — Field data model:** Added `groupable` and `isAmount` properties to field registry structure. Extended `iconCaption` enum with the 4 action icons added in Phase 2: `print`, `share`, `whatsapp`, `copy`.
+- **Section 7 — State model:** Added `designerMode`, `templateId`, `formatId`, `reportDisplayName`, `groupFields` to root state. Added `includeTotal`, `totalScopeLevel`, `display` to cell model. Corrected `cellVariant` enum from the obsolete `text|amount|badge|icon|date|link` to the current `text|iconText|metric|metaPair|emphasis|muted`. Added `PlaceholderCell` shape. Added explanatory note on internal-only vs exported properties.
+- **Section 8 — Key functions:** Added `theme-manager.js` function table. Added missing functions across all modules: palette two-stage rendering, canvas `addColToRow`/`removeColFromRow`/`addPlaceholderToCell`, preview full render pipeline (`renderGroupLevel`, `renderTerminalLevel`, `buildDetailCard`, `buildPreviewCellEl`, `buildRepeaterSubRowEl`, `buildFooterActionRow`, `renderBreadcrumb`, `bindPhoneBackArrow`), property panel `buildVariantControls`/`buildLevelVisibilityUI`/`buildAmountTotalUI`, full recovery module functions (`getDraftKey`, `readDraft`, `clearDraft`, `markBootComplete`), json-modal split into `generateFullJSON`/`generateLayoutJSON`/`validateImportJSON`/`validateLayoutJSON`/`hydrateFromFullJSON`/`hydrateFromLayoutJSON`, topbar `switchDesignerMode`/`syncModeUI`/`syncUIFromState`/`markDirty`/`updateStatusChip`/`bindBeforeUnload`/`computeTapValues`.
+- **Section 9 — Design system:** Replaced single-theme hardcoded values with dual-theme architecture description. Added theme token contract table showing classic-blue vs modern-dark values for key tokens.
+
+**Doc drift corrected (things that were wrong before):**
+1. `cellVariant` enum listed `amount|badge|icon|date|link` — these never existed in the current codebase; correct values are `iconText|metric|metaPair|emphasis|muted`
+2. JS load order listed 10 scripts; actual order is 13 scripts (theme-manager, format-library, recovery missing)
+3. File structure omitted `themes.css`, `theme-manager.js`, `format-library.js`, `recovery.js`
+4. Field registry struct was missing `groupable` and `isAmount` properties
+5. State model was missing `designerMode`, `templateId`, `formatId`, `reportDisplayName`, `groupFields`, `includeTotal`, `totalScopeLevel`, `display` on cells
+6. JSON example was Phase-1 only — missing all Phase 2/3 properties
+7. `iconCaption` enum was missing the 4 action icons (`print`, `share`, `whatsapp`, `copy`)
+8. CSS variables section showed only the dark-theme hardcoded values, not the dual-theme token architecture
+
+**B) `JSON_REFERENCE.md` — new file:**
+
+Complete property-by-property reference for all JSON the designer produces and consumes. Covers:
+- All 16 top-level properties with type, required/optional, default, allowed values, validation/clamping, emission rules, mode applicability, and examples
+- Full `fieldConfigs[]` row property set
+- Full `columnConfig[]` cell property set
+- All sub-objects: `style`, `display`, `rowStyle`, `repeaterConfig`, `groupFields`, `drillConfig`, `indicator`, `totalConfig`
+- Minimal valid JSON example
+- Rich full JSON example (all features)
+- Layout-only mode JSON example
+- Backward compatibility notes (Phases 1–4 + theme system)
+- Common mistakes table (16 error scenarios with validation outcome)
+
+**Files changed:** `ARCHITECTURE.md`, `JSON_REFERENCE.md` (new), `CHANGELOG.md`.
+
+---
+
 ### [2026-04-05] — Theme System: Classic Blue ERP + Centralized Design Tokens
 
 **Branch:** `ui-polish`

@@ -39,7 +39,8 @@ project-root/
 ├── report-designer/              ← MAIN APPLICATION (modular, separated by concern)
 │   ├── index.html                   Entry point — links all CSS & JS files
 │   ├── css/
-│   │   ├── variables.css            CSS custom properties, reset, buttons
+│   │   ├── themes.css               All theme definitions (design token blocks per theme)
+│   │   ├── variables.css            CSS reset, layout sizing, shared button classes
 │   │   ├── topbar.css               Top bar & logo styles
 │   │   ├── panels.css               Left panel (field palette), card settings
 │   │   ├── canvas.css               Center canvas, rows, cells, grid
@@ -48,17 +49,20 @@ project-root/
 │   │   ├── modal.css                JSON modal & toast notifications
 │   │   └── responsive.css           Media query breakpoints
 │   └── js/
+│       ├── theme-manager.js         Theme registry, init, toggle, localStorage persist
 │       ├── data/
-│       │   └── field-registry.js    FIELD_REGISTRY, SAMPLE_DATA, ICON_MAP
-│       ├── state.js                 Application state object & constants
+│       │   ├── field-registry.js    FIELD_REGISTRY, SAMPLE_DATA, MOCK data, ICON_MAP
+│       │   └── format-library.js    DUMMY_FORMAT_LIBRARY (sample formats), LAYOUT_LIBRARY
+│       ├── state.js                 Application state object, constants, variant registries
 │       ├── utils.js                 Shared: renderAll, showToast, color converters
 │       ├── modules/
 │       │   ├── palette.js           Field palette build, search, drag support
 │       │   ├── canvas.js            Row/cell CRUD, canvas DOM rendering
-│       │   ├── preview.js           Mobile preview rendering, tab switching
-│       │   ├── property-panel.js    Prop panel open/close/apply logic
-│       │   ├── json-modal.js        JSON generation & modal management
-│       │   └── topbar.js            Topbar bindings, card settings, save, keyboard
+│       │   ├── preview.js           Mobile preview rendering, drill-down, tab switching
+│       │   ├── property-panel.js    Prop panel open/close/apply logic, presets
+│       │   ├── recovery.js          Autosave, draft lifecycle, recovery modal
+│       │   ├── json-modal.js        JSON generation, import, validation, hydration
+│       │   └── topbar.js            Topbar bindings, mode switching, save, keyboard
 │       └── app.js                   Boot orchestrator (DOMContentLoaded)
 │
 ├── README.md                     ← Entry point — links here and to CHANGELOG.md
@@ -71,19 +75,23 @@ project-root/
 
 **Primary deliverable:** `report-designer/index.html` — modular version, open via Live Server or local server.
 **`report-designer-single.html` has been removed.** The modular version is now the sole version.
+**File counts:** 9 CSS + 13 JS + 1 HTML.
 
 ### JS Load Order (in index.html)
 Scripts must load in this order due to global function dependencies:
-1. `js/data/field-registry.js` — data constants
-2. `js/state.js` — state object & globals
-3. `js/utils.js` — shared utilities (used by all modules)
-4. `js/modules/palette.js` — field palette
-5. `js/modules/canvas.js` — canvas (depends on property-panel.js for openPropPanel)
-6. `js/modules/preview.js` — preview (depends on utils.js for argbToHex)
-7. `js/modules/property-panel.js` — property panel (depends on canvas.js for removeFieldFromCell)
-8. `js/modules/json-modal.js` — JSON generation
-9. `js/modules/topbar.js` — topbar, save, keyboard (depends on json-modal.js for generateJSON)
-10. `js/app.js` — boot (calls all bind/build functions)
+1. `js/theme-manager.js` — theme init (must run before any rendering)
+2. `js/data/field-registry.js` — data constants
+3. `js/data/format-library.js` — sample format library
+4. `js/state.js` — state object, constants, variant registries
+5. `js/utils.js` — shared utilities (used by all modules)
+6. `js/modules/palette.js` — field palette
+7. `js/modules/canvas.js` — canvas (depends on property-panel.js for openPropPanel)
+8. `js/modules/preview.js` — preview (depends on utils.js for argbToHex)
+9. `js/modules/property-panel.js` — property panel (depends on canvas.js for removeFieldFromCell)
+10. `js/modules/recovery.js` — autosave & draft recovery
+11. `js/modules/json-modal.js` — JSON generation, import, validation
+12. `js/modules/topbar.js` — topbar, mode switching, save, keyboard (depends on json-modal.js)
+13. `js/app.js` — boot (calls all bind/build functions)
 
 ---
 
@@ -92,10 +100,15 @@ Scripts must load in this order due to global function dependencies:
 This is the exact JSON the designer must produce. Flutter app consumes this.
 Do NOT change this structure without explicit instruction.
 
+### Full Template JSON (mode: "full", the default)
+
 ```json
 {
   "layoutType": "grid",
   "gridSize": { "rows": 2 },
+  "templateId": "R0001",
+  "formatId": "F0001",
+  "reportDisplayName": "Account Ledger",
   "indicator": {
     "isShow": true,
     "dataField": "R0001F0006"
@@ -105,37 +118,101 @@ Do NOT change this structure without explicit instruction.
   "fieldConfigs": [
     {
       "isExpandedRow": false,
+      "columnCount": 2,
       "columnConfig": [
         {
           "dataField": "R0001F0001",
           "col": 1,
           "caption": "Party Name",
           "iconCaption": "person",
-          "maxLine": 1,
-          "textAlign": "left",
           "style": {
             "color": "0xFF1565C0",
             "fontSize": 14,
             "fontWeight": "bold",
             "fontFamily": "Quicksand-Bold"
+          },
+          "display": {
+            "layout": "inline",
+            "accentColor": "#1976D2"
           }
         },
         {
           "dataField": "R0001F0006",
-          "col": 3,
+          "col": 2,
           "caption": "Balance",
-          "textAlign": "right"
+          "textAlign": "right",
+          "totalConfig": {
+            "includeTotal": true,
+            "totalScopeLevel": "all"
+          }
         }
-      ]
+      ],
+      "rowStyle": {
+        "background": "#e3f0fb",
+        "paddingVertical": 6,
+        "paddingHorizontal": 8,
+        "cornerRadius": 6,
+        "borderBottomColor": "#b0cfe8",
+        "textColor": "#1565C0",
+        "textFontWeight": "600"
+      }
     },
     {
       "isExpandedRow": true,
+      "columnCount": 1,
       "columnConfig": [
         {
           "dataField": "R0001F0002",
           "col": 1,
           "caption": "City",
-          "iconCaption": "location"
+          "iconCaption": "location",
+          "levelVisibility": [1, 2]
+        }
+      ],
+      "rowType": "repeater",
+      "repeaterConfig": {
+        "mockKey": "transactions",
+        "maxItems": 3,
+        "showDivider": true,
+        "showMoreFooter": true
+      }
+    }
+  ],
+  "groupFields": [
+    { "level": 1, "fieldId": "f002", "dataField": "R0001F0002", "label": "City" }
+  ],
+  "drillConfig": {
+    "enabled": true,
+    "levelCount": 2,
+    "terminalLevel": 2
+  }
+}
+```
+
+### Layout Only JSON (mode: "layout")
+
+```json
+{
+  "layoutType": "grid",
+  "mode": "layout",
+  "gridSize": { "rows": 1 },
+  "fieldConfigs": [
+    {
+      "isExpandedRow": false,
+      "columnCount": 2,
+      "columnConfig": [
+        {
+          "placeholderId": "ph_1",
+          "placeholderLabel": "Party",
+          "col": 1,
+          "caption": "Placeholder"
+        },
+        {
+          "placeholderId": "ph_2",
+          "placeholderLabel": "Balance",
+          "col": 2,
+          "caption": "Placeholder",
+          "textAlign": "right"
         }
       ]
     }
@@ -145,13 +222,23 @@ Do NOT change this structure without explicit instruction.
 
 **Key rules for JSON generation:**
 - `col` is 1-indexed (col 1, 2, … up to MAX_COLS)
-- `style` object is omitted if all values are default
+- `columnCount` = number of non-null cells in the row
+- `style` object is omitted if all values are default/empty
 - `textAlign` is omitted if "left" (default)
 - `maxLine` is omitted if 1 (default)
+- `colSpan` is omitted if 1 (default)
 - `iconCaption` is omitted if empty
+- `levelVisibility` is omitted if "all" (default)
+- `rowStyle` is omitted if empty/default
+- `rowType` is omitted if "normal" (default)
+- `repeaterConfig` is only present when `rowType === "repeater"`
+- `groupFields` and `drillConfig` are omitted when no group fields are set
+- `indicator` is omitted in layout mode JSON
 - `gridSize.rows` = count of non-expanded rows only
 - Color format is ARGB string: `"0xFF"` + hex (e.g. `"0xFF1565C0"`)
 - `isExpandedRow: true` rows only show when card is tapped/expanded in Flutter
+- `rowVariant`, `rhythm`, and `cellVariant` are **not emitted** — their effects are expanded into `rowStyle` and `display` objects respectively
+- Layout mode JSON has a top-level `"mode": "layout"` marker; full mode has no `mode` key
 
 ---
 
@@ -172,7 +259,9 @@ Do NOT change this structure without explicit instruction.
   label: "Party Name",           // shown to user in palette
   dataField: "R0001F0001",       // backend key, used in JSON output
   defaultCaption: "Party Name",  // pre-filled caption when dropped
-  category: "Account"            // grouping in field palette
+  category: "Account",           // grouping in field palette
+  groupable: true,               // true = can be used as a group/drill-down field
+  isAmount: false                // true = amount fields (enables totalConfig in JSON)
 }
 ```
 
@@ -191,9 +280,11 @@ Numbers auto-formatted as Indian currency (₹ with en-IN locale).
 
 ### iconCaption Enum (fixed list, no free text)
 ```
-location, amount, date, phone, email, person, invoice, stock
+location, amount, date, phone, email, person, invoice, stock, print, share, whatsapp, copy
 ```
-Maps to emoji in preview: 📍 ₹ 📅 📞 ✉ 👤 🧾 📦
+Maps to emoji in preview: 📍 ₹ 📅 📞 ✉ 👤 🧾 📦 🖨 📤 💬 ⎘
+
+The four action icons (`print`, `share`, `whatsapp`, `copy`) are intended for use in `footerActions` variant rows.
 
 ---
 
@@ -275,49 +366,84 @@ Maps to emoji in preview: 📍 ₹ 📅 📞 ✉ 👤 🧾 📦
 
 ```javascript
 state = {
-  templateName : "",           // from topbar input
-  mOnTap       : "expand",     // card settings (auto-computed)
+  // ── Identity (from bootstrap or defaults) ──────────────
+  templateName      : "",              // from topbar input
+  templateId        : "R0001",         // from bootstrap payload
+  formatId          : "F0001",         // from bootstrap payload
+  reportDisplayName : "Account Ledger",// from bootstrap payload
+
+  // ── Designer mode ───────────────────────────────────────
+  designerMode : "full",               // "full" | "layout" — controls palette, JSON generation, cell type
+
+  // ── Tap behavior (auto-computed from groupFields) ───────
+  mOnTap       : "expand",            // "expand" (no groups) | "navigate" (groups present)
   mOnDoubleTap : "",
-  indicator    : {
+
+  // ── Indicator (colored left bar in preview) ─────────────
+  indicator : {
     isShow    : false,
     dataField : ""
   },
-  rows: [                      // array of row objects
+
+  // ── Group/drill-down fields (full mode only) ────────────
+  // Each entry: { fieldId, dataField, label }
+  // Order defines hierarchy. groupFields.length > 0 triggers drillConfig in JSON.
+  groupFields : [],
+
+  // ── Canvas rows ─────────────────────────────────────────
+  rows: [
     {
-      id           : "row_1234567890_ab12",  // unique string (timestamp + random suffix)
-      isExpandedRow: false,
-      rowStyle     : {},                      // Phase 1: visual style (empty = all defaults)
+      id           : "row_1234567890_ab12",  // unique: "row_" + Date.now() + "_" + random4
+      isExpandedRow: false,                   // shown only on tap in Flutter
+      rowStyle     : {},                      // expanded style object (Phase 1)
       rowVariant   : "default",               // Phase 2: default|stripHeader|softPanel|summary|footerActions
       rhythm       : "normal",                // Phase 2: compact|normal|spacious
       rowType      : "normal",                // Phase 3: normal|repeater
       // repeaterConfig only present when rowType === "repeater":
       // { mockKey: "transactions"|"lineItems"|"bills", maxItems: 3, showDivider: true, showMoreFooter: true }
-      cols         : [                        // array of null or FieldCell objects
-        null,                                 // empty cell
-        {                                     // filled cell (FieldCell)
-          uid        : "c1",                  // internal unique counter
-          fieldId    : "f001",                // ref to FIELD_REGISTRY
-          dataField  : "R0001F0001",          // copied from registry
-          caption    : "Party Name",
-          iconCaption: "",
-          textAlign  : "left",
-          maxLine    : 1,
-          colSpan    : 1,                     // Phase 1: 1..MAX_COLS
-          cellVariant: "text",                // Phase 2: text|amount|badge|icon|date|link
-          levelVisibility: "all",             // "all" or array of level indices
+      cols: [
+        null,       // empty cell slot
+        {           // ── Full Mode Cell (FieldCell) ──────────
+          uid             : "c1",          // auto-incremented string
+          fieldId         : "f001",        // ref to FIELD_REGISTRY
+          dataField       : "R0001F0001",  // copied from registry on drop
+          caption         : "Party Name",
+          iconCaption     : "",            // "" or enum value (see Section 5)
+          textAlign       : "left",        // "left" | "center" | "right"
+          maxLine         : 1,             // 1..5
+          colSpan         : 1,             // 1..MAX_COLS (Phase 1)
+          cellVariant     : "text",        // Phase 2: text|iconText|metric|metaPair|emphasis|muted
+          levelVisibility : "all",         // "all" or array of 1-indexed level numbers e.g. [1,3]
+          includeTotal    : false,         // amount fields only (Phase 1)
+          totalScopeLevel : "all",         // "all" | "first" | number[] (Phase 1)
+          display         : {},            // Phase 2: expanded variant control values
           style: {
-            color      : "",
-            fontSize   : "",
-            fontWeight : "normal",
-            fontFamily : ""
+            color      : "",              // ARGB string "0xFF######" or ""
+            fontSize   : "",              // number or ""
+            fontWeight : "normal",        // "normal" | "bold"
+            fontFamily : ""              // "" | "Quicksand" | "Quicksand-Bold"
           }
         },
-        null
+        {           // ── Layout Mode Cell (PlaceholderCell) ──
+          uid              : "c2",
+          placeholderId    : "ph_1",       // auto-incremented
+          placeholderLabel : "Party",      // user-set label
+          caption          : "Placeholder",
+          iconCaption      : "",
+          textAlign        : "left",
+          maxLine          : 1,
+          colSpan          : 1,
+          cellVariant      : "text",
+          levelVisibility  : "all",
+          style            : { color: "", fontSize: "", fontWeight: "normal", fontFamily: "" }
+        }
       ]
     }
   ]
 }
 ```
+
+> **Note:** `rowVariant`, `rhythm`, and `cellVariant` are internal editor-only state. They are NOT emitted directly to JSON — their values are expanded into `rowStyle` and `display` objects on export. On import, they are re-detected from those expanded values.
 
 **State mutation pattern:**
 1. Event fires
@@ -329,111 +455,165 @@ state = {
 
 ## 8. KEY FUNCTIONS (by module)
 
+### theme-manager.js
+| Function | Purpose |
+|---|---|
+| `initTheme()` | Restores saved theme from localStorage; defaults to `classic-blue` |
+| `setTheme(themeId)` | Applies `data-theme` attribute to `<html>`, persists to localStorage |
+| `toggleTheme()` | Cycles through all entries in `THEMES` array |
+| `getTheme()` | Returns current theme id string |
+| `buildThemeSwitcher()` | Renders theme toggle button + dropdown in topbar |
+
 ### utils.js
 | Function | Purpose |
 |---|---|
-| `renderAll()` | Re-renders canvas + preview from state |
-| `showToast(msg, type)` | Shows bottom toast notification |
-| `hexToArgb(hex)` | "#1565C0" → "0xFF1565C0" |
-| `argbToHex(argb)` | "0xFF1565C0" → "#1565c0" |
+| `renderAll()` | Re-renders canvas + preview from state; schedules autosave |
+| `showToast(msg, type)` | Shows bottom toast notification (`success` or `warn`) |
+| `hexToArgb(hex)` | `"#1565C0"` → `"0xFF1565C0"` |
+| `argbToHex(argb)` | `"0xFF1565C0"` → `"#1565c0"` |
 
 ### modules/palette.js
 | Function | Purpose |
 |---|---|
-| `buildFieldPalette()` | Renders field chips in left panel |
+| `buildFieldPalette()` | Two-stage palette: group-stage chips then column-stage chips |
 | `buildIndicatorFieldSelect()` | Populates indicator field dropdown |
-| `bindFieldSearch()` | Binds search input to palette rebuild |
+| `bindFieldSearch()` | Binds search input to palette filtering |
+| `renderGroupStage()` | Renders groupable fields for drill-down selection |
+| `renderColumnStage()` | Renders all fields for canvas cell placement |
 
 ### modules/canvas.js
 | Function | Purpose |
 |---|---|
 | `renderCanvas()` | Builds all row/cell DOM from state.rows |
-| `addRow()` | Pushes new row to state.rows |
-| `deleteRow(rowIdx)` | Splices row from state.rows |
-| `duplicateRow(rowIdx)` | Deep-clones row + inserts after source (Phase 4) |
-| `resetRowStyle(rowIdx)` | Clears all visual properties on row (Phase 4) |
-| `toggleExpandedRow(rowIdx)` | Flips isExpandedRow flag |
-| `moveRow(rowIdx, dir)` | Swaps row with neighbour (+1/-1) |
-| `addFieldToCell(fieldId, rowIdx, colIdx)` | Places field into specific cell |
-| `addFieldToFirstEmpty(fieldId)` | Auto-places field, adds row if needed |
+| `addRow()` | Appends new empty row to state.rows |
+| `deleteRow(rowIdx)` | Removes row at index |
+| `duplicateRow(rowIdx)` | Deep-clones row + inserts below (Phase 4) |
+| `resetRowStyle(rowIdx)` | Clears rowStyle/rowVariant/rhythm/rowType/repeaterConfig (Phase 4) |
+| `toggleExpandedRow(rowIdx)` | Flips `isExpandedRow` flag |
+| `moveRow(rowIdx, dir)` | Swaps row with neighbour (+1 or -1) |
+| `addColToRow(rowIdx)` | Appends a null cell slot to row |
+| `removeColFromRow(rowIdx)` | Removes last cell slot from row |
+| `addFieldToCell(fieldId, rowIdx, colIdx)` | Places field (full mode) into specific cell |
+| `addPlaceholderToCell(rowIdx, colIdx)` | Places placeholder cell (layout mode) |
+| `addFieldToFirstEmpty(fieldId)` | Auto-places field; adds new row if no empty cell |
 | `removeFieldFromCell(rowIdx, colIdx)` | Nulls a cell |
 | `flashCell(r, c)` | CSS flash animation on newly added cell |
-| `bindCanvasToolbar()` | Binds add-row button & expanded toggle |
+| `bindCanvasToolbar()` | Binds add-row button |
 
 ### modules/preview.js
 | Function | Purpose |
 |---|---|
-| `renderPreview()` | Builds phone card DOM from state.rows |
-| `buildPreviewCard(sampleIdx)` | Creates one phone card element |
+| `renderPreview()` | Entry: routes to group level or terminal level based on drill path |
+| `renderGroupLevel(phoneList, level)` | Renders distinct group-value cards for current drill level |
+| `renderTerminalLevel(phoneList)` | Renders detail cards (with expand/collapse) |
+| `renderBreadcrumb()` | Renders drill navigation path above phone list |
+| `bindPhoneBackArrow()` | Binds back-arrow button for drill-up |
+| `buildDetailCard(record, level, isGroup, expandedIdx)` | Builds one card DOM element |
+| `buildPreviewCellEl(record, cell, rowTextOverrides)` | Builds one cell DOM element with variant rendering |
+| `buildRepeaterSubRowEl(items, row, record)` | Builds repeater sub-row list (Phase 3) |
+| `buildFooterActionRow(row)` | Builds icon action row for `footerActions` variant |
 | `bindPreviewTabs()` | Binds Normal/Expanded tab switching |
 
 ### modules/property-panel.js
 | Function | Purpose |
 |---|---|
-| `openPropPanel(rowIdx, colIdx)` | Opens property slide panel for a cell |
-| `openRowStylePanel(rowIdx)` | Opens row-style slide panel (Phase 1) |
-| `closePropPanel()` | Closes property panel |
-| `applyPropPanel()` | Reads prop panel form → mutates cell/row state → renderAll |
-| `applyRowStyle()` | Reads row-style form → mutates row state → renderAll |
-| `applyPreset(presetKey)` | Applies named preset to current row (Phase 2/4) |
-| `bindPropPanel()` | Binds panel buttons & controls |
-
-### modules/json-modal.js
-| Function | Purpose |
-|---|---|
-| `generateJSON()` | Converts state → final JSON object |
-| `openJSONModal()` | Stringifies JSON → shows in modal |
-| `hydrateFromJSON(json)` | Imports JSON → rebuilds state (validated + clamped) |
-| `bindJSONModal()` | Binds modal close & copy buttons |
-
-### modules/topbar.js
-| Function | Purpose |
-|---|---|
-| `bindTopBar()` | Binds template name, clear, save, JSON buttons |
-| `bindCardSettings()` | Binds onTap, onDoubleTap, indicator controls |
-| `saveTemplate()` | Validates → saves to localStorage (demo) |
-| `bindKeyboard()` | Binds Escape key to close panels/modals |
+| `openPropPanel(rowIdx, colIdx)` | Opens cell property editor panel |
+| `openRowStylePanel(rowIdx)` | Opens row style/variant/rhythm editor panel |
+| `closePropPanel()` | Closes panel and clears overlay |
+| `applyPropPanel()` | Reads form → updates cell state → renderAll |
+| `applyRowStyle()` | Reads form → updates row state → renderAll |
+| `applyPreset(presetKey)` | Loads named preset into form fields (with overwrite guard) |
+| `buildVariantControls(...)` | Renders variant-specific control inputs dynamically |
+| `buildLevelVisibilityUI(cell)` | Renders per-level visibility checkboxes |
+| `buildAmountTotalUI(cell)` | Renders total config controls for amount fields |
+| `bindPropPanel()` | Binds all panel event listeners |
 
 ### modules/recovery.js
 | Function | Purpose |
 |---|---|
-| `buildDraftPayload()` | Serializes full state to draft (all row/cell properties) |
-| `saveDraftNow()` | Writes draft to localStorage |
-| `scheduleDraftSave()` | Debounced (1s) autosave trigger |
+| `buildDraftPayload()` | Serializes full state to draft object (all row/cell/mode properties) |
+| `saveDraftNow()` | Writes draft to localStorage immediately |
+| `scheduleDraftSave()` | Debounced (1 s) autosave; skips until boot is complete |
+| `getDraftKey()` | Returns scoped key: `mcloud_draft_add_<id>` or `mcloud_draft_edit_<id>_<fid>` |
+| `readDraft(key)` | Reads and validates draft from localStorage |
 | `hydrateFromDraft(draft)` | Restores full state from draft payload |
-| `checkAndPromptRecovery(cb)` | Shows recovery modal at startup if draft exists |
-| `markSaved()` / `markDirty()` | Updates save-status chip in topbar |
+| `checkAndPromptRecovery(cb)` | Shows recovery modal at startup if matching draft found |
+| `markBootComplete()` | Enables autosave after boot flow finishes |
+| `clearDraft()` | Removes draft key from localStorage |
+| `markDirty()` / `markSaved()` | Updates "Unsaved changes" / "Saved" status chip in topbar |
+
+### modules/json-modal.js
+| Function | Purpose |
+|---|---|
+| `generateJSON()` | Mode router → calls `generateFullJSON()` or `generateLayoutJSON()` |
+| `generateFullJSON()` | Produces full-template JSON from state |
+| `generateLayoutJSON()` | Produces layout-only JSON with `"mode":"layout"` marker |
+| `openJSONModal()` | Stringifies JSON → displays in modal with syntax highlighting |
+| `bindJSONModal()` | Binds copy and close buttons |
+| `openImportModal()` | Shows tabbed import modal |
+| `bindImportModal()` | Binds all import modal interactions (tabs, paste, load, copy) |
+| `validateImportJSON(obj)` | Validates full-mode JSON; returns `{valid, error}` |
+| `validateLayoutJSON(obj)` | Validates layout-mode JSON; returns `{valid, error}` |
+| `hydrateFromJSON(json)` | Mode router → calls full or layout hydration |
+| `hydrateFromFullJSON(json)` | Rebuilds state from full-template JSON (validated + clamped) |
+| `hydrateFromLayoutJSON(json)` | Rebuilds state from layout-only JSON |
+
+### modules/topbar.js
+| Function | Purpose |
+|---|---|
+| `bindTopBar()` | Binds template name input, clear, save, JSON/import buttons |
+| `bindCardSettings()` | Binds indicator checkbox/select and onTap/onDoubleTap |
+| `switchDesignerMode(newMode)` | Switches between "full" and "layout" with confirmation and cell conversion |
+| `syncModeUI()` | Updates topbar select + palette/canvas visibility to match `state.designerMode` |
+| `syncUIFromState()` | Populates all form inputs from current state (used after import/recovery) |
+| `saveTemplate()` | Validates → saves to localStorage (demo); marks saved, clears draft |
+| `markDirty()` | Sets status chip to "Unsaved changes" (amber) |
+| `updateStatusChip(text, cls)` | Updates topbar status chip text and CSS class |
+| `bindKeyboard()` | Binds Escape key to close open panels/modals |
+| `bindBeforeUnload()` | Warns browser before page unload if unsaved changes exist |
+| `computeTapValues()` | Auto-sets mOnTap based on groupFields count |
 
 ---
 
 ## 9. DESIGN SYSTEM / CSS VARIABLES
 
-```css
---bg-app       : #0f1117   /* app background */
---bg-panel     : #161b27   /* panel background */
---bg-panel2    : #1c2336   /* secondary panel */
---bg-card      : #202840   /* card bg */
---bg-cell      : #242d45   /* filled cell bg */
---bg-cell-empty: #1a2235   /* empty cell bg */
---border       : #2d3a54   /* default border */
---border-light : #38476a   /* hover border */
---accent       : #3b82f6   /* primary blue */
---accent-glow  : rgba(59,130,246,0.25)
---accent-hover : #2563eb
---green        : #22c55e
---red          : #ef4444
---amber        : #f59e0b
---text-primary : #e8edf8
---text-secondary: #8b9bbf
---text-muted   : #4e5f85
---font-ui      : 'DM Sans', sans-serif
---font-mono    : 'JetBrains Mono', monospace
---topbar-h     : 56px
---panel-w      : 260px      /* left panel */
---preview-w    : 280px      /* right panel */
-```
+Design tokens live in **`css/themes.css`** as `[data-theme="..."]` blocks on the `<html>` element. `css/variables.css` contains only layout constants, reset, and shared button classes — no color values.
 
-Phone preview uses light theme (white cards, #1976D2 app bar — Material Design blue).
+### Available Themes
+
+| Theme ID | Label | Description |
+|---|---|---|
+| `classic-blue` | Classic Blue (default) | Light cyan ERP look — matches Miracle Cloud reference images |
+| `modern-dark` | Modern Dark | Original dark navy theme |
+
+To add a new theme: add a `[data-theme="new-id"] { ... }` block to `themes.css` and register `{ id, label, icon }` in `THEMES` in `theme-manager.js`. Zero component CSS edits needed.
+
+### Token Contract (all themes must define these)
+
+| Token | Purpose | classic-blue | modern-dark |
+|---|---|---|---|
+| `--bg-app` | Main app background | `#dceef8` | `#0f1117` |
+| `--bg-panel` | Sidebar panels | `#c8e6f5` | `#161b27` |
+| `--bg-card` | Card elements | `#d0eaf6` | `#202840` |
+| `--bg-cell` | Filled canvas cell | `#d8ecf7` | `#242d45` |
+| `--bg-cell-empty` | Empty canvas cell | `#cce4f2` | `#1a2235` |
+| `--border` | Default border | `#9ecbdf` | `#2d3a54` |
+| `--border-light` | Hover/light border | `#78b8d4` | `#38476a` |
+| `--accent` | Primary brand blue | `#1976D2` | `#3b82f6` |
+| `--accent-hover` | Accent on hover | `#1565C0` | `#2563eb` |
+| `--text-primary` | Main text | `#1a2b3c` | `#e8edf8` |
+| `--text-secondary` | Secondary text | `#456175` | `#8b9bbf` |
+| `--text-muted` | Muted/tertiary text | `#7a9bb5` | `#4e5f85` |
+| `--topbar-h` | Topbar height | `48px` | `56px` |
+| `--panel-w` | Left panel width | `260px` | `260px` |
+| `--preview-w` | Right panel width | `280px` | `280px` |
+| `--sidebar-bg` | Left sidebar background | `#003f5f` | `#0d1526` |
+| `--font-ui` | UI font stack | `'DM Sans', 'Segoe UI', sans-serif` | `'DM Sans', sans-serif` |
+| `--font-mono` | Monospace font | `'JetBrains Mono', Consolas` | `'JetBrains Mono', Consolas` |
+
+Additional token families (all defined per theme): `--input-*`, `--btn-*`, `--table-*`, `--modal-*`, `--tab-*`, `--code-*`, `--phone-*`, `--shadow-*`, `--radius-*`, `--variant-*`, `--pv-*` (preview row variants).
+
+Full token list: see `css/themes.css`.
 
 ---
 
