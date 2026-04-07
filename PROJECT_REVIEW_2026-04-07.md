@@ -8,7 +8,7 @@ Reviewer: Codex (principal-level production pass)
 | Severity | Area | Issue | Impact | Recommended Fix | Risk |
 |---|---|---|---|---|---|
 | High | JSON import validation | Full-mode import validator allowed columns without `dataField` if `display` existed. | Could hydrate invalid full-template cells with missing field binding, leading to undefined behavior in preview/export pipeline. | Require `dataField` for full-mode imports. Keep layout-only placeholders limited to `mode:"layout"`. | Low (strictly validation hardening). |
-| Medium | Test coverage | No automated tests existed for JSON validation/hydration and variant display config assembly. | Regression risk for import compatibility and variant export semantics. | Add focused node-based unit tests for JSON validation, layout hydration, and display config merge behavior. | Low (test-only addition). |
+| Medium | Test coverage | No automated tests existed for JSON validation/hydration and variant display config assembly. | Regression risk for import compatibility and variant export semantics. | Add focused dependency-free regression checks for JSON validation, layout hydration, and display config merge behavior. | Low (test-only addition). |
 | Medium | Documentation drift risk | Rapid feature evolution (full/layout modes + variant expansion) can drift from runtime behavior. | New contributors may implement against stale assumptions. | Keep architecture/changelog updates mandatory with each logic change. | Low. |
 
 ## Priority Order
@@ -17,11 +17,8 @@ Reviewer: Codex (principal-level production pass)
 3. Continue periodic architecture/doc sync checks (Medium).
 
 ## Test Scope Executed
+- Dependency-free static checks of JSON import/hydration logic paths and schema assumptions.
 - JS syntax check for all project JS files.
-- Unit tests for:
-  - full import JSON validation (missing dataField rejection),
-  - layout hydration mode/state correctness,
-  - cell display config merge logic.
 
 ## Notes
 - This pass intentionally applies minimal, backward-compatible improvements.

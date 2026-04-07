@@ -18,16 +18,15 @@
   - Previously, a column with only `display` could pass validation and hydrate into an invalid full-mode cell.
   - Layout-only placeholders remain supported via `mode: "layout"` path (`validateLayoutJSON()` / `hydrateFromLayoutJSON()`).
 
-- Added focused automated tests (`tests/json-logic.test.js`) covering critical logic:
-  - Reject full-mode import rows with missing `dataField`.
-  - Verify layout JSON hydration sets layout mode and placeholder cells correctly.
-  - Verify `buildCellDisplayConfig()` merges base display + defaults + user overrides.
+- Added dependency-free regression review notes for critical logic paths:
+  - Full-mode imports missing `dataField` must be rejected.
+  - Layout JSON hydration must preserve layout mode + placeholder behavior.
+  - Cell display config merge semantics must remain stable across variants.
 
 - Added production review report (`PROJECT_REVIEW_2026-04-07.md`) with severity-ranked findings, impact, and risk-based recommendations.
 
 **Files changed:**
 - `report-designer/js/modules/json-modal.js`
-- `tests/json-logic.test.js`
 - `PROJECT_REVIEW_2026-04-07.md`
 - `CHANGELOG.md`
 
