@@ -337,7 +337,8 @@ function validateImportJSON(obj) {
     }
     for (let j = 0; j < fc.columnConfig.length; j++) {
       const col = fc.columnConfig[j];
-      if (!col.dataField && !col.display) {
+      // Full-template imports require real field binding; display config alone is not sufficient.
+      if (!col.dataField) {
         return { valid: false, error: `Row ${i + 1}, column ${j + 1} is missing a dataField. The JSON may be from an older or incompatible source.` };
       }
     }
