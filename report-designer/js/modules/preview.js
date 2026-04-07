@@ -1,10 +1,31 @@
 /**
  * MCloud Mobile Template Card Designer — Preview Module
  * ─────────────────────────────────────────────────────
- * Renders the mobile phone preview with drill-down navigation.
- * Supports: group-level cards, terminal detail cards, breadcrumb,
- *           level-filtered columns, expanded content on tap only.
- * Depends on: state.js, field-registry.js, utils.js (argbToHex)
+ * Renders a live mobile-phone-style preview of the card layout.
+ *
+ * Rendering pipeline:
+ *   renderPreview()
+ *     ├─ renderBreadcrumb()                      — drill path nav
+ *     ├─ renderGroupLevel(level)                  — non-terminal: group value cards
+ *     │    └─ buildDetailCard(record, level, …)   — card with level-filtered columns
+ *     └─ renderTerminalLevel()                    — terminal: detail cards with tap-to-expand
+ *          └─ buildDetailCard(record, level, …)
+ *               ├─ footerActions row → buildFooterActionRow()
+ *               ├─ repeater row      → buildRepeaterSubRowEl() × N items
+ *               └─ normal row        → buildPreviewCellEl() per visible column
+ *
+ * Layout mode: group drill is disabled; always shows flat terminal cards.
+ * Placeholder cells display `[label]` in brackets to distinguish from real data.
+ *
+ * Cell rendering:
+ *   buildPreviewCellEl routes through a cellVariant switch (metric, metaPair,
+ *   iconText, emphasis, muted, text). Each variant produces different HTML structure.
+ *   Row-level text overrides (from expanded variant rowStyle: textColor, textFontWeight,
+ *   textFontSize) are passed as a fallback and applied when cell.style doesn't override.
+ *
+ * Depends on: state.js, field-registry.js, utils.js (argbToHex, ICON_MAP),
+ *             mock-data.js (SAMPLE_DATA, MOCK_REPEATER_DATA, getMock* helpers)
+ * Side effects: rebuilds #phoneList DOM.
  */
 
 // ═══════════════════════════════════════════════════════════

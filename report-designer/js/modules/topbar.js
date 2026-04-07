@@ -1,8 +1,23 @@
 /**
  * MCloud Mobile Template Card Designer — Topbar Module
  * ────────────────────────────────────────────────────
- * Topbar event bindings, card settings, save, and keyboard shortcuts.
- * Depends on: state.js, utils.js, json-modal.js, recovery.js
+ * Owns the header bar and its controls:
+ *   - Template name input (triggers markDirty on change)
+ *   - Clear All (destructive — confirmation required)
+ *   - Designer mode switcher (full ↔ layout, with data conversion/loss guards)
+ *   - Save, Preview JSON, Import buttons
+ *   - Card settings (indicator toggle)
+ *   - Global Escape-key handler (priority-ordered panel dismissal)
+ *
+ * Mode switching (switchDesignerMode):
+ *   full → layout: converts filled FieldCells to PlaceholderCells (preserves visual style,
+ *                   drops dataField/fieldId). Group fields are cleared.
+ *   layout → full: placeholder cells are cleared to null (cannot auto-map to real fields).
+ *   Both directions require confirmation if the canvas has content.
+ *
+ * Depends on: state.js, utils.js, json-modal.js, recovery.js, canvas.js (renderAll),
+ *             palette.js (renderPalette), preview.js (renderPreview)
+ * Side effects: state mutation, DOM updates, markDirty → autosave trigger
  */
 
 function bindTopBar() {

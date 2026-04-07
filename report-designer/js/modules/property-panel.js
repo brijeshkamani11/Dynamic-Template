@@ -1,9 +1,32 @@
 /**
  * MCloud Report Template Designer — Property Panel Module
  * ───────────────────────────────────────────────────────
- * Slide-in editor for field cell properties.
- * Now includes per-column level visibility control.
- * Depends on: state.js, field-registry.js, utils.js, canvas.js (removeFieldFromCell)
+ * Slide-in panel for editing cell and row properties.
+ *
+ * Two panel modes (determined by _editTarget.colIdx):
+ *   colIdx >= 0  → Cell mode: caption, icon, style, variant, colSpan, level visibility, totals
+ *   colIdx === -1 → Row-style mode: rowType, variant, rhythm, rowStyle, presets
+ *
+ * Mode-aware sections:
+ *   - Layout mode hides full-mode-only fields (level visibility, amount totals)
+ *     and shows placeholder label input instead.
+ *   - Variant controls (buildVariantControls) are dynamically populated from
+ *     ROW_VARIANT_DEFS / CELL_VARIANT_DEFS when the variant dropdown changes.
+ *
+ * Data flow:
+ *   openPropPanel/openRowStylePanel → populate form from state
+ *   user edits form
+ *   Apply → applyPropPanel/applyRowStyle → write form values back to state → renderAll
+ *
+ * Variant control system:
+ *   - buildVariantControls(containerId, defs, key, currentVals) — renders controls dynamically
+ *   - readVariantControls(containerId) — reads values from DOM elements with [data-vc-key]
+ *   - Row variant controls merge into row.rowStyle (expanded in JSON output)
+ *   - Cell variant controls build cell.display (structural + visual config for JSON)
+ *
+ * Depends on: state.js (variant defs, MAX_COLS, mode helpers), field-registry.js,
+ *             utils.js (argbToHex, hexToArgb, showToast), canvas.js (removeFieldFromCell, renderAll)
+ * Side effects: mutates state.rows[].cols[] or state.rows[].rowStyle, DOM panel open/close
  */
 
 function openPropPanel(rowIdx, colIdx) {
@@ -551,14 +574,15 @@ function applyPropPanel() {
   cell.colSpan      = Math.max(1, Math.min(MAX_COLS, parseInt(document.getElementById("propColSpan").value) || 1));  // Phase 1
   cell.cellVariant  = document.getElementById("propCellVariant").value || "text";  // Phase 2
 
-  // Write cell variant controls into cell.display (expanded config for JSON)
+  // Build cell.display from variant definition + user-tweaked control values.
+  // This object is what appears in exported JSON (cellVariant key is stripped).
+  // For "text" variant with no controls, display gets the minimal baseDisplay.
   const cvKey = cell.cellVariant;
   const cvDef = CELL_VARIANT_DEFS[cvKey];
   if (cvDef && cvDef.controls && cvDef.controls.length > 0) {
     const userVals = readVariantControls("cellVariantControls");
     cell.display = buildCellDisplayConfig(cvKey, userVals);
   } else {
-    // text or unknown — clear display (inline default)
     cell.display = cvDef ? Object.assign({}, cvDef.baseDisplay || {}) : {};
   }
 

@@ -1,19 +1,47 @@
 /**
  * MCloud Mobile Template Card Designer — JSON Generation & Modal Module
  * ───────────────────────────────────────────────────────────────
- * Generates the Flutter-consumable JSON and manages the preview modal.
- * Also manages import flow (paste JSON + copy existing format + sample layouts).
+ * Handles all JSON input/output: generation, validation, hydration, and the
+ * import/export UI modals.
  *
- * Dual-mode JSON generation:
- *   generateJSON()       — routes to full or layout generator based on state.designerMode
- *   generateFullJSON()   — full template JSON (existing behavior, backward-compatible)
- *   generateLayoutJSON() — layout-only JSON with mode:"layout" marker and placeholder cells
+ * ═══ GENERATION ═══
+ *   generateJSON()         — routes to full or layout based on state.designerMode
+ *   generateFullJSON()     — Flutter-consumable full template JSON
+ *   generateLayoutJSON()   — layout-only JSON with mode:"layout" marker
  *
- * Dual-mode hydration:
- *   hydrateFromJSON(json) — auto-detects json.mode and routes accordingly
- *   hydrateFromLayoutJSON(json) — restores layout mode state from layout JSON
+ *   Variant expansion (C2 rule):
+ *     - rowVariant / rhythm / cellVariant are STRIPPED from JSON output.
+ *     - Their visual effects are fully expanded into rowStyle and cell.display.
+ *     - Old JSON (with variant keys) is still importable — backward compatible.
  *
- * Depends on: state.js, format-library.js, recovery.js
+ *   JSON omission rules:
+ *     - Default values are omitted to keep output compact (e.g. textAlign:"left" → not emitted)
+ *     - Empty rowStyle → not emitted
+ *     - display:{layout:"inline"} only → not emitted (that's the default)
+ *
+ * ═══ VALIDATION ═══
+ *   validateImportJSON(obj)  — full-mode validator (checks dataField per column)
+ *   validateLayoutJSON(obj)  — layout-mode validator (checks placeholderId per column)
+ *
+ * ═══ HYDRATION ═══
+ *   hydrateFromJSON(json)       — auto-detects mode from json.mode, routes accordingly
+ *   hydrateFromLayoutJSON(json) — restores layout state, sets DESIGNER_MODE_LAYOUT
+ *
+ *   Import backward compat:
+ *     - Old JSON with cellVariant/rowVariant → used for internal state, display built from defaults
+ *     - New JSON without variant keys → variant detected from expanded values via heuristics
+ *       (detectCellVariantFromDisplay, detectRowVariantFromStyle)
+ *
+ * ═══ IMPORT MODAL ═══
+ *   Three tabs: Paste JSON | Copy Existing Format | Sample Layouts
+ *   Tab visibility is mode-dependent:
+ *     - Layout mode hides "Copy Existing Format", shows "Sample Layouts"
+ *     - Full mode hides "Sample Layouts", shows "Copy Existing Format"
+ *
+ * Depends on: state.js (mode, variant defs, MAX_COLS), format-library.js (DUMMY_FORMAT_LIBRARY,
+ *             LAYOUT_LIBRARY), recovery.js (saveDraftImmediate), palette.js (renderPalette),
+ *             canvas.js (renderAll), topbar.js (syncModeUI)
+ * Side effects: mutates state.*, resets transient globals, DOM modal management
  */
 
 // ═══════════════════════════════════════════════════════════

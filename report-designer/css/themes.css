@@ -16,12 +16,12 @@
 :root,
 [data-theme="classic-blue"] {
   /* ── Surface / Background ── */
-  --bg-app           : #dceef8;
-  --bg-panel         : #c8e6f5;
-  --bg-panel2        : #b8ddf0;
-  --bg-card          : #d0eaf6;
-  --bg-cell          : #e8f4fb;
-  --bg-cell-empty    : #dff0f9;
+  --bg-app           : #f0f7fb;
+  --bg-panel         : #dceef8;
+  --bg-panel2        : #c8e6f5;
+  --bg-card          : #e4f0f8;
+  --bg-cell          : #eef6fb;
+  --bg-cell-empty    : #ffffff;
   --bg-surface       : #ffffff;
 
   /* ── Borders ── */
@@ -67,10 +67,10 @@
   --sidebar-active-bg: rgba(255,255,255,0.12);
 
   /* ── Table / Grid ── */
-  --table-header-bg  : #b8ddf0;
+  --table-header-bg  : #c8e6f5;
   --table-header-text: #1a2b3c;
-  --table-row-alt    : #e4f2fb;
-  --table-border     : #a0c8de;
+  --table-row-alt    : #f5fafd;
+  --table-border     : #b0d4e8;
 
   /* ── Inputs ── */
   --input-bg         : #ffffff;
@@ -81,16 +81,16 @@
   /* ── Buttons ── */
   --btn-primary-bg   : #1976D2;
   --btn-primary-text : #ffffff;
-  --btn-secondary-bg : #e0f0f8;
+  --btn-secondary-bg : #eaf4fb;
   --btn-secondary-text: #1a2b3c;
   --btn-ghost-hover  : rgba(25,118,210,0.08);
 
   /* ── Modal / Overlay ── */
   --overlay-bg       : rgba(0,30,60,0.5);
-  --modal-bg         : #d4ecf6;
+  --modal-bg         : #eaf4fb;
 
   /* ── Tabs ── */
-  --tab-bg           : #d0eaf6;
+  --tab-bg           : #e4f0f8;
   --tab-active-bg    : #ffffff;
   --tab-active-border: #1976D2;
 

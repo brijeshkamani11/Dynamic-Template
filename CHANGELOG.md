@@ -7,6 +7,26 @@
 
 ---
 
+### [2026-04-07] — Code Comment Quality Pass
+
+**What changed:**
+
+Targeted commenting pass across all 9 core JS modules to bring comments to production/enterprise quality. No runtime behavior changes.
+
+**Files updated:** `state.js`, `app.js`, `canvas.js`, `property-panel.js`, `json-modal.js`, `recovery.js`, `topbar.js`, `preview.js`, `palette.js`.
+
+**Key improvements:**
+- **File headers**: every module now documents purpose, dependencies, side effects, and key entrypoints/contracts.
+- **State contracts**: `state.js` header explains the mode system (`state.designerMode` vs `_designerMode`), variant key stripping rule, module load order, and the "mutate then render" pattern.
+- **Transient state**: each `_variable` now documents its type, purpose, and what resets it.
+- **Boot sequence**: `app.js` explains the 5-step boot flow, the boot-completion guard, and why autosave is suppressed during startup.
+- **Recovery lifecycle**: `recovery.js` header documents the full draft save/restore lifecycle, boot guard, key strategy, and hydration parity requirement.
+- **Non-obvious logic**: colSpan overlap resolution in canvas.js, counter-advancement after hydration in recovery.js, cell.display construction in property-panel.js — all annotated with rationale.
+- **Rendering pipeline**: preview.js documents the full call tree from `renderPreview()` down to `buildPreviewCellEl()`.
+- **Removed stale comments**: cleaned up confusing inline notes in `getLevelCount()`.
+
+---
+
 ### [2026-04-06] — User Guide: USER_GUIDE.md
 
 **Branch:** `ui-polish`

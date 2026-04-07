@@ -1,11 +1,22 @@
 /**
  * MCloud Report Template Designer — Field Palette Module
  * ──────────────────────────────────────────────────────
- * Two-stage field selection:
- *   Stage A ("group")  : Select row-group fields → defines level hierarchy
- *   Stage B ("column") : Select display column fields → drag/click to canvas
+ * Left-hand field palette with a two-stage workflow (full mode only):
  *
- * Depends on: state.js, field-registry.js, canvas.js (addFieldToFirstEmpty)
+ *   Stage A ("group"):  User selects group fields that define the drill-level hierarchy.
+ *                        Selected fields get level badges and reorder/remove controls.
+ *   Stage B ("column"): User picks display-column fields to drag/click onto the canvas.
+ *                        All FIELD_REGISTRY entries are available (grouped by category).
+ *
+ * Layout mode bypass: when isLayoutMode(), the palette is replaced with a static notice.
+ *   Users build the layout by adding rows and clicking empty cells (no field data needed).
+ *
+ * Side effects on group add/remove:
+ *   - _drillPath and _expandedCardIdx are reset (preview drill state is invalidated)
+ *   - computeTapValues() recalculates mOnTap/mOnDoubleTap
+ *
+ * Depends on: state.js, field-registry.js, canvas.js (addFieldToFirstEmpty),
+ *             preview.js (renderPreview)
  */
 
 // ═══════════════════════════════════════════════════════════

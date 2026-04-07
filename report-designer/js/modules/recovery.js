@@ -1,10 +1,32 @@
 /**
  * MCloud Mobile Template Card Designer — Recovery / Autosave Module
  * ─────────────────────────────────────────────────────────────────
- * Manages draft autosave to localStorage and recovery on startup.
- * Depends on: state.js, utils.js (showToast)
+ * Provides crash-recovery via localStorage draft autosave.
+ *
+ * Lifecycle:
+ *   1. On every meaningful state change, markDirty() is called (usually from topbar.js)
+ *   2. markDirty() → scheduleDraftSave() → debounced saveDraftNow()
+ *   3. saveDraftNow() serialises full state via buildDraftPayload() → localStorage
+ *   4. On next page load, checkAndPromptRecovery() checks for a matching draft
+ *   5. User chooses Restore (hydrateFromDraft) or Discard (clearDraft)
+ *
+ * Boot guard: _bootComplete starts false. Until markBootComplete() is called
+ * by app.js (after the user's restore/discard decision), scheduleDraftSave()
+ * is a no-op — preventing the empty initial state from overwriting a real draft.
+ *
+ * Draft key strategy: keyed by (_designerMode, templateId, formatId) so
+ * different templates don't collide.
+ *
+ * Hydration parity: buildDraftPayload and hydrateFromDraft must be kept in sync.
+ * Every new state field must appear in both. The draft also persists designerMode
+ * so layout vs full mode is restored correctly.
+ *
+ * Depends on: state.js, utils.js (showToast), json-modal.js (generateJSON for markSaved)
+ * Side effects: localStorage read/write, DOM (recovery modal, status chip)
  */
 
+/** Increment this when the draft schema changes in a breaking way. Old drafts with a
+ *  different version are silently discarded — they can't be reliably restored. */
 const DRAFT_SCHEMA_VERSION = 1;
 const AUTOSAVE_DEBOUNCE_MS = 1000;
 
@@ -139,7 +161,8 @@ function hydrateFromDraft(draft) {
   state.groupFields       = Array.isArray(s.groupFields) ? s.groupFields : [];
   state.rows              = s.rows;
 
-  // Advance _cellCounter and _placeholderCounter past existing IDs to avoid collisions
+  // CRITICAL: advance monotonic counters past the highest existing IDs in restored data.
+  // Without this, uid() / nextPlaceholderId() would generate duplicates on next cell creation.
   state.rows.forEach(row => {
     if (!row.cols) row.cols = [];
     row.cols.forEach(cell => {

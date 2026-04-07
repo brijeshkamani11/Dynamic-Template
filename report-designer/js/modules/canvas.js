@@ -1,9 +1,23 @@
 /**
  * MCloud Report Template Designer — Canvas Module
  * ────────────────────────────────────────────────
- * Row management + canvas DOM rendering.
- * Now supports dynamic column count per row (1 to MAX_COLS).
- * Depends on: state.js, field-registry.js, utils.js, property-panel.js (openPropPanel)
+ * Owns the central design canvas: row CRUD, column management, and DOM rendering.
+ *
+ * Key responsibilities:
+ *   - Row operations: add, delete, duplicate, reorder, toggle expanded
+ *   - Column operations: add/remove columns per row (1..MAX_COLS)
+ *   - Cell management: addFieldToCell (full mode), addPlaceholderToCell (layout mode)
+ *   - Canvas rendering: renderCanvas() rebuilds the entire canvas DOM from state.rows
+ *   - colSpan overlap detection: auto-corrects spanning that would cover occupied cells
+ *   - Mode-aware rendering: full mode uses drag-drop; layout mode uses click-to-add
+ *
+ * Depends on:
+ *   state.js       — state.rows, MAX_COLS, isLayoutMode/isFullMode, uid, nextPlaceholderId
+ *   field-registry.js — FIELD_REGISTRY lookup for field metadata
+ *   utils.js       — showToast, ICON_MAP
+ *   property-panel.js — openPropPanel, openRowStylePanel
+ *
+ * Side effects: mutates state.rows, rebuilds #canvas DOM, calls renderPreview().
  */
 
 // ═══════════════════════════════════════════════════════════
@@ -298,7 +312,11 @@ function renderCanvas() {
       cellGrid.style.padding = `${rs.paddingVertical || 0}px ${rs.paddingHorizontal || 0}px`;
     }
 
-    // ── Phase 1: compute colSpan coverage (auto-correct overlaps) ──
+    // ── colSpan overlap resolution ──────────────────────────────
+    // Cells may declare colSpan > 1. If a span would cover a non-null neighbour,
+    // it is silently reduced. `coveredCols` tracks columns hidden by a prior span;
+    // `adjustedSpans[cIdx]` holds the safe span for rendering (gridColumn: span N).
+    // This runs every render — it's corrective, not preventive.
     const coveredCols  = new Set();
     const adjustedSpans = new Array(colCount).fill(1);
     let   spanWarnShown = false;

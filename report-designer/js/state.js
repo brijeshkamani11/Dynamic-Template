@@ -1,8 +1,26 @@
 /**
  * MCloud Mobile Template Card Designer — Application State
  * ────────────────────────────────────────────────────
- * Single source of truth. All modules read/write this object.
- * After mutation, call renderAll() to sync DOM.
+ * Single source of truth for the entire designer. All modules read/write
+ * the global `state` object directly — there is no event bus.
+ *
+ * After any state mutation that affects the UI, the caller must invoke
+ * renderAll() (canvas + preview) or the relevant render function.
+ *
+ * Module load order matters:
+ *   field-registry.js → state.js → utils.js → modules/* → app.js
+ *   (state.js defines constants and helpers consumed by every later module)
+ *
+ * Key concepts:
+ *   - state.designerMode ("full"|"layout") — controls the entire data model:
+ *       full   → real field mapping (FieldCell), group fields, indicator, Flutter JSON
+ *       layout → placeholder cells (PlaceholderCell), no field binding, skeleton JSON
+ *   - _designerMode ("add"|"edit") — workflow mode, NOT the same as state.designerMode
+ *   - Variant system: variant keys (rowVariant, cellVariant) are used internally
+ *     for editor UI/preview, but are STRIPPED from exported JSON. Only expanded
+ *     style/display values appear in output (see json-modal.js).
+ *
+ * Side effects: none (pure data definitions + helpers).
  */
 
 // ── CONFIGURABLE CAPS ────────────────────────────────────
@@ -20,11 +38,21 @@ const DUMMY_TEMPLATE_ID   = "R0001";
 const DUMMY_FORMAT_ID     = "F0001";
 const DUMMY_TEMPLATE_NAME = "Account Ledger";
 
-// ── APPLICATION STATE ────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// APPLICATION STATE
+// ═══════════════════════════════════════════════════════════
+//
+// Persisted state: saved to draft (recovery.js) and emitted in JSON (json-modal.js).
+// UI-transient state: _editTarget, _dragFieldId, _drillPath, etc. (see below).
+//
+// The full schema of rows/cells is documented inline below. When adding new
+// fields, update: buildDraftPayload(), hydrateFromDraft(), generateFullJSON(),
+// hydrateFromJSON(), and generateLayoutJSON() / hydrateFromLayoutJSON().
+// ═══════════════════════════════════════════════════════════
 let state = {
   templateName : "",
-  mOnTap       : "expand",        // auto-managed — NOT user-editable
-  mOnDoubleTap : "",              // auto-managed — NOT user-editable
+  mOnTap       : "expand",        // auto-computed by computeTapValues() — do not set directly
+  mOnDoubleTap : "",              // auto-computed by computeTapValues() — do not set directly
   indicator    : { isShow: false, dataField: "" },
 
   // ── Designer mode: "full" | "layout" ──────────────────
@@ -58,18 +86,27 @@ let state = {
   //   NOTE: no fieldId, no dataField
 };
 
-// ── UI/transient state (not persisted in JSON) ───────────
-let _editTarget = null;           // { rowIdx, colIdx } currently open in prop panel
-let _dragFieldId = null;          // field being dragged from palette
-let _showExpandedInCanvas = true; // always show all rows in canvas now
-let _cellCounter = 0;
-let _placeholderCounter = 0;      // auto-increments placeholderId for layout mode cells
-let _paletteStage = "group";      // "group" | "column" — two-stage palette flow
-let _drillPath = [];              // preview drill state: array of { level, groupValue, groupLabel, dataField }
-let _expandedCardIdx = -1;        // index of tapped card in terminal preview (-1 = none expanded)
-let _designerMode = "add";        // "add" | "edit" — set by caller or import (NOT the same as state.designerMode)
+// ═══════════════════════════════════════════════════════════
+// UI / TRANSIENT STATE — not persisted in JSON, reset on import
+// ═══════════════════════════════════════════════════════════
+// These globals are consumed by multiple modules. They are intentionally
+// module-scoped (vanilla JS global) because there is no build step.
+// When adding new transient state, ensure hydrateFromDraft/hydrateFromJSON
+// resets it appropriately.
+// ═══════════════════════════════════════════════════════════
+let _editTarget = null;           // { rowIdx, colIdx } — cell/row open in property panel; colIdx=-1 for row-style mode
+let _dragFieldId = null;          // fieldId of chip currently being dragged from palette → canvas
+let _showExpandedInCanvas = true; // legacy flag — always true; expanded rows always visible in canvas
+let _cellCounter = 0;             // monotonic counter for uid() — advanced past existing IDs on hydration
+let _placeholderCounter = 0;      // monotonic counter for nextPlaceholderId() — same advancement rule
+let _paletteStage = "group";      // "group" → stage A (select group fields) | "column" → stage B (display columns)
+let _drillPath = [];              // preview drill-down breadcrumb: [{ level, groupValue, groupLabel, dataField }]
+let _expandedCardIdx = -1;        // which terminal card is tapped/expanded in preview (-1 = none)
+let _designerMode = "add";        // "add" | "edit" — workflow mode set by bootstrap/import. NOT state.designerMode.
 
+/** Generate a unique cell ID. Counter advances monotonically to avoid collisions after import. */
 function uid()              { return "c"  + (++_cellCounter); }
+/** Generate a unique placeholder ID (layout mode). Same monotonic advancement pattern. */
 function nextPlaceholderId(){ return "ph_" + (++_placeholderCounter); }
 
 // ── Mode query helpers ────────────────────────────────────
@@ -254,16 +291,18 @@ function buildCellDisplayConfig(variantKey, userOverrides) {
 }
 
 /**
- * Derived helpers
+ * Returns the total number of drill levels in the current layout.
+ *
+ * Level model:
+ *   groupFields=[]          → 1 level  (flat terminal cards)
+ *   groupFields=[City]      → 2 levels (L1: City list, L2: detail cards)
+ *   groupFields=[City,Party] → 3 levels (L1: City, L2: Party, L3: detail)
+ *
+ * The terminal level (detail cards with expanded rows) is always the last level.
+ * @returns {number} 1-indexed level count (minimum 1)
  */
 function getLevelCount() {
-  // If no group fields, there's exactly 1 level (flat)
   return Math.max(1, state.groupFields.length + 1);
-  // e.g. groupFields=[City, Party] → Level 1 (City list), Level 2 (Party list), Level 3 (detail) = 3 levels
-  // But per spec: group fields define intermediate levels; terminal = last group level's detail
-  // Actually: [City, Party] → L1=City cards, L2=Party cards within City = terminal
-  // So levelCount = groupFields.length + 1 when groupFields>0, else 1
-  // But terminal is the last level, which shows detail cards
 }
 
 function getTerminalLevel() {
